@@ -97,8 +97,10 @@
           <button mat-icon-button 
                   matSuffix 
                   type="button"
+                  [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+                  [attr.aria-pressed]="!hidePassword"
                   (click)="hidePassword = !hidePassword">
-            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
           </button>
           @if (registerForm.get('contrasena')?.hasError('required')) {
             <mat-error>La contraseña es requerida</mat-error>

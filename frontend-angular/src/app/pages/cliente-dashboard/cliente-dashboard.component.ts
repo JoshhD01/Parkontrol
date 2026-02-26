@@ -45,6 +45,8 @@ export class ClienteDashboardComponent {
     idParqueadero: 0,
     placa: '',
     idTipoVehiculo: 1 as 1 | 2,
+    horaInicio: '',
+    horaFin: '',
   };
   usarVehiculoExistente = true;
   idVehiculoSeleccionado = 0;
@@ -175,13 +177,46 @@ export class ClienteDashboardComponent {
     });
   }
 
+  private convertirAISO(valor: string): string | null {
+    const fecha = new Date(valor);
+    if (Number.isNaN(fecha.getTime())) {
+      return null;
+    }
+    return fecha.toISOString();
+  }
+
   crearReserva(): void {
     if (!this.nuevaReserva.idParqueadero) {
       this.errorMessage = 'Debes seleccionar un parqueadero';
       return;
     }
 
-    let payload = { ...this.nuevaReserva };
+    if (!this.nuevaReserva.horaInicio || !this.nuevaReserva.horaFin) {
+      this.errorMessage = 'Debes ingresar hora de inicio y hora de fin';
+      return;
+    }
+
+    if (
+      new Date(this.nuevaReserva.horaFin).getTime() <=
+      new Date(this.nuevaReserva.horaInicio).getTime()
+    ) {
+      this.errorMessage = 'La hora de fin debe ser mayor a la hora de inicio';
+      return;
+    }
+
+    const horaInicioISO = this.convertirAISO(this.nuevaReserva.horaInicio);
+    const horaFinISO = this.convertirAISO(this.nuevaReserva.horaFin);
+
+    if (!horaInicioISO || !horaFinISO) {
+      this.errorMessage = 'El formato de hora no es válido';
+      return;
+    }
+
+    let payload = {
+      ...this.nuevaReserva,
+      horaInicio: horaInicioISO,
+      horaFin: horaFinISO,
+    };
 
     if (this.usarVehiculoExistente) {
       const vehiculo = this.vehiculosCliente.find(
@@ -208,6 +243,8 @@ export class ClienteDashboardComponent {
           idParqueadero: 0,
           placa: '',
           idTipoVehiculo: 1,
+          horaInicio: '',
+          horaFin: '',
         };
         this.idVehiculoSeleccionado = 0;
         this.cargarDatos();

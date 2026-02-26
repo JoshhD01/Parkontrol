@@ -48,11 +48,19 @@
         <mat-form-field appearance="outline" class="campo-completo">
           <mat-label>Contraseña</mat-label>
           <input matInput 
-                 type="password" 
+                 [type]="hidePassword ? 'password' : 'text'"
                  formControlName="contrasena"
                  placeholder="Ingrese su contraseña"
                  autocomplete="current-password">
-          <mat-icon matSuffix>lock</mat-icon>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+            [attr.aria-pressed]="!hidePassword"
+            (click)="hidePassword = !hidePassword">
+            <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
           @if (loginForm.get('contrasena')?.hasError('required')) {
             <mat-error>La contraseña es requerida</mat-error>
           }

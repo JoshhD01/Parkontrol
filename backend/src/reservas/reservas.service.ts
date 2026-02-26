@@ -74,22 +74,18 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
     }
 
     const ahora = new Date();
-    const horaInicio = createReservaDto.horaInicio
-      ? new Date(createReservaDto.horaInicio)
-      : ahora;
-    const horaFin = createReservaDto.horaFin
-      ? new Date(createReservaDto.horaFin)
-      : null;
+    const horaInicio = new Date(createReservaDto.horaInicio);
+    const horaFin = new Date(createReservaDto.horaFin);
 
     if (Number.isNaN(horaInicio.getTime())) {
       throw new BadRequestException('horaInicio no tiene un formato válido');
     }
 
-    if (horaFin && Number.isNaN(horaFin.getTime())) {
+    if (Number.isNaN(horaFin.getTime())) {
       throw new BadRequestException('horaFin no tiene un formato válido');
     }
 
-    if (horaFin && horaFin <= horaInicio) {
+    if (horaFin <= horaInicio) {
       throw new BadRequestException(
         'La hora fin debe ser mayor que la hora inicio',
       );
@@ -109,12 +105,12 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       clienteFactura: clienteFactura ?? undefined,
       estado: 'ABIERTA',
       fechaEntrada: horaInicio,
-      fechaSalida: horaFin ?? null,
+      fechaSalida: horaFin,
     });
 
     const reservaGuardada = await this.reservaRepository.save(reserva);
 
-    if (horaInicio <= ahora && (!horaFin || horaFin > ahora)) {
+    if (horaInicio <= ahora && horaFin > ahora) {
       await this.celdasService.actualizarEstado(celda.id, 'OCUPADA');
     }
 
@@ -166,6 +162,8 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       idCelda: celdaLibre.id,
       estado: 'ABIERTA',
       idClienteFactura,
+      horaInicio: reservarClienteDto.horaInicio,
+      horaFin: reservarClienteDto.horaFin,
     });
   }
 

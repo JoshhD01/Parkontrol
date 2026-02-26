@@ -38,6 +38,7 @@ export interface CreateUsuarioDto {
 })
 export class UsuarioModalComponent implements OnInit {
   form!: FormGroup;
+  hidePassword = true;
 
   constructor(
     private formBuilder: FormBuilder,

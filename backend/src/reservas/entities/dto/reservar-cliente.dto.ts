@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsIn, IsInt, IsNotEmpty, IsString, Matches, Min } from 'class-validator';
+import { IsIn, IsISO8601, IsInt, IsNotEmpty, IsString, Matches, Min } from 'class-validator';
 
 export class ReservarClienteDto {
   @Type(() => Number)
@@ -19,4 +19,12 @@ export class ReservarClienteDto {
   @IsInt()
   @IsIn([1, 2], { message: 'idTipoVehiculo debe ser 1 (particular) o 2 (moto)' })
   idTipoVehiculo: number;
+
+  @IsNotEmpty()
+  @IsISO8601()
+  horaInicio: string;
+
+  @IsNotEmpty()
+  @IsISO8601()
+  horaFin: string;
 }

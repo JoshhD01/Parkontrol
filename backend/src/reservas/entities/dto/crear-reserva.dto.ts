@@ -35,11 +35,11 @@ export class CreateReservaDto {
   @IsNumber()
   idClienteFactura?: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsISO8601()
-  horaInicio?: string;
+  horaInicio: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsISO8601()
-  horaFin?: string;
+  horaFin: string;
 }

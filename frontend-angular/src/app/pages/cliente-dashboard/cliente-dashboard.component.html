@@ -97,6 +97,16 @@
         </mat-form-field>
       }
 
+      <mat-form-field appearance="outline" class="campo">
+        <mat-label>Hora inicio</mat-label>
+        <input matInput type="datetime-local" [(ngModel)]="nuevaReserva.horaInicio" name="horaInicio">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="campo">
+        <mat-label>Hora fin</mat-label>
+        <input matInput type="datetime-local" [(ngModel)]="nuevaReserva.horaFin" name="horaFin">
+      </mat-form-field>
+
       <button mat-raised-button color="primary" (click)="crearReserva()" [disabled]="loading">
         Confirmar reserva
       </button>

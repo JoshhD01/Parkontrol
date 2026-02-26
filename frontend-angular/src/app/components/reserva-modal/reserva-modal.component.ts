@@ -69,8 +69,8 @@ export class ReservaModalComponent implements OnInit {
       placa: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]],
       idCelda: ['', [Validators.required]],
       idClienteFactura: [null],
-      horaInicio: [null],
-      horaFin: [null],
+      horaInicio: [null, [Validators.required]],
+      horaFin: [null, [Validators.required]],
       tipoDocumento: [''],
       numeroDocumento: [''],
       correoCliente: [''],
@@ -191,13 +191,13 @@ export class ReservaModalComponent implements OnInit {
     const horaInicio = this.convertirAISO(formValue.horaInicio);
     const horaFin = this.convertirAISO(formValue.horaFin);
 
-    if ((horaInicio && !horaFin) || (!horaInicio && horaFin)) {
-      this.errorMessage = 'Si defines horario, debes ingresar hora de inicio y hora de fin.';
+    if (!horaInicio || !horaFin) {
+      this.errorMessage = 'Debes ingresar hora de inicio y hora de fin.';
       this.loading = false;
       return;
     }
 
-    if (horaInicio && horaFin && new Date(horaFin).getTime() <= new Date(horaInicio).getTime()) {
+    if (new Date(horaFin).getTime() <= new Date(horaInicio).getTime()) {
       this.errorMessage = 'La hora de fin debe ser mayor a la hora de inicio.';
       this.loading = false;
       return;
@@ -211,8 +211,8 @@ export class ReservaModalComponent implements OnInit {
           idCelda: Number(formValue.idCelda),
           estado: EstadoReserva.ABIERTA,
           idClienteFactura,
-          ...(horaInicio ? { horaInicio } : {}),
-          ...(horaFin ? { horaFin } : {}),
+          horaInicio,
+          horaFin,
         };
 
         this.reservasService.create(reservaData).subscribe({

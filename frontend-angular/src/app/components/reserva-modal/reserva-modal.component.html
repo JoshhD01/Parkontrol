@@ -60,14 +60,19 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Hora inicio (opcional)</mat-label>
+      <mat-label>Hora inicio</mat-label>
       <input matInput type="datetime-local" formControlName="horaInicio">
-      <mat-hint>Si defines horario, también debes indicar hora fin</mat-hint>
+      @if (reservaForm.get('horaInicio')?.invalid && reservaForm.get('horaInicio')?.touched) {
+        <mat-error>La hora de inicio es requerida</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Hora fin (opcional)</mat-label>
+      <mat-label>Hora fin</mat-label>
       <input matInput type="datetime-local" formControlName="horaFin">
+      @if (reservaForm.get('horaFin')?.invalid && reservaForm.get('horaFin')?.touched) {
+        <mat-error>La hora de fin es requerida</mat-error>
+      }
       <mat-hint>Debe ser mayor que la hora de inicio</mat-hint>
     </mat-form-field>
 
