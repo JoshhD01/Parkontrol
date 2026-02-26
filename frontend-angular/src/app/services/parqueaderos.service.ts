@@ -23,4 +23,10 @@ export class ParqueaderosService {
   getById(id: number): Observable<Parqueadero> {
     return this.http.get<Parqueadero>(`${this.apiUrl}/parking-lots/${id}`);
   }
+
+  getDisponiblesCliente(): Observable<Parqueadero[]> {
+    return this.http.get<Parqueadero[]>(
+      `${this.apiUrl}/parking-lots/client/disponibles`,
+    );
+  }
 }

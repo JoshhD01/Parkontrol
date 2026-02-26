@@ -44,6 +44,8 @@ export class PagosService {
       );
     }
 
+    const fechaSalida = reservaFinalizada.fechaSalida;
+
     const pagoExistente = await this.pagoRepository.findOne({
       where: { reserva: { id: reserva.id } },
     });
@@ -77,7 +79,7 @@ export class PagosService {
 
     const horasTotales = this.calcularHoras(
       reserva.fechaEntrada,
-      reserva.fechaSalida,
+      fechaSalida,
     );
     const monto = this.calcularMonto(
       horasTotales,

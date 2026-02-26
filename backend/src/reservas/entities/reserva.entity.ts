@@ -18,7 +18,7 @@ export class Reserva {
   fechaEntrada: Date;
 
   @Column({ name: 'FECHA_SALIDA', type: 'timestamp', nullable: true })
-  fechaSalida: Date;
+  fechaSalida: Date | null;
 
   @Column({ name: 'ESTADO', length: 20, nullable: false })
   estado: string;

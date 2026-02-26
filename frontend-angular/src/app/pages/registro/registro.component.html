@@ -27,12 +27,11 @@
 
         <mat-form-field appearance="outline" class="campo-completo">
           <mat-label>Tipo de documento</mat-label>
-          <input
-            matInput
-            formControlName="tipoDocumento"
-            placeholder="CC, CE o PAS"
-          >
-          <mat-icon matSuffix>badge</mat-icon>
+          <mat-select formControlName="tipoDocumento">
+            @for (option of tipoDocumentoOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
 
           @if (registerForm.get('tipoDocumento')?.hasError('required')) {
             <mat-error>El tipo de documento es requerido</mat-error>
@@ -45,6 +44,9 @@
             matInput
             formControlName="numeroDocumento"
             placeholder="Tu numero de documento"
+            maxlength="30"
+            autocomplete="off"
+            spellcheck="false"
           >
           <mat-icon matSuffix>fingerprint</mat-icon>
 
@@ -54,6 +56,12 @@
           @if (registerForm.get('numeroDocumento')?.hasError('minlength')) {
             <mat-error>El numero de documento debe tener al menos 3 caracteres</mat-error>
           }
+          @if (registerForm.get('numeroDocumento')?.hasError('maxlength')) {
+            <mat-error>El numero de documento no debe superar 30 caracteres</mat-error>
+          }
+          @if (registerForm.get('numeroDocumento')?.hasError('pattern')) {
+            <mat-error>Solo se permiten letras, números y guion</mat-error>
+          }
         </mat-form-field>
 
 
@@ -62,7 +70,10 @@
           <input matInput 
                  type="email" 
                  formControlName="correo"
-                 placeholder="ejemplo@correo.com">
+               placeholder="ejemplo@correo.com"
+               autocomplete="email"
+               maxlength="100"
+               spellcheck="false">
           <mat-icon matSuffix>email</mat-icon>
 
           @if (registerForm.get('correo')?.hasError('required')) {
@@ -71,13 +82,18 @@
           @if (registerForm.get('correo')?.hasError('email')) {
             <mat-error>Ingresa un correo valido</mat-error>
           }
+          @if (registerForm.get('correo')?.hasError('maxlength')) {
+            <mat-error>El correo no debe superar 100 caracteres</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="campo-completo">
           <mat-label>Contraseña</mat-label>
           <input matInput 
                  [type]="hidePassword ? 'password' : 'text'"
-                 formControlName="contrasena">
+               formControlName="contrasena"
+               autocomplete="new-password"
+               maxlength="72">
           <button mat-icon-button 
                   matSuffix 
                   type="button"
@@ -88,7 +104,13 @@
             <mat-error>La contraseña es requerida</mat-error>
           }
           @if (registerForm.get('contrasena')?.hasError('minlength')) {
-            <mat-error>La contraseña debe tener al menos 6 caracteres</mat-error>
+            <mat-error>La contraseña debe tener al menos 8 caracteres</mat-error>
+          }
+          @if (registerForm.get('contrasena')?.hasError('maxlength')) {
+            <mat-error>La contraseña no debe superar 72 caracteres</mat-error>
+          }
+          @if (registerForm.get('contrasena')?.hasError('pattern')) {
+            <mat-error>La contraseña debe incluir al menos una letra y un número</mat-error>
           }
         </mat-form-field>
 

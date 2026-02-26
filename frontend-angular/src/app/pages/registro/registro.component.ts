@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -13,6 +14,7 @@ import { AuthService } from '../../services/autenticacion.service';
 import {
   RegistrarClienteDto,
   RegistroClienteResponse,
+  TipoDocumentoCliente,
 } from '../../models/usuario.model';
 
 @Component({
@@ -25,6 +27,7 @@ import {
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -37,6 +40,14 @@ export class RegistroComponent {
   hidePassword = true;
   loading = false;
   errorMessages: string[] = [];
+  readonly tipoDocumentoOptions: { value: TipoDocumentoCliente; label: string }[]
+    = [
+      { value: 'CC', label: 'Cédula de ciudadanía (CC)' },
+      { value: 'CE', label: 'Cédula de extranjería (CE)' },
+      { value: 'TI', label: 'Tarjeta de identidad (TI)' },
+      { value: 'PAS', label: 'Pasaporte (PAS)' },
+      { value: 'NIT', label: 'NIT' },
+    ];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -45,9 +56,25 @@ export class RegistroComponent {
   ) {
     this.registerForm = this.formBuilder.group({
       tipoDocumento: ['CC', [Validators.required]],
-      numeroDocumento: ['', [Validators.required, Validators.minLength(3)]],
-      correo: ['', [Validators.required, Validators.email]],
-      contrasena: ['', [Validators.required, Validators.minLength(6)]],
+      numeroDocumento: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(30),
+          Validators.pattern(/^[A-Za-z0-9-]+$/),
+        ],
+      ],
+      correo: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+      contrasena: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(72),
+          Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).+$/),
+        ],
+      ],
     });
   }
 

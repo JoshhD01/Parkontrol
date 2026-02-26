@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { ReservasService } from '../../services/reservas.service';
 import { ParqueaderosService } from '../../services/parqueaderos.service';
 import { AuthService } from '../../services/autenticacion.service';
-import { Reserva, CrearReservaDto } from '../../models/reserva.model';
+import { Reserva } from '../../models/reserva.model';
 import { Parqueadero } from '../../models/parqueadero.model';
 import { EstadoReserva } from '../../models/shared.model';
 import { MatCardModule } from '@angular/material/card';
@@ -13,7 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FiltroParqueaderosComponent } from '../../components/filtro-parqueaderos/filtro-parqueaderos.component';
 import { ReservaModalComponent, ReservaDialogData } from '../../components/reserva-modal/reserva-modal.component';
 import { PagoModalComponent, PagoDialogData } from '../../components/pago-modal/pago-modal.component';
@@ -131,41 +131,11 @@ export class ReservasComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.crearReserva(result);
-      }
-    });
-  }
-
-  private crearReserva(reservaData: CrearReservaDto): void {
-    
-    this.reservasService.create(reservaData).subscribe({
-      next: () => {
-
-        console.log('Reserva creada exitosamente');
         if (this.parqueaderoSeleccionado) {
           this.cargarReservas(this.parqueaderoSeleccionado);
         }
-      },
-      error: (error) => {
-        console.error('Error al crear reserva:', error);
-        
-        if (error.status === 400) {
-          if (error.error?.message?.includes('LIBRE')) {
-            this.errorMessage = 'La celda seleccionada esta OCUPADA';
-          } else {
-            this.errorMessage = 'Error en los datos de la reserva';
-          }
-        } else {
-          this.errorMessage = 'Error no pudo crear la reserva';
-        }
-        
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 5000);
       }
     });
-
-
   }
 
   finalizarReserva(reserva: Reserva): void {

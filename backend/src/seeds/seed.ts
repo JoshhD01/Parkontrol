@@ -1,5 +1,13 @@
 import 'dotenv/config';
-import { DataSource } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import {
+  DataSource,
+  DataSourceOptions,
+  DeepPartial,
+  FindOptionsWhere,
+  ObjectLiteral,
+  Repository,
+} from 'typeorm';
 import { Empresa } from '../empresas/entities/empresa.entity';
 import { Rol, RoleEnum } from '../shared/entities/rol.entity';
 import { Usuario } from '../usuarios/entities/usuario.entity';
@@ -15,18 +23,24 @@ import { MetodoPago } from '../shared/entities/metodo-pago.entity';
 import { Pago } from '../pagos/entities/pago.entity';
 import { ClienteFactura } from '../facturacion/entities/cliente-factura.entity';
 import { FacturaElectronica } from '../facturacion/entities/factura-electronica.entity';
+import { ClienteAuth } from '../auth/entities/cliente-auth.entity';
 import { Periodo } from '../shared/entities/periodo.entity';
 import { Reporte } from '../reportes/entities/reporte.entity';
 
-const dataSource = new DataSource({
-  type: 'oracle',
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 1521,
-  username: process.env.DB_USERNAME || 'parkontrol',
-  password: process.env.DB_PASSWORD || 'parkontrol',
-  sid: process.env.DB_SID || 'XE',
+const supabaseDbUrl = process.env.SUPABASE_DB_URL;
+
+if (!supabaseDbUrl) {
+  throw new Error(
+    'Falta SUPABASE_DB_URL. El seed está configurado únicamente para Postgres/Supabase.',
+  );
+}
+
+const dataSourceOptions: DataSourceOptions = {
+  type: 'postgres',
+  url: supabaseDbUrl,
   synchronize: false,
   logging: false,
+  ssl: { rejectUnauthorized: false },
   entities: [
     Empresa,
     Rol,
@@ -42,25 +56,34 @@ const dataSource = new DataSource({
     MetodoPago,
     Pago,
     ClienteFactura,
+    ClienteAuth,
     FacturaElectronica,
     Periodo,
     Reporte,
   ],
-  extra: { poolMin: 1, poolMax: 2 },
-});
+};
 
-async function saveMany<T>(repo: any, items: T[]) {
-  for (const it of items) {
-    await repo.save(it);
-  }
+const dataSource = new DataSource(dataSourceOptions);
+
+async function findOrCreate<T extends ObjectLiteral>(
+  repo: Repository<T>,
+  where: FindOptionsWhere<T>,
+  payload: DeepPartial<T>,
+): Promise<T> {
+  const existing = await repo.findOne({ where });
+  if (existing) return existing;
+  const entity = repo.create(payload);
+  return await repo.save(entity);
 }
 
-async function run() {
-  console.log('Initializing datasource...');
-  await dataSource.initialize();
-  console.log('Datasource initialized. Seeding data...');
+async function hash(password: string): Promise<string> {
+  return await bcrypt.hash(password, 10);
+}
 
-  // Repositories
+async function run(): Promise<void> {
+  console.log('Inicializando conexión para seed...');
+  await dataSource.initialize();
+
   const empresaRepo = dataSource.getRepository(Empresa);
   const rolRepo = dataSource.getRepository(Rol);
   const usuarioRepo = dataSource.getRepository(Usuario);
@@ -69,303 +92,377 @@ async function run() {
   const sensorRepo = dataSource.getRepository(Sensor);
   const celdaRepo = dataSource.getRepository(Celda);
   const tipoVehRepo = dataSource.getRepository(TipoVehiculo);
-  const vehRepo = dataSource.getRepository(Vehiculo);
+  const vehiculoRepo = dataSource.getRepository(Vehiculo);
   const tarifaRepo = dataSource.getRepository(Tarifa);
   const reservaRepo = dataSource.getRepository(Reserva);
   const metodoPagoRepo = dataSource.getRepository(MetodoPago);
   const pagoRepo = dataSource.getRepository(Pago);
   const clienteRepo = dataSource.getRepository(ClienteFactura);
+  const clienteAuthRepo = dataSource.getRepository(ClienteAuth);
   const facturaRepo = dataSource.getRepository(FacturaElectronica);
   const periodoRepo = dataSource.getRepository(Periodo);
   const reporteRepo = dataSource.getRepository(Reporte);
 
-  // 1) Empresas (3)
-  const empresas: Empresa[] = [
-    empresaRepo.create({ nombre: 'Empresa Alpha' }),
-    empresaRepo.create({ nombre: 'Empresa Beta' }),
-    empresaRepo.create({ nombre: 'Empresa Gamma' }),
-  ];
-  await saveMany(empresaRepo, empresas);
+  const empresa1 = await findOrCreate(empresaRepo, { nombre: 'PARK ALFA' }, { nombre: 'PARK ALFA' });
+  const empresa2 = await findOrCreate(empresaRepo, { nombre: 'PARK BETA' }, { nombre: 'PARK BETA' });
+  const empresa3 = await findOrCreate(empresaRepo, { nombre: 'PARK GAMA' }, { nombre: 'PARK GAMA' });
 
-  // 2) Roles (3) - third role cast to any to bypass enum typing
-  const roles: Rol[] = [
-    rolRepo.create({ nombre: RoleEnum.ADMIN }),
-    rolRepo.create({ nombre: RoleEnum.OPERADOR }),
-    rolRepo.create({ nombre: 'GUEST' as any }),
-  ];
-  await saveMany(rolRepo, roles);
+  const rolAdmin = await findOrCreate(rolRepo, { nombre: RoleEnum.ADMIN }, { nombre: RoleEnum.ADMIN });
+  const rolOperador = await findOrCreate(rolRepo, { nombre: RoleEnum.OPERADOR }, { nombre: RoleEnum.OPERADOR });
 
-  // 3) Usuarios (3)
-  const usuarios: Usuario[] = [
-    usuarioRepo.create({
-      nombre: 'Admin One',
-      correo: 'admin1@example.com',
-      contrasena: 'AdminPass1',
-      rol: roles[0],
-      empresa: empresas[0],
-    }),
-    usuarioRepo.create({
-      nombre: 'Operator One',
-      correo: 'operator1@example.com',
-      contrasena: 'OperPass1',
-      rol: roles[1],
-      empresa: empresas[0],
-    }),
-    usuarioRepo.create({
-      nombre: 'Operator Two',
-      correo: 'operator2@example.com',
-      contrasena: 'OperPass2',
-      rol: roles[1],
-      empresa: empresas[1],
-    }),
-  ];
-  await saveMany(usuarioRepo, usuarios);
+  const admin1 = await findOrCreate(
+    usuarioRepo,
+    { correo: 'admin1@parkontrol.com' },
+    {
+      nombre: 'Admin Uno',
+      correo: 'admin1@parkontrol.com',
+      contrasena: await hash('Admin1234'),
+      rol: rolAdmin,
+      empresa: empresa1,
+    },
+  );
+  await findOrCreate(
+    usuarioRepo,
+    { correo: 'operador1@parkontrol.com' },
+    {
+      nombre: 'Operador Uno',
+      correo: 'operador1@parkontrol.com',
+      contrasena: await hash('Oper1234'),
+      rol: rolOperador,
+      empresa: empresa1,
+    },
+  );
+  await findOrCreate(
+    usuarioRepo,
+    { correo: 'operador2@parkontrol.com' },
+    {
+      nombre: 'Operador Dos',
+      correo: 'operador2@parkontrol.com',
+      contrasena: await hash('Oper1234'),
+      rol: rolOperador,
+      empresa: empresa2,
+    },
+  );
 
-  // 4) MetodoPago (3)
-  const metodos = [
-    metodoPagoRepo.create({ nombre: 'CREDIT_CARD' }),
-    metodoPagoRepo.create({ nombre: 'CASH' }),
-    metodoPagoRepo.create({ nombre: 'MOBILE' }),
-  ];
-  await saveMany(metodoPagoRepo, metodos);
+  const parque1 = await findOrCreate(
+    parqueRepo,
+    { nombre: 'ALFA CENTRO' },
+    { nombre: 'ALFA CENTRO', capacidadTotal: 80, ubicacion: 'Centro', empresa: empresa1 },
+  );
+  const parque2 = await findOrCreate(
+    parqueRepo,
+    { nombre: 'BETA NORTE' },
+    { nombre: 'BETA NORTE', capacidadTotal: 60, ubicacion: 'Norte', empresa: empresa2 },
+  );
+  const parque3 = await findOrCreate(
+    parqueRepo,
+    { nombre: 'GAMA SUR' },
+    { nombre: 'GAMA SUR', capacidadTotal: 40, ubicacion: 'Sur', empresa: empresa3 },
+  );
 
-  // 5) TipoCelda (3)
-  const tiposCelda = [
-    tipoCeldaRepo.create({ nombre: 'NORMAL' }),
-    tipoCeldaRepo.create({ nombre: 'VIP' }),
-    tipoCeldaRepo.create({ nombre: 'MOTORBIKE' }),
-  ];
-  await saveMany(tipoCeldaRepo, tiposCelda);
+  const tipoCelda1 = await findOrCreate(tipoCeldaRepo, { nombre: 'PARTICULAR' }, { nombre: 'PARTICULAR' });
+  const tipoCelda2 = await findOrCreate(tipoCeldaRepo, { nombre: 'MOTO' }, { nombre: 'MOTO' });
+  const tipoCelda3 = await findOrCreate(tipoCeldaRepo, { nombre: 'DISCAPACITADO' }, { nombre: 'DISCAPACITADO' });
 
-  // 6) Sensors (3)
-  const sensors = [
-    sensorRepo.create({ descripcion: 'Sensor A' }),
-    sensorRepo.create({ descripcion: 'Sensor B' }),
-    sensorRepo.create({ descripcion: 'Sensor C' }),
-  ];
-  await saveMany(sensorRepo, sensors);
+  const sensor1 = await findOrCreate(sensorRepo, { descripcion: 'Sensor A1' }, { descripcion: 'Sensor A1' });
+  const sensor2 = await findOrCreate(sensorRepo, { descripcion: 'Sensor B1' }, { descripcion: 'Sensor B1' });
+  const sensor3 = await findOrCreate(sensorRepo, { descripcion: 'Sensor C1' }, { descripcion: 'Sensor C1' });
 
-  // 7) Periodos (3)
-  const periodos = [
-    periodoRepo.create({ nombre: 'DAILY' }),
-    periodoRepo.create({ nombre: 'WEEKLY' }),
-    periodoRepo.create({ nombre: 'MONTHLY' }),
-  ];
-  await saveMany(periodoRepo, periodos);
-
-  // 8) Parqueaderos (3)
-  const parques = [
-    parqueRepo.create({
-      nombre: 'Central Lot',
-      capacidadTotal: 100,
-      ubicacion: 'Center St',
-      empresa: empresas[0],
-    }),
-    parqueRepo.create({
-      nombre: 'North Lot',
-      capacidadTotal: 50,
-      ubicacion: 'North Ave',
-      empresa: empresas[0],
-    }),
-    parqueRepo.create({
-      nombre: 'South Lot',
-      capacidadTotal: 30,
-      ubicacion: 'South Blvd',
-      empresa: empresas[1],
-    }),
-  ];
-  await saveMany(parqueRepo, parques);
-
-  // 9) Celdas (3)
-  const celdas = [
-    celdaRepo.create({
-      estado: 'DISPONIBLE',
+  const celda1 = await findOrCreate(
+    celdaRepo,
+    { parqueadero: { id: parque1.id }, sensor: { id: sensor1.id } },
+    {
+      estado: 'LIBRE',
       ultimoCambioEstado: new Date(),
-      parqueadero: parques[0],
-      tipoCelda: tiposCelda[0],
-      sensor: sensors[0],
-    }),
-    celdaRepo.create({
-      estado: 'OCUPADA',
+      parqueadero: parque1,
+      tipoCelda: tipoCelda1,
+      sensor: sensor1,
+    },
+  );
+  const celda2 = await findOrCreate(
+    celdaRepo,
+    { parqueadero: { id: parque2.id }, sensor: { id: sensor2.id } },
+    {
+      estado: 'LIBRE',
       ultimoCambioEstado: new Date(),
-      parqueadero: parques[0],
-      tipoCelda: tiposCelda[1],
-      sensor: sensors[1],
-    }),
-    celdaRepo.create({
-      estado: 'DISPONIBLE',
+      parqueadero: parque2,
+      tipoCelda: tipoCelda2,
+      sensor: sensor2,
+    },
+  );
+  const celda3 = await findOrCreate(
+    celdaRepo,
+    { parqueadero: { id: parque3.id }, sensor: { id: sensor3.id } },
+    {
+      estado: 'LIBRE',
       ultimoCambioEstado: new Date(),
-      parqueadero: parques[1],
-      tipoCelda: tiposCelda[2],
-      sensor: sensors[2],
-    }),
-  ];
-  await saveMany(celdaRepo, celdas);
+      parqueadero: parque3,
+      tipoCelda: tipoCelda3,
+      sensor: sensor3,
+    },
+  );
 
-  // 10) TipoVehiculo (3)
-  const tiposVeh = [
-    tipoVehRepo.create({ nombre: 'CAR' }),
-    tipoVehRepo.create({ nombre: 'MOTORBIKE' }),
-    tipoVehRepo.create({ nombre: 'TRUCK' }),
-  ];
-  await saveMany(tipoVehRepo, tiposVeh);
+  const tipoVeh1 = await findOrCreate(tipoVehRepo, { nombre: 'PARTICULAR' }, { nombre: 'PARTICULAR' });
+  const tipoVeh2 = await findOrCreate(tipoVehRepo, { nombre: 'MOTO' }, { nombre: 'MOTO' });
+  const tipoVeh3 = await findOrCreate(tipoVehRepo, { nombre: 'CAMIONETA' }, { nombre: 'CAMIONETA' });
 
-  // 11) Vehiculos (3)
-  const vehs = [
-    vehRepo.create({ placa: 'ABC123', tipoVehiculo: tiposVeh[0] }),
-    vehRepo.create({ placa: 'XYZ789', tipoVehiculo: tiposVeh[1] }),
-    vehRepo.create({ placa: 'TRK555', tipoVehiculo: tiposVeh[2] }),
-  ];
-  await saveMany(vehRepo, vehs);
+  const veh1 = await findOrCreate(vehiculoRepo, { placa: 'AAA111' }, { placa: 'AAA111', tipoVehiculo: tipoVeh1 });
+  const veh2 = await findOrCreate(vehiculoRepo, { placa: 'BBB222' }, { placa: 'BBB222', tipoVehiculo: tipoVeh2 });
+  const veh3 = await findOrCreate(vehiculoRepo, { placa: 'CCC333' }, { placa: 'CCC333', tipoVehiculo: tipoVeh3 });
 
-  // 12) Tarifas (3)
-  const tarifas = [
-    tarifaRepo.create({
-      precioFraccionHora: 2.5,
-      precioHoraAdicional: 2.0,
-      parqueadero: parques[0],
-      tipoVehiculo: tiposVeh[0],
-    }),
-    tarifaRepo.create({
-      precioFraccionHora: 1.5,
-      precioHoraAdicional: 1.0,
-      parqueadero: parques[0],
-      tipoVehiculo: tiposVeh[1],
-    }),
-    tarifaRepo.create({
-      precioFraccionHora: 5.0,
-      precioHoraAdicional: 4.0,
-      parqueadero: parques[2],
-      tipoVehiculo: tiposVeh[2],
-    }),
-  ];
-  await saveMany(tarifaRepo, tarifas);
+  await findOrCreate(
+    tarifaRepo,
+    { parqueadero: { id: parque1.id }, tipoVehiculo: { id: tipoVeh1.id } },
+    {
+      precioFraccionHora: 3000,
+      precioHoraAdicional: 2500,
+      parqueadero: parque1,
+      tipoVehiculo: tipoVeh1,
+    },
+  );
+  await findOrCreate(
+    tarifaRepo,
+    { parqueadero: { id: parque2.id }, tipoVehiculo: { id: tipoVeh2.id } },
+    {
+      precioFraccionHora: 1800,
+      precioHoraAdicional: 1500,
+      parqueadero: parque2,
+      tipoVehiculo: tipoVeh2,
+    },
+  );
+  await findOrCreate(
+    tarifaRepo,
+    { parqueadero: { id: parque3.id }, tipoVehiculo: { id: tipoVeh3.id } },
+    {
+      precioFraccionHora: 4000,
+      precioHoraAdicional: 3500,
+      parqueadero: parque3,
+      tipoVehiculo: tipoVeh3,
+    },
+  );
 
-  // 13) Reservas (3)
-  const now = new Date();
-  const later = new Date(now.getTime() + 60 * 60 * 1000); // +1h
-  const reservas = [
-    reservaRepo.create({
-      fechaEntrada: now,
-      estado: 'ABIERTA',
-      vehiculo: vehs[0],
-      celda: celdas[0],
-    } as any),
-    reservaRepo.create({
-      fechaEntrada: now,
-      fechaSalida: later,
-      estado: 'CERRADA',
-      vehiculo: vehs[1],
-      celda: celdas[1],
-    } as any),
-    reservaRepo.create({
-      fechaEntrada: now,
-      estado: 'ABIERTA',
-      vehiculo: vehs[2],
-      celda: celdas[2],
-    } as any),
-  ];
-  await saveMany(reservaRepo, reservas);
-
-  // 14) Pagos (3)
-  const pagos = [
-    pagoRepo.create({
-      monto: 5.0,
-      fechaPago: new Date(),
-      reserva: reservas[1],
-      metodoPago: metodos[0],
-    } as any),
-    pagoRepo.create({
-      monto: 2.5,
-      fechaPago: new Date(),
-      reserva: reservas[1],
-      metodoPago: metodos[1],
-    } as any),
-    pagoRepo.create({
-      monto: 10.0,
-      fechaPago: new Date(),
-      reserva: reservas[2],
-      metodoPago: metodos[2],
-    } as any),
-  ];
-  await saveMany(pagoRepo, pagos);
-
-  // 15) ClienteFactura (3)
-  const clientes = [
-    clienteRepo.create({
+  const cliente1 = await findOrCreate(
+    clienteRepo,
+    { numeroDocumento: '1001001' },
+    {
       tipoDocumento: 'CC',
-      numeroDocumento: '1001',
-      correo: 'c1@example.com',
-    }),
-    clienteRepo.create({
+      numeroDocumento: '1001001',
+      correo: 'cliente1@parkontrol.com',
+      usuario: admin1,
+    },
+  );
+  const cliente2 = await findOrCreate(
+    clienteRepo,
+    { numeroDocumento: '2002002' },
+    {
+      tipoDocumento: 'CC',
+      numeroDocumento: '2002002',
+      correo: 'cliente2@parkontrol.com',
+    },
+  );
+  const cliente3 = await findOrCreate(
+    clienteRepo,
+    { numeroDocumento: '3003003' },
+    {
       tipoDocumento: 'NIT',
-      numeroDocumento: '2002',
-      correo: 'c2@example.com',
-    }),
-    clienteRepo.create({
-      tipoDocumento: 'CC',
-      numeroDocumento: '3003',
-      correo: 'c3@example.com',
-    }),
-  ];
-  await saveMany(clienteRepo, clientes);
+      numeroDocumento: '3003003',
+      correo: 'cliente3@parkontrol.com',
+    },
+  );
 
-  // 16) Facturas (3)
-  const facturas = [
-    facturaRepo.create({
-      cufe: 'CUFE1',
-      urlPdf: 'http://example.com/f1.pdf',
+  await findOrCreate(
+    clienteAuthRepo,
+    { correo: 'cliente1@parkontrol.com' },
+    {
+      clienteFactura: cliente1,
+      correo: 'cliente1@parkontrol.com',
+      contrasenaHash: await hash('Cliente1234'),
+      activo: true,
+    },
+  );
+  await findOrCreate(
+    clienteAuthRepo,
+    { correo: 'cliente2@parkontrol.com' },
+    {
+      clienteFactura: cliente2,
+      correo: 'cliente2@parkontrol.com',
+      contrasenaHash: await hash('Cliente1234'),
+      activo: true,
+    },
+  );
+  await findOrCreate(
+    clienteAuthRepo,
+    { correo: 'cliente3@parkontrol.com' },
+    {
+      clienteFactura: cliente3,
+      correo: 'cliente3@parkontrol.com',
+      contrasenaHash: await hash('Cliente1234'),
+      activo: true,
+    },
+  );
+
+  const fechaBase = new Date('2026-02-20T08:00:00.000Z');
+
+  const reserva1 = await findOrCreate(
+    reservaRepo,
+    { vehiculo: { id: veh1.id }, fechaEntrada: fechaBase },
+    {
+      fechaEntrada: fechaBase,
+      fechaSalida: null as unknown as Date,
+      estado: 'ABIERTA',
+      vehiculo: veh1,
+      celda: celda1,
+      clienteFactura: cliente1,
+    },
+  );
+
+  const reserva2Fecha = new Date('2026-02-20T10:00:00.000Z');
+  const reserva2 = await findOrCreate(
+    reservaRepo,
+    { vehiculo: { id: veh2.id }, fechaEntrada: reserva2Fecha },
+    {
+      fechaEntrada: reserva2Fecha,
+      fechaSalida: new Date('2026-02-20T12:00:00.000Z'),
+      estado: 'CERRADA',
+      vehiculo: veh2,
+      celda: celda2,
+      clienteFactura: cliente2,
+    },
+  );
+
+  const reserva3Fecha = new Date('2026-02-20T14:00:00.000Z');
+  const reserva3 = await findOrCreate(
+    reservaRepo,
+    { vehiculo: { id: veh3.id }, fechaEntrada: reserva3Fecha },
+    {
+      fechaEntrada: reserva3Fecha,
+      fechaSalida: new Date('2026-02-20T15:30:00.000Z'),
+      estado: 'CERRADA',
+      vehiculo: veh3,
+      celda: celda3,
+      clienteFactura: cliente3,
+    },
+  );
+
+  const metodo1 = await findOrCreate(metodoPagoRepo, { nombre: 'EFECTIVO' }, { nombre: 'EFECTIVO' });
+  const metodo2 = await findOrCreate(metodoPagoRepo, { nombre: 'TARJETA' }, { nombre: 'TARJETA' });
+  const metodo3 = await findOrCreate(metodoPagoRepo, { nombre: 'TRANSFERENCIA' }, { nombre: 'TRANSFERENCIA' });
+
+  const pago1 = await findOrCreate(
+    pagoRepo,
+    { reserva: { id: reserva1.id }, metodoPago: { id: metodo1.id } },
+    {
+      monto: 8000,
+      fechaPago: new Date('2026-02-20T09:10:00.000Z'),
+      reserva: reserva1,
+      metodoPago: metodo1,
+    },
+  );
+  const pago2 = await findOrCreate(
+    pagoRepo,
+    { reserva: { id: reserva2.id }, metodoPago: { id: metodo2.id } },
+    {
+      monto: 11000,
+      fechaPago: new Date('2026-02-20T12:10:00.000Z'),
+      reserva: reserva2,
+      metodoPago: metodo2,
+    },
+  );
+  const pago3 = await findOrCreate(
+    pagoRepo,
+    { reserva: { id: reserva3.id }, metodoPago: { id: metodo3.id } },
+    {
+      monto: 14500,
+      fechaPago: new Date('2026-02-20T15:40:00.000Z'),
+      reserva: reserva3,
+      metodoPago: metodo3,
+    },
+  );
+
+  await findOrCreate(
+    facturaRepo,
+    { cufe: 'CUFE-SEED-001' },
+    {
+      cufe: 'CUFE-SEED-001',
+      urlPdf: 'https://example.com/facturas/seed-1.pdf',
       enviada: 'Y',
-      fechaCreacion: new Date(),
-      pago: pagos[0],
-      clienteFactura: clientes[0],
-    } as any),
-    facturaRepo.create({
-      cufe: 'CUFE2',
-      urlPdf: 'http://example.com/f2.pdf',
+      fechaCreacion: new Date('2026-02-20T09:20:00.000Z'),
+      pago: pago1,
+      clienteFactura: cliente1,
+    },
+  );
+  await findOrCreate(
+    facturaRepo,
+    { cufe: 'CUFE-SEED-002' },
+    {
+      cufe: 'CUFE-SEED-002',
+      urlPdf: 'https://example.com/facturas/seed-2.pdf',
       enviada: 'N',
-      fechaCreacion: new Date(),
-      pago: pagos[1],
-      clienteFactura: clientes[1],
-    } as any),
-    facturaRepo.create({
-      cufe: 'CUFE3',
-      urlPdf: 'http://example.com/f3.pdf',
+      fechaCreacion: new Date('2026-02-20T12:20:00.000Z'),
+      pago: pago2,
+      clienteFactura: cliente2,
+    },
+  );
+  await findOrCreate(
+    facturaRepo,
+    { cufe: 'CUFE-SEED-003' },
+    {
+      cufe: 'CUFE-SEED-003',
+      urlPdf: 'https://example.com/facturas/seed-3.pdf',
       enviada: 'Y',
-      fechaCreacion: new Date(),
-      pago: pagos[2],
-      clienteFactura: clientes[2],
-    } as any),
-  ];
-  await saveMany(facturaRepo, facturas);
+      fechaCreacion: new Date('2026-02-20T15:50:00.000Z'),
+      pago: pago3,
+      clienteFactura: cliente3,
+    },
+  );
 
-  // 17) Reportes (3)
-  const reportes = [
-    reporteRepo.create({
-      urlArchivo: 'http://example.com/r1.pdf',
-      parqueadero: parques[0],
-      periodo: periodos[0],
-    }),
-    reporteRepo.create({
-      urlArchivo: 'http://example.com/r2.pdf',
-      parqueadero: parques[1],
-      periodo: periodos[1],
-    }),
-    reporteRepo.create({
-      urlArchivo: 'http://example.com/r3.pdf',
-      parqueadero: parques[2],
-      periodo: periodos[2],
-    }),
-  ];
-  await saveMany(reporteRepo, reportes);
+  const periodo1 = await findOrCreate(periodoRepo, { nombre: 'DIARIO' }, { nombre: 'DIARIO' });
+  const periodo2 = await findOrCreate(periodoRepo, { nombre: 'SEMANAL' }, { nombre: 'SEMANAL' });
+  const periodo3 = await findOrCreate(periodoRepo, { nombre: 'MENSUAL' }, { nombre: 'MENSUAL' });
 
-  console.log('Seeding finished.');
+  await findOrCreate(
+    reporteRepo,
+    { urlArchivo: 'https://example.com/reportes/reporte-seed-1.pdf' },
+    {
+      urlArchivo: 'https://example.com/reportes/reporte-seed-1.pdf',
+      parqueadero: parque1,
+      periodo: periodo1,
+    },
+  );
+  await findOrCreate(
+    reporteRepo,
+    { urlArchivo: 'https://example.com/reportes/reporte-seed-2.pdf' },
+    {
+      urlArchivo: 'https://example.com/reportes/reporte-seed-2.pdf',
+      parqueadero: parque2,
+      periodo: periodo2,
+    },
+  );
+  await findOrCreate(
+    reporteRepo,
+    { urlArchivo: 'https://example.com/reportes/reporte-seed-3.pdf' },
+    {
+      urlArchivo: 'https://example.com/reportes/reporte-seed-3.pdf',
+      parqueadero: parque3,
+      periodo: periodo3,
+    },
+  );
+
+  console.log('✅ Seed completado con mínimo 3 registros por módulo clave.');
+  console.log('Credenciales de prueba:');
+  console.log('- Admin: admin1@parkontrol.com / Admin1234');
+  console.log('- Operador: operador1@parkontrol.com / Oper1234');
+  console.log('- Cliente: cliente1@parkontrol.com / Cliente1234');
+
   await dataSource.destroy();
 }
 
 run()
   .then(() => process.exit(0))
-  .catch((err) => {
-    console.error('Seeding error:', err);
+  .catch(async (error) => {
+    console.error('❌ Error ejecutando seed:', error);
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
     process.exit(1);
   });

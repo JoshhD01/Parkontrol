@@ -16,6 +16,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ReservasService } from '../../services/reservas.service';
 
 
 
@@ -35,7 +37,8 @@ export interface ReservaDialogData {
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
   ],
   templateUrl: './reserva-modal.component.html',
   styleUrls: ['./reserva-modal.component.scss']
@@ -58,12 +61,16 @@ export class ReservaModalComponent implements OnInit {
     private vehiculosService: VehiculosService,
     private celdasService: CeldasService,
     private facturacionService: FacturacionService,
+    private reservasService: ReservasService,
+    private snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA) public data: ReservaDialogData
   ) {
     this.reservaForm = this.formBuilder.group({
       placa: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]],
       idCelda: ['', [Validators.required]],
       idClienteFactura: [null],
+      horaInicio: [null],
+      horaFin: [null],
       tipoDocumento: [''],
       numeroDocumento: [''],
       correoCliente: [''],
@@ -167,6 +174,7 @@ export class ReservaModalComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.reservaForm.valid) {
+      this.reservaForm.markAllAsTouched();
       return;
     }
 
@@ -180,65 +188,182 @@ export class ReservaModalComponent implements OnInit {
 
     const formValue = this.reservaForm.getRawValue();
     const placa = String(formValue.placa ?? '').trim().toUpperCase();
+    const horaInicio = this.convertirAISO(formValue.horaInicio);
+    const horaFin = this.convertirAISO(formValue.horaFin);
 
-    this.vehiculosService.getByPlaca(placa).subscribe({
-      next: (vehiculo: Vehiculo) => {
-        const cerrarConReserva = (idClienteFactura?: number): void => {
-          const reservaData: CrearReservaDto = {
-            idVehiculo: vehiculo.id,
-            idCelda: formValue.idCelda,
-            estado: EstadoReserva.ABIERTA,
-            idClienteFactura,
-          };
+    if ((horaInicio && !horaFin) || (!horaInicio && horaFin)) {
+      this.errorMessage = 'Si defines horario, debes ingresar hora de inicio y hora de fin.';
+      this.loading = false;
+      return;
+    }
 
-          this.dialogRef.close(reservaData);
-          this.loading = false;
+    if (horaInicio && horaFin && new Date(horaFin).getTime() <= new Date(horaInicio).getTime()) {
+      this.errorMessage = 'La hora de fin debe ser mayor a la hora de inicio.';
+      this.loading = false;
+      return;
+    }
+
+    this.obtenerOCrearVehiculo(placa, Number(formValue.idCelda))
+      .then((vehiculo) => this.resolverClienteFactura(formValue).then((idClienteFactura) => ({ vehiculo, idClienteFactura })))
+      .then(({ vehiculo, idClienteFactura }) => {
+        const reservaData: CrearReservaDto = {
+          idVehiculo: vehiculo.id,
+          idCelda: Number(formValue.idCelda),
+          estado: EstadoReserva.ABIERTA,
+          idClienteFactura,
+          ...(horaInicio ? { horaInicio } : {}),
+          ...(horaFin ? { horaFin } : {}),
         };
 
-        const idClienteSeleccionado = formValue.idClienteFactura ? Number(formValue.idClienteFactura) : undefined;
-        if (idClienteSeleccionado) {
-          cerrarConReserva(idClienteSeleccionado);
-          return;
-        }
-
-        if (!this.tieneDatosNuevoCliente()) {
-          cerrarConReserva();
-          return;
-        }
-
-        const nuevoCliente: CrearClienteFacturaDto = {
-          tipoDocumento: String(formValue.tipoDocumento).trim().toUpperCase(),
-          numeroDocumento: String(formValue.numeroDocumento).trim(),
-          correo: String(formValue.correoCliente).trim().toLowerCase(),
-        };
-
-        this.facturacionService.crearClienteFactura(nuevoCliente).subscribe({
-          next: (cliente) => {
-            cerrarConReserva(cliente.id);
+        this.reservasService.create(reservaData).subscribe({
+          next: () => {
+            this.snackBar.open('Reserva creada exitosamente', 'Cerrar', {
+              duration: 3000,
+              panelClass: ['snackbar-success'],
+            });
+            this.loading = false;
+            this.dialogRef.close(true);
           },
           error: (error) => {
-            console.error('Error al crear cliente rápido:', error);
-            this.errorMessage = 'No fue posible crear el cliente de facturación. Intenta nuevamente.';
+            console.error('Error al crear reserva:', error);
+            const backendMessage = this.extraerMensajeError(error);
+            this.errorMessage = backendMessage;
+            this.snackBar.open(backendMessage, 'Cerrar', {
+              duration: 4000,
+              panelClass: ['snackbar-error'],
+            });
             this.loading = false;
-          }
+          },
         });
-      },
-      error: (error) => {
-        if (error.status === 404) {
-          alert(`Vehiculo con placa "${placa}" no esta registrado`);
-          this.irAVehiculos();
-        } else {
-          console.error('Error vehiculo no encontrado:', error);
-          this.errorMessage = 'No fue posible validar el vehículo en este momento.';
-        }
-
+      })
+      .catch((errorMessage) => {
+        this.errorMessage = errorMessage;
+        this.snackBar.open(errorMessage, 'Cerrar', {
+          duration: 4000,
+          panelClass: ['snackbar-error'],
+        });
         this.loading = false;
-      }
+      });
+  }
+
+  private extraerMensajeError(error: any): string {
+    const backendMessage = error?.error?.message;
+    if (typeof backendMessage === 'string' && backendMessage.trim().length > 0) {
+      return backendMessage;
+    }
+    if (Array.isArray(backendMessage) && backendMessage.length > 0) {
+      return String(backendMessage[0]);
+    }
+    return 'No fue posible crear la reserva. Intenta nuevamente.';
+  }
+
+  private obtenerTipoVehiculoDesdeCelda(idCelda: number): number | null {
+    const celdaSeleccionada = this.celdas.find((celda) => celda.id === idCelda);
+    if (!celdaSeleccionada) {
+      return null;
+    }
+
+    const idDesdeCampo = Number((celdaSeleccionada as any).idTipoCelda);
+    if (Number.isFinite(idDesdeCampo) && idDesdeCampo > 0) {
+      return idDesdeCampo;
+    }
+
+    const idDesdeRelacion = Number((celdaSeleccionada as any).tipoCelda?.id);
+    if (Number.isFinite(idDesdeRelacion) && idDesdeRelacion > 0) {
+      return idDesdeRelacion;
+    }
+
+    const nombreTipoCelda = String((celdaSeleccionada as any).tipoCelda?.nombre ?? '')
+      .trim()
+      .toUpperCase();
+
+    if (nombreTipoCelda.includes('PARTICULAR')) {
+      return 1;
+    }
+    if (nombreTipoCelda.includes('MOTO')) {
+      return 2;
+    }
+    if (nombreTipoCelda.includes('CAMIONETA') || nombreTipoCelda.includes('DISCAPACITADO')) {
+      return 3;
+    }
+
+    return null;
+  }
+
+  private obtenerOCrearVehiculo(placa: string, idCelda: number): Promise<Vehiculo> {
+    return new Promise((resolve, reject) => {
+      this.vehiculosService.getByPlaca(placa).subscribe({
+        next: (vehiculo) => resolve(vehiculo),
+        error: (error) => {
+          if (error.status !== 404) {
+            console.error('Error validando placa:', error);
+            reject('No fue posible validar la placa en este momento.');
+            return;
+          }
+
+          const idTipoVehiculo = this.obtenerTipoVehiculoDesdeCelda(idCelda);
+          if (!idTipoVehiculo) {
+            reject('No se pudo determinar el tipo de vehículo según la celda seleccionada.');
+            return;
+          }
+
+          this.vehiculosService
+            .create({ placa, idTipoVehiculo })
+            .subscribe({
+              next: (vehiculoCreado) => resolve(vehiculoCreado),
+              error: (crearError) => {
+                console.error('Error creando vehículo automático:', crearError);
+                reject(this.extraerMensajeError(crearError));
+              },
+            });
+        },
+      });
     });
   }
 
-  irAVehiculos(): void {
-    this.dialogRef.close();
+  private resolverClienteFactura(formValue: any): Promise<number | undefined> {
+    return new Promise((resolve, reject) => {
+      const idClienteSeleccionado = formValue.idClienteFactura
+        ? Number(formValue.idClienteFactura)
+        : undefined;
+
+      if (idClienteSeleccionado) {
+        resolve(idClienteSeleccionado);
+        return;
+      }
+
+      if (!this.tieneDatosNuevoCliente()) {
+        resolve(undefined);
+        return;
+      }
+
+      const nuevoCliente: CrearClienteFacturaDto = {
+        tipoDocumento: String(formValue.tipoDocumento).trim().toUpperCase(),
+        numeroDocumento: String(formValue.numeroDocumento).trim(),
+        correo: String(formValue.correoCliente).trim().toLowerCase(),
+      };
+
+      this.facturacionService.crearClienteFactura(nuevoCliente).subscribe({
+        next: (cliente) => resolve(cliente.id),
+        error: (error) => {
+          console.error('Error al crear cliente rápido:', error);
+          reject(this.extraerMensajeError(error));
+        },
+      });
+    });
+  }
+
+  private convertirAISO(valor: string | null | undefined): string | undefined {
+    if (!valor) {
+      return undefined;
+    }
+
+    const fecha = new Date(valor);
+    if (Number.isNaN(fecha.getTime())) {
+      return undefined;
+    }
+
+    return fecha.toISOString();
   }
 
   onCancel(): void {

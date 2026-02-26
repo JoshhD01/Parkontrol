@@ -92,6 +92,7 @@ export class DashboardComponent implements OnInit {
         error: (error) => {
           console.log('no recibe ocupacion', error);
           this.ocupacion = [];
+          this.validarPeticiones();
         },
         complete: () => {
           this.validarPeticiones(); 
@@ -106,6 +107,7 @@ export class DashboardComponent implements OnInit {
         error: (error) => {
           console.log('No se cargo reservas', error);
           this.reservasActivas = [];
+          this.validarPeticiones();
         },
         complete: () => {
           this.validarPeticiones();
@@ -121,6 +123,7 @@ export class DashboardComponent implements OnInit {
         error: (error) => {
           console.log('No se cargaron ingresos', error);
           this.ingresos = [];
+          this.validarPeticiones();
         },
 
         complete: () => {
@@ -138,6 +141,7 @@ export class DashboardComponent implements OnInit {
         error: (error) => {
           console.log('No cargo facturacion', error);
           this.facturacion = [];
+          this.validarPeticiones();
         },
 
         complete: () => {

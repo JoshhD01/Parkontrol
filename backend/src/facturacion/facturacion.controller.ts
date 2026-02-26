@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   NotFoundException,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { FacturacionService } from './facturacion.service';
@@ -18,10 +19,29 @@ import { Roles } from 'src/shared/decorators';
 import { RoleEnum } from 'src/shared/entities/rol.entity';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { RolesGuard } from 'src/shared/guards';
+import { GetUser } from 'src/shared/decorators';
+import type { JwtUsuario } from 'src/auth/interfaces';
 
 @Controller('invoicing')
 export class FacturacionController {
   constructor(private readonly facturacionService: FacturacionService) {}
+
+  @Get('facturas/client/mias')
+  @UseGuards(JwtAuthGuard)
+  async obtenerFacturasCliente(
+    @GetUser() user: JwtUsuario,
+  ): Promise<FacturaElectronica[]> {
+    if (user.nombreRol !== 'CLIENTE') {
+      throw new UnauthorizedException(
+        'Acceso exclusivo para clientes autenticados',
+      );
+    }
+
+    return await this.facturacionService.findByClienteFacturaOrCorreo(
+      user.id,
+      user.correo,
+    );
+  }
 
   @Post('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)

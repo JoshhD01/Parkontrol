@@ -98,6 +98,39 @@ export class FacturacionService {
     return await this.clienteFacturaRepository.find({ relations: ['usuario'] });
   }
 
+  async findByClienteFactura(
+    idClienteFactura: number,
+  ): Promise<FacturaElectronica[]> {
+    return await this.facturaRepository.find({
+      where: { clienteFactura: { id: idClienteFactura } },
+      relations: ['pago', 'clienteFactura'],
+      order: { fechaCreacion: 'DESC' },
+    });
+  }
+
+  async findByClienteFacturaOrCorreo(
+    idClienteFactura: number,
+    correoCliente: string,
+  ): Promise<FacturaElectronica[]> {
+    const correoNormalizado = correoCliente.trim().toLowerCase();
+
+    return await this.facturaRepository
+      .createQueryBuilder('factura')
+      .leftJoinAndSelect('factura.pago', 'pago')
+      .leftJoinAndSelect('factura.clienteFactura', 'clienteFactura')
+      .where('clienteFactura.ID_CLIENTE_FACTURA = :idClienteFactura', {
+        idClienteFactura,
+      })
+      .orWhere(
+        "LOWER(TRIM(clienteFactura.CORREO)) = LOWER(TRIM(:correoNormalizado))",
+        {
+        correoNormalizado,
+        },
+      )
+      .orderBy('factura.FECHA_CREACION', 'DESC')
+      .getMany();
+  }
+
   private async resolverUsuario(idUsuario?: number): Promise<Usuario | null> {
     if (!idUsuario) {
       return null;

@@ -1,14 +1,131 @@
 <div class="contenedor-cliente">
-  <mat-card class="tarjeta-cliente">
-    <mat-card-title>Bienvenido, cliente</mat-card-title>
-    <mat-card-content>
-      <p>Acceso de cliente activo para: <strong>{{ correoCliente }}</strong></p>
-      <p>Tu sesión está separada del acceso administrativo y operativo.</p>
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button color="primary" (click)="cerrarSesion()">
-        Cerrar sesión
+  <section class="cabecera">
+    <div>
+      <h1>Panel del Cliente</h1>
+      <p>Bienvenido, {{ correoCliente }}</p>
+    </div>
+    <button mat-stroked-button color="primary" (click)="cerrarSesion()">
+      Cerrar sesión
+    </button>
+  </section>
+
+  @if (errorMessage) {
+    <mat-card class="alerta-error">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage }}</span>
+    </mat-card>
+  }
+
+  <section class="metricas">
+    <mat-card class="kpi">
+      <mat-icon>directions_car</mat-icon>
+      <div>
+        <h3>{{ totalVehiculos }}</h3>
+        <p>Vehículos registrados</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi">
+      <mat-icon>event_available</mat-icon>
+      <div>
+        <h3>{{ totalReservas }}</h3>
+        <p>Reservas registradas</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi">
+      <mat-icon>receipt_long</mat-icon>
+      <div>
+        <h3>{{ totalFacturas }}</h3>
+        <p>Facturas emitidas</p>
+      </div>
+    </mat-card>
+  </section>
+
+  <section class="grid-principal">
+    <mat-card class="panel panel-accion">
+      <mat-card-title>Reservar estacionamiento</mat-card-title>
+      <mat-card-subtitle>Asignación automática de celda por disponibilidad</mat-card-subtitle>
+
+      <mat-form-field appearance="outline" class="campo">
+        <mat-label>Parqueadero</mat-label>
+        <select matNativeControl [(ngModel)]="nuevaReserva.idParqueadero" name="idParqueadero">
+          <option [value]="0">Selecciona un parqueadero</option>
+          @for (parqueadero of parqueaderos; track parqueadero.id) {
+            <option [value]="parqueadero.id">
+              #{{ parqueadero.id }} - {{ parqueadero.nombre }}
+            </option>
+          }
+        </select>
+      </mat-form-field>
+
+      <div class="modo-vehiculo">
+        <label>
+          <input type="radio" name="modoVehiculo" [checked]="usarVehiculoExistente" (change)="usarVehiculoExistente = true">
+          Vehículo registrado
+        </label>
+        <label>
+          <input type="radio" name="modoVehiculo" [checked]="!usarVehiculoExistente" (change)="usarVehiculoExistente = false">
+          Vehículo nuevo
+        </label>
+      </div>
+
+      @if (usarVehiculoExistente) {
+        <mat-form-field appearance="outline" class="campo">
+          <mat-label>Mis vehículos</mat-label>
+          <select matNativeControl [(ngModel)]="idVehiculoSeleccionado" name="idVehiculoSeleccionado">
+            <option [value]="0">Selecciona un vehículo</option>
+            @for (vehiculo of vehiculosCliente; track vehiculo.id) {
+              <option [value]="vehiculo.id">
+                {{ vehiculo.placa }} - {{ formatearTipoVehiculo(vehiculo) }}
+              </option>
+            }
+          </select>
+        </mat-form-field>
+      } @else {
+        <mat-form-field appearance="outline" class="campo">
+          <mat-label>Placa</mat-label>
+          <input matInput [(ngModel)]="nuevaReserva.placa" name="placa" placeholder="ABC123">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="campo">
+          <mat-label>Tipo de vehículo</mat-label>
+          <select matNativeControl [(ngModel)]="nuevaReserva.idTipoVehiculo" name="idTipoVehiculo">
+            <option [value]="1">Particular</option>
+            <option [value]="2">Moto</option>
+          </select>
+        </mat-form-field>
+      }
+
+      <button mat-raised-button color="primary" (click)="crearReserva()" [disabled]="loading">
+        Confirmar reserva
       </button>
-    </mat-card-actions>
-  </mat-card>
+    </mat-card>
+
+    <mat-card class="panel">
+      <mat-card-title>Mis reservas</mat-card-title>
+      @if (!reservas.length) {
+        <p class="vacio">Aún no tienes reservas.</p>
+      }
+      @for (reserva of reservas; track reserva.id) {
+        <div class="item-linea">
+          <span>Reserva #{{ reserva.id }}</span>
+          <small>{{ obtenerEstadoReserva(reserva.estado) }}</small>
+        </div>
+      }
+    </mat-card>
+
+    <mat-card class="panel">
+      <mat-card-title>Mis facturas</mat-card-title>
+      @if (!facturas.length) {
+        <p class="vacio">Aún no tienes facturas.</p>
+      }
+      @for (factura of facturas; track factura.id) {
+        <div class="item-linea">
+          <span>Factura #{{ factura.id }}</span>
+          <small>{{ factura.cufe }}</small>
+        </div>
+      }
+    </mat-card>
+  </section>
 </div>

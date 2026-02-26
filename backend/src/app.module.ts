@@ -29,32 +29,19 @@ import { VistasModule } from './vistas/vistas.module';
         const supabaseDbUrl = configService.get<string>('SUPABASE_DB_URL');
         const dbSync = configService.get<string>('DB_SYNC') === 'true';
 
-        if (supabaseDbUrl) {
-          return {
-            type: 'postgres',
-            url: supabaseDbUrl,
-            synchronize: dbSync,
-            autoLoadEntities: true,
-            logging: true,
-            ssl: { rejectUnauthorized: false },
-          };
+        if (!supabaseDbUrl) {
+          throw new Error(
+            'Falta SUPABASE_DB_URL en variables de entorno. Este proyecto usa únicamente Postgres/Supabase.',
+          );
         }
 
         return {
-          type: 'oracle',
-          host: configService.get<string>('DB_HOST'),
-          port: Number(configService.get<number>('DB_PORT')),
-          username: configService.get<string>('DB_USERNAME'),
-          password: configService.get<string>('DB_PASSWORD'),
-          sid: configService.get<string>('DB_SID'),
+          type: 'postgres',
+          url: supabaseDbUrl,
           synchronize: dbSync,
           autoLoadEntities: true,
           logging: true,
-          extra: {
-            poolMin: 1,
-            poolMax: 1,
-            poolIncrement: 0,
-          },
+          ssl: { rejectUnauthorized: false },
         };
       },
     }),

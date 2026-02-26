@@ -38,5 +38,9 @@ export class FacturacionService {
 	getFacturaPorPago(idPago: number): Observable<FacturaElectronica> {
 		return this.http.get<FacturaElectronica>(`${this.apiUrl}/invoicing/facturas/pago/${idPago}`);
 	}
+
+	getMisFacturasCliente(): Observable<FacturaElectronica[]> {
+		return this.http.get<FacturaElectronica[]>(`${this.apiUrl}/invoicing/facturas/client/mias`);
+	}
 }
 

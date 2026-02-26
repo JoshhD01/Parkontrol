@@ -3,6 +3,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
+  IsISO8601,
   IsOptional,
   IsString,
   Min,
@@ -33,4 +34,12 @@ export class CreateReservaDto {
   @Min(1)
   @IsNumber()
   idClienteFactura?: number;
+
+  @IsOptional()
+  @IsISO8601()
+  horaInicio?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  horaFin?: string;
 }

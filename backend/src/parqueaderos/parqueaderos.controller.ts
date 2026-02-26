@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ParqueaderosService } from './parqueaderos.service';
@@ -14,10 +15,26 @@ import { Roles } from 'src/shared/decorators';
 import { RoleEnum } from 'src/shared/entities/rol.entity';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { RolesGuard } from 'src/shared/guards';
+import { GetUser } from 'src/shared/decorators';
+import type { JwtUsuario } from 'src/auth/interfaces';
 
 @Controller('parking-lots')
 export class ParqueaderosController {
   constructor(private readonly parqueaderosService: ParqueaderosService) {}
+
+  @Get('client/disponibles')
+  @UseGuards(JwtAuthGuard)
+  async obtenerDisponiblesParaCliente(
+    @GetUser() user: JwtUsuario,
+  ): Promise<ParqueaderoResponseDto[]> {
+    if (user.nombreRol !== 'CLIENTE') {
+      throw new UnauthorizedException(
+        'Acceso exclusivo para clientes autenticados',
+      );
+    }
+
+    return this.parqueaderosService.findAll();
+  }
 
   @Post()
   @Roles(RoleEnum.ADMIN)

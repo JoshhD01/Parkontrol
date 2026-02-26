@@ -27,7 +27,7 @@
           }
         </mat-error>
       }
-      <mat-hint>El vehículo debe estar registrado previamente</mat-hint>
+      <mat-hint>Si la placa no existe, se registrará automáticamente</mat-hint>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
@@ -57,6 +57,18 @@
       <mat-label>Estado de la Reserva</mat-label>
       <input matInput formControlName="estado" readonly>
       <mat-hint>Las reservas siempre inician como ABIERTA</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Hora inicio (opcional)</mat-label>
+      <input matInput type="datetime-local" formControlName="horaInicio">
+      <mat-hint>Si defines horario, también debes indicar hora fin</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Hora fin (opcional)</mat-label>
+      <input matInput type="datetime-local" formControlName="horaFin">
+      <mat-hint>Debe ser mayor que la hora de inicio</mat-hint>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
@@ -111,14 +123,6 @@
     <div mat-dialog-actions class="dialog-actions">
       <button mat-button type="button" (click)="onCancel()" [disabled]="loading">
         Cancelar
-      </button>
-      <button 
-        mat-button 
-        color="accent" 
-        type="button"
-        (click)="irAVehiculos()"
-        [disabled]="loading">
-        Registrar vehiculo
       </button>
       <button 
         mat-raised-button 

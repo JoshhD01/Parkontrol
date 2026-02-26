@@ -28,8 +28,10 @@ export interface CreateUsuarioDto {
   idEmpresa: number; // ID de la empresa
 }
 
+export type TipoDocumentoCliente = 'CC' | 'CE' | 'TI' | 'PAS' | 'NIT';
+
 export interface RegistrarClienteDto {
-  tipoDocumento: string;
+  tipoDocumento: TipoDocumentoCliente;
   numeroDocumento: string;
   correo: string;
   contrasena: string;

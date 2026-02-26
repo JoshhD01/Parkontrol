@@ -33,7 +33,7 @@ export class VistasService {
     return data.map((row) => {
       const transformed: any = {};
       for (const key in row) {
-        // Convert Oracle column names (UPPERCASE_WITH_UNDERSCORES) to camelCase
+        // Convert DB column names (UPPERCASE_WITH_UNDERSCORES) to camelCase
         const camelKey = key
           .toLowerCase()
           .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -43,47 +43,207 @@ export class VistasService {
     });
   }
 
+  private async queryOcupacionFallback(idEmpresa: number | null): Promise<any[]> {
+    return await this.dataSource.query(
+      `SELECT
+         p."ID_PARQUEADERO",
+         p."NOMBRE" AS "NOMBRE_PARQUEADERO",
+         e."NOMBRE" AS "NOMBRE_EMPRESA",
+         COUNT(c."ID_CELDA") AS "TOTAL_CELDAS",
+         COALESCE(SUM(CASE WHEN c."ESTADO" = 'OCUPADA' THEN 1 ELSE 0 END), 0) AS "CELDAS_OCUPADAS",
+         COALESCE(SUM(CASE WHEN c."ESTADO" = 'LIBRE' THEN 1 ELSE 0 END), 0) AS "CELDAS_LIBRES"
+       FROM "PARQUEADERO" p
+       JOIN "EMPRESA" e ON e."ID_EMPRESA" = p."ID_EMPRESA"
+       LEFT JOIN "CELDA" c ON c."ID_PARQUEADERO" = p."ID_PARQUEADERO"
+       WHERE ($1::int IS NULL OR p."ID_EMPRESA" = $1)
+       GROUP BY p."ID_PARQUEADERO", p."NOMBRE", e."NOMBRE"
+       ORDER BY p."ID_PARQUEADERO"`,
+      [idEmpresa],
+    );
+  }
+
+  private async queryOcupacionByParqueaderoFallback(
+    idParqueadero: number,
+  ): Promise<any[]> {
+    return await this.dataSource.query(
+      `SELECT
+         p."ID_PARQUEADERO",
+         p."NOMBRE" AS "NOMBRE_PARQUEADERO",
+         e."NOMBRE" AS "NOMBRE_EMPRESA",
+         COUNT(c."ID_CELDA") AS "TOTAL_CELDAS",
+         COALESCE(SUM(CASE WHEN c."ESTADO" = 'OCUPADA' THEN 1 ELSE 0 END), 0) AS "CELDAS_OCUPADAS",
+         COALESCE(SUM(CASE WHEN c."ESTADO" = 'LIBRE' THEN 1 ELSE 0 END), 0) AS "CELDAS_LIBRES"
+       FROM "PARQUEADERO" p
+       JOIN "EMPRESA" e ON e."ID_EMPRESA" = p."ID_EMPRESA"
+       LEFT JOIN "CELDA" c ON c."ID_PARQUEADERO" = p."ID_PARQUEADERO"
+       WHERE p."ID_PARQUEADERO" = $1
+       GROUP BY p."ID_PARQUEADERO", p."NOMBRE", e."NOMBRE"`,
+      [idParqueadero],
+    );
+  }
+
+  private async queryFacturacionFallback(idEmpresa: number | null): Promise<any[]> {
+    return await this.dataSource.query(
+      `SELECT
+         fe."ID_FACTURA_ELECTRONICA",
+         cf."TIPO_DOCUMENTO",
+         cf."NUMERO_DOCUMENTO",
+         cf."CORREO",
+         pg."ID_PAGO",
+         pg."MONTO",
+         mp."NOMBRE" AS "METODO_PAGO",
+         pg."FECHA_PAGO",
+         fe."CUFE",
+         fe."URL_PDF",
+         fe."ENVIADA"
+       FROM "FACTURA_ELECTRONICA" fe
+       JOIN "CLIENTE_FACTURA" cf ON cf."ID_CLIENTE_FACTURA" = fe."ID_CLIENTE_FACTURA"
+       JOIN "PAGO" pg ON pg."ID_PAGO" = fe."ID_PAGO"
+       JOIN "METODO_PAGO" mp ON mp."ID_METODO_PAGO" = pg."ID_METODO_PAGO"
+       JOIN "RESERVA" r ON r."ID_RESERVA" = pg."ID_RESERVA"
+       JOIN "CELDA" c ON c."ID_CELDA" = r."ID_CELDA"
+       JOIN "PARQUEADERO" p ON p."ID_PARQUEADERO" = c."ID_PARQUEADERO"
+       WHERE ($1::int IS NULL OR p."ID_EMPRESA" = $1)
+       ORDER BY fe."ID_FACTURA_ELECTRONICA" DESC`,
+      [idEmpresa],
+    );
+  }
+
+  private async queryFacturacionByDocumentoFallback(
+    numeroDocumento: string,
+    idEmpresa: number | null,
+  ): Promise<any[]> {
+    return await this.dataSource.query(
+      `SELECT
+         fe."ID_FACTURA_ELECTRONICA",
+         cf."TIPO_DOCUMENTO",
+         cf."NUMERO_DOCUMENTO",
+         cf."CORREO",
+         pg."ID_PAGO",
+         pg."MONTO",
+         mp."NOMBRE" AS "METODO_PAGO",
+         pg."FECHA_PAGO",
+         fe."CUFE",
+         fe."URL_PDF",
+         fe."ENVIADA"
+       FROM "FACTURA_ELECTRONICA" fe
+       JOIN "CLIENTE_FACTURA" cf ON cf."ID_CLIENTE_FACTURA" = fe."ID_CLIENTE_FACTURA"
+       JOIN "PAGO" pg ON pg."ID_PAGO" = fe."ID_PAGO"
+       JOIN "METODO_PAGO" mp ON mp."ID_METODO_PAGO" = pg."ID_METODO_PAGO"
+       JOIN "RESERVA" r ON r."ID_RESERVA" = pg."ID_RESERVA"
+       JOIN "CELDA" c ON c."ID_CELDA" = r."ID_CELDA"
+       JOIN "PARQUEADERO" p ON p."ID_PARQUEADERO" = c."ID_PARQUEADERO"
+       WHERE cf."NUMERO_DOCUMENTO" = $1
+         AND ($2::int IS NULL OR p."ID_EMPRESA" = $2)
+       ORDER BY fe."ID_FACTURA_ELECTRONICA" DESC`,
+      [numeroDocumento, idEmpresa],
+    );
+  }
+
+  private async queryIngresosFallback(idEmpresa: number | null): Promise<any[]> {
+    return await this.dataSource.query(
+      `SELECT
+         e."NOMBRE" AS "EMPRESA",
+         p."NOMBRE" AS "PARQUEADERO",
+         COALESCE(TO_CHAR(DATE_TRUNC('month', pg."FECHA_PAGO"), 'YYYY-MM'), 'SIN_PAGOS') AS "PERIODO",
+         COALESCE(SUM(pg."MONTO"), 0) AS "TOTAL_INGRESOS"
+       FROM "PARQUEADERO" p
+       JOIN "EMPRESA" e ON e."ID_EMPRESA" = p."ID_EMPRESA"
+       LEFT JOIN "CELDA" c ON c."ID_PARQUEADERO" = p."ID_PARQUEADERO"
+       LEFT JOIN "RESERVA" r ON r."ID_CELDA" = c."ID_CELDA"
+       LEFT JOIN "PAGO" pg ON pg."ID_RESERVA" = r."ID_RESERVA"
+       WHERE ($1::int IS NULL OR p."ID_EMPRESA" = $1)
+       GROUP BY
+         e."NOMBRE",
+         p."NOMBRE",
+         DATE_TRUNC('month', pg."FECHA_PAGO")
+       ORDER BY p."NOMBRE", "PERIODO" DESC`,
+      [idEmpresa],
+    );
+  }
+
+  private async queryIngresosByParqueaderoFallback(
+    idParqueadero: number,
+  ): Promise<any[]> {
+    return await this.dataSource.query(
+      `SELECT
+         e."NOMBRE" AS "EMPRESA",
+         p."NOMBRE" AS "PARQUEADERO",
+         COALESCE(TO_CHAR(DATE_TRUNC('month', pg."FECHA_PAGO"), 'YYYY-MM'), 'SIN_PAGOS') AS "PERIODO",
+         COALESCE(SUM(pg."MONTO"), 0) AS "TOTAL_INGRESOS"
+       FROM "PARQUEADERO" p
+       JOIN "EMPRESA" e ON e."ID_EMPRESA" = p."ID_EMPRESA"
+       LEFT JOIN "CELDA" c ON c."ID_PARQUEADERO" = p."ID_PARQUEADERO"
+       LEFT JOIN "RESERVA" r ON r."ID_CELDA" = c."ID_CELDA"
+       LEFT JOIN "PAGO" pg ON pg."ID_RESERVA" = r."ID_RESERVA"
+       WHERE p."ID_PARQUEADERO" = $1
+       GROUP BY e."NOMBRE", p."NOMBRE", DATE_TRUNC('month', pg."FECHA_PAGO")
+       ORDER BY "PERIODO" DESC`,
+      [idParqueadero],
+    );
+  }
+
+  private async queryHistorialFallback(idEmpresa: number | null): Promise<any[]> {
+    return await this.dataSource.query(
+      `SELECT
+         r."ID_RESERVA",
+         v."PLACA",
+         tv."NOMBRE" AS "TIPO_VEHICULO",
+         c."ID_CELDA",
+         p."NOMBRE" AS "PARQUEADERO",
+         r."FECHA_ENTRADA",
+         r."FECHA_SALIDA",
+         r."ESTADO"
+       FROM "RESERVA" r
+       JOIN "VEHICULO" v ON v."ID_VEHICULO" = r."ID_VEHICULO"
+       JOIN "TIPO_VEHICULO" tv ON tv."ID_TIPO_VEHICULO" = v."ID_TIPO_VEHICULO"
+       JOIN "CELDA" c ON c."ID_CELDA" = r."ID_CELDA"
+       JOIN "PARQUEADERO" p ON p."ID_PARQUEADERO" = c."ID_PARQUEADERO"
+       WHERE ($1::int IS NULL OR p."ID_EMPRESA" = $1)
+       ORDER BY r."FECHA_ENTRADA" DESC`,
+      [idEmpresa],
+    );
+  }
+
+  private async queryHistorialByPlacaAndParqueaderoFallback(
+    placa: string,
+    idParqueadero: number,
+  ): Promise<any[]> {
+    return await this.dataSource.query(
+      `SELECT
+         r."ID_RESERVA",
+         v."PLACA",
+         tv."NOMBRE" AS "TIPO_VEHICULO",
+         c."ID_CELDA",
+         p."NOMBRE" AS "PARQUEADERO",
+         r."FECHA_ENTRADA",
+         r."FECHA_SALIDA",
+         r."ESTADO"
+       FROM "RESERVA" r
+       JOIN "VEHICULO" v ON v."ID_VEHICULO" = r."ID_VEHICULO"
+       JOIN "TIPO_VEHICULO" tv ON tv."ID_TIPO_VEHICULO" = v."ID_TIPO_VEHICULO"
+       JOIN "CELDA" c ON c."ID_CELDA" = r."ID_CELDA"
+       JOIN "PARQUEADERO" p ON p."ID_PARQUEADERO" = c."ID_PARQUEADERO"
+       WHERE UPPER(v."PLACA") = UPPER($1)
+         AND p."ID_PARQUEADERO" = $2
+       ORDER BY r."FECHA_ENTRADA" DESC`,
+      [placa, idParqueadero],
+    );
+  }
+
   async getOcupacionByEmpresa(idEmpresa: number | null): Promise<any[]> {
-    let result;
-    if (idEmpresa === null) {
-      result = await this.dataSource.query(
-        `SELECT * FROM "VW_OCUPACION_PARQUEADERO"`,
-      );
-    } else {
-      result = await this.dataSource.query(
-        `SELECT v.* FROM "VW_OCUPACION_PARQUEADERO" v 
-         JOIN "PARQUEADERO" p ON v."ID_PARQUEADERO" = p."ID_PARQUEADERO" 
-         WHERE p."ID_EMPRESA" = $1`,
-        [idEmpresa],
-      );
-    }
+    const result = await this.queryOcupacionFallback(idEmpresa);
     return this.transformKeys(result);
   }
 
   async getOcupacionByParqueadero(idParqueadero: number): Promise<any> {
-    const result = await this.dataSource.query(
-      `SELECT * FROM "VW_OCUPACION_PARQUEADERO" WHERE "ID_PARQUEADERO" = $1`,
-      [idParqueadero],
-    );
+    const result = await this.queryOcupacionByParqueaderoFallback(idParqueadero);
     const transformed = this.transformKeys(result);
     return transformed[0] || null;
   }
 
   async getHistorialByEmpresa(idEmpresa: number | null): Promise<any[]> {
-    let result;
-    if (idEmpresa === null) {
-      result = await this.dataSource.query(
-        `SELECT * FROM "VW_HISTORIAL_RESERVAS"`,
-      );
-    } else {
-      result = await this.dataSource.query(
-        `SELECT v.* FROM "VW_HISTORIAL_RESERVAS" v 
-         JOIN "CELDA" c ON v."ID_CELDA" = c."ID_CELDA" 
-         JOIN "PARQUEADERO" p ON c."ID_PARQUEADERO" = p."ID_PARQUEADERO" 
-         WHERE p."ID_EMPRESA" = $1`,
-        [idEmpresa],
-      );
-    }
+    const result = await this.queryHistorialFallback(idEmpresa);
     return this.transformKeys(result);
   }
 
@@ -91,32 +251,15 @@ export class VistasService {
     placa: string,
     idParqueadero: number,
   ): Promise<any[]> {
-    const result = await this.dataSource.query(
-      `SELECT v.* FROM "VW_HISTORIAL_RESERVAS" v 
-       JOIN "CELDA" c ON v."ID_CELDA" = c."ID_CELDA" 
-       WHERE v."PLACA" = $1 AND c."ID_PARQUEADERO" = $2`,
-      [placa, idParqueadero],
+    const result = await this.queryHistorialByPlacaAndParqueaderoFallback(
+      placa,
+      idParqueadero,
     );
     return this.transformKeys(result);
   }
 
   async getFacturacionByEmpresa(idEmpresa: number | null): Promise<any[]> {
-    let result;
-    if (idEmpresa === null) {
-      result = await this.dataSource.query(
-        `SELECT * FROM "VW_FACTURACION_COMPLETA"`,
-      );
-    } else {
-      result = await this.dataSource.query(
-        `SELECT v.* FROM "VW_FACTURACION_COMPLETA" v 
-         JOIN "PAGO" pg ON v."ID_PAGO" = pg."ID_PAGO" 
-         JOIN "RESERVA" r ON pg."ID_RESERVA" = r."ID_RESERVA" 
-         JOIN "CELDA" c ON r."ID_CELDA" = c."ID_CELDA" 
-         JOIN "PARQUEADERO" p ON c."ID_PARQUEADERO" = p."ID_PARQUEADERO" 
-         WHERE p."ID_EMPRESA" = $1`,
-        [idEmpresa],
-      );
-    }
+    const result = await this.queryFacturacionFallback(idEmpresa);
     return this.transformKeys(result);
   }
 
@@ -124,50 +267,20 @@ export class VistasService {
     numeroDocumento: string,
     idEmpresa: number | null,
   ): Promise<any[]> {
-    let result;
-    if (idEmpresa === null) {
-      result = await this.dataSource.query(
-        `SELECT * FROM "VW_FACTURACION_COMPLETA" WHERE "NUMERO_DOCUMENTO" = $1`,
-        [numeroDocumento],
-      );
-    } else {
-      result = await this.dataSource.query(
-        `SELECT v.* FROM "VW_FACTURACION_COMPLETA" v 
-         JOIN "PAGO" pg ON v."ID_PAGO" = pg."ID_PAGO" 
-         JOIN "RESERVA" r ON pg."ID_RESERVA" = r."ID_RESERVA" 
-         JOIN "CELDA" c ON r."ID_CELDA" = c."ID_CELDA" 
-         JOIN "PARQUEADERO" p ON c."ID_PARQUEADERO" = p."ID_PARQUEADERO" 
-         WHERE v."NUMERO_DOCUMENTO" = $1 AND p."ID_EMPRESA" = $2`,
-        [numeroDocumento, idEmpresa],
-      );
-    }
+    const result = await this.queryFacturacionByDocumentoFallback(
+      numeroDocumento,
+      idEmpresa,
+    );
     return this.transformKeys(result);
   }
 
   async getIngresosByEmpresa(idEmpresa: number | null): Promise<any[]> {
-    let result;
-    if (idEmpresa === null) {
-      result = await this.dataSource.query(
-        `SELECT * FROM "VW_INGRESOS_POR_PARQUEADERO_MENSUAL"`,
-      );
-    } else {
-      result = await this.dataSource.query(
-        `SELECT v.* FROM "VW_INGRESOS_POR_PARQUEADERO_MENSUAL" v 
-         JOIN "PARQUEADERO" p ON v."PARQUEADERO" = p."NOMBRE" 
-         WHERE p."ID_EMPRESA" = $1`,
-        [idEmpresa],
-      );
-    }
+    const result = await this.queryIngresosFallback(idEmpresa);
     return this.transformKeys(result);
   }
 
   async getIngresosByParqueadero(idParqueadero: number): Promise<any[]> {
-    const result = await this.dataSource.query(
-      `SELECT v.* FROM "VW_INGRESOS_POR_PARQUEADERO_MENSUAL" v 
-       JOIN "PARQUEADERO" p ON v."PARQUEADERO" = p."NOMBRE" 
-       WHERE p."ID_PARQUEADERO" = $1`,
-      [idParqueadero],
-    );
+    const result = await this.queryIngresosByParqueaderoFallback(idParqueadero);
     return this.transformKeys(result);
   }
 
