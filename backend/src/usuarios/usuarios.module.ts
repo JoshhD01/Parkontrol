@@ -8,11 +8,7 @@ import { UsuarioValidator } from './validators/usuario.validator';
 import { EmpresasModule } from 'src/empresas/empresas.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Usuario]),
-    SharedModule,
-    EmpresasModule
-  ],
+  imports: [TypeOrmModule.forFeature([Usuario]), SharedModule, EmpresasModule],
   controllers: [UsuariosController],
   providers: [UsuariosService, UsuarioValidator],
   exports: [UsuariosService, UsuarioValidator],

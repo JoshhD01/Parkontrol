@@ -1,10 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Pago } from 'src/pagos/entities/pago.entity';
 import { ClienteFactura } from './cliente-factura.entity';
 
 @Entity('FACTURA_ELECTRONICA')
 export class FacturaElectronica {
-  @PrimaryGeneratedColumn({ name: 'ID_FACTURA_ELECTRONICA', type: 'number' })
+  @PrimaryGeneratedColumn({ name: 'ID_FACTURA_ELECTRONICA' })
   id: number;
 
   @Column({ name: 'CUFE', length: 50, nullable: false })

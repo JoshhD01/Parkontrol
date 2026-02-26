@@ -4,14 +4,12 @@ import { ParqueaderosService } from './parqueaderos.service';
 import { Parqueadero } from './entities/parqueadero.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmpresasModule } from 'src/empresas/empresas.module';
+import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
-  imports: [
-      TypeOrmModule.forFeature([Parqueadero]),
-      EmpresasModule
-    ],
+  imports: [TypeOrmModule.forFeature([Parqueadero]), EmpresasModule, SharedModule],
   controllers: [ParqueaderosController],
   providers: [ParqueaderosService],
-  exports: [ParqueaderosService]
+  exports: [ParqueaderosService],
 })
 export class ParqueaderosModule {}

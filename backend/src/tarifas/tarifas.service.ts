@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tarifa } from './entities/tarifa.entity';
 import { CreateTarifaDto } from './entities/dto/crear-tarifa.dto';
+import { UpdateTarifaDto } from './entities/dto/actualizar-tarifa.dto';
 import { ParqueaderosService } from 'src/parqueaderos/parqueaderos.service';
 import { TipoVehiculo } from 'src/shared/entities/tipo-vehiculo.entity';
 
@@ -17,12 +18,16 @@ export class TarifasService {
   ) {}
 
   async crear(createTarifaDto: CreateTarifaDto): Promise<Tarifa> {
-    const parqueadero = await this.parqueaderosService.findParqueaderoById(createTarifaDto.idParqueadero);
+    const parqueadero = await this.parqueaderosService.findParqueaderoById(
+      createTarifaDto.idParqueadero,
+    );
     const tipoVehiculo = await this.tipoVehiculoRepository.findOne({
       where: { id: createTarifaDto.idTipoVehiculo },
     });
     if (!tipoVehiculo) {
-      throw new NotFoundException(`No existe tipo de vehículo con id: ${createTarifaDto.idTipoVehiculo}`);
+      throw new NotFoundException(
+        `No existe tipo de vehículo con id: ${createTarifaDto.idTipoVehiculo}`,
+      );
     }
 
     const tarifa = this.tarifaRepository.create({
@@ -42,7 +47,10 @@ export class TarifasService {
     });
   }
 
-  async findByParqueaderoYTipo(idParqueadero: number, idTipoVehiculo: number): Promise<Tarifa | null> {
+  async findByParqueaderoYTipo(
+    idParqueadero: number,
+    idTipoVehiculo: number,
+  ): Promise<Tarifa | null> {
     return await this.tarifaRepository.findOne({
       where: {
         parqueadero: { id: idParqueadero },
@@ -52,37 +60,25 @@ export class TarifasService {
     });
   }
 
-  async actualizar(id: number, updateData: Partial<CreateTarifaDto>): Promise<Tarifa> {
-    const tarifa = await this.tarifaRepository.findOne({ 
+  async actualizar(id: number, updateData: UpdateTarifaDto): Promise<Tarifa> {
+    const tarifa = await this.tarifaRepository.findOne({
       where: { id },
       relations: ['parqueadero', 'tipoVehiculo'],
     });
-    
+
     if (!tarifa) {
       throw new NotFoundException(`No existe tarifa con id: ${id}`);
     }
 
-    const updateFields: string[] = [];
-    const updateValues: any[] = [];
-    let paramIndex = 1;
-
     if (updateData.precioFraccionHora !== undefined) {
-      updateFields.push(`PRECIO_FRACCION_HORA = :${paramIndex}`);
-      updateValues.push(updateData.precioFraccionHora);
-      paramIndex++;
+      tarifa.precioFraccionHora = updateData.precioFraccionHora;
     }
 
     if (updateData.precioHoraAdicional !== undefined) {
-      updateFields.push(`PRECIO_HORA_ADICIONAL = :${paramIndex}`);
-      updateValues.push(updateData.precioHoraAdicional);
-      paramIndex++;
+      tarifa.precioHoraAdicional = updateData.precioHoraAdicional;
     }
 
-    if (updateFields.length > 0) {
-      updateValues.push(id);
-      const query = `UPDATE TARIFA SET ${updateFields.join(', ')} WHERE ID_TARIFA = :${paramIndex}`;
-      await this.tarifaRepository.query(query, updateValues);
-    }
+    await this.tarifaRepository.save(tarifa);
 
     const tarifaActualizada = await this.tarifaRepository.findOne({
       where: { id },
@@ -90,7 +86,9 @@ export class TarifasService {
     });
 
     if (!tarifaActualizada) {
-      throw new NotFoundException(`No se pudo recuperar la tarifa actualizada con id: ${id}`);
+      throw new NotFoundException(
+        `No se pudo recuperar la tarifa actualizada con id: ${id}`,
+      );
     }
 
     return tarifaActualizada;

@@ -6,10 +6,7 @@ import { Vehiculo } from './entities/vehiculo.entity';
 import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Vehiculo]),
-    SharedModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Vehiculo]), SharedModule],
   controllers: [VehiculosController],
   providers: [VehiculosService],
   exports: [VehiculosService],

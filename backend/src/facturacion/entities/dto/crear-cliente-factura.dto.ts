@@ -1,4 +1,13 @@
-import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsEmail,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  Min,
+} from 'class-validator';
 
 export class CreateClienteFacturaDto {
   @IsNotEmpty()
@@ -14,4 +23,10 @@ export class CreateClienteFacturaDto {
   @IsNotEmpty()
   @IsEmail()
   correo: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  idUsuario?: number;
 }

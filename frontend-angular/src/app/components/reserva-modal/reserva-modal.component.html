@@ -2,6 +2,13 @@
   <h2 mat-dialog-title>Nueva Reserva</h2>
   
   <form [formGroup]="reservaForm" (ngSubmit)="onSubmit()">
+    @if (errorMessage) {
+      <div class="error-message">
+        <mat-icon color="warn">error</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Placa del Vehículo</mat-label>
       <input 
@@ -51,6 +58,55 @@
       <input matInput formControlName="estado" readonly>
       <mat-hint>Las reservas siempre inician como ABIERTA</mat-hint>
     </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Cliente (opcional)</mat-label>
+      <mat-select formControlName="idClienteFactura">
+        <mat-option [value]="null">Sin cliente asociado</mat-option>
+        @if (loadingClientes) {
+          <mat-option disabled>Cargando clientes...</mat-option>
+        } @else {
+          @for (cliente of clientesFactura; track cliente.id) {
+            <mat-option [value]="cliente.id">
+              {{ cliente.tipoDocumento }} {{ cliente.numeroDocumento }} - {{ cliente.correo }}
+            </mat-option>
+          }
+        }
+      </mat-select>
+      <mat-hint>Si no lo seleccionas, puedes crear uno rápido abajo o continuar sin cliente.</mat-hint>
+    </mat-form-field>
+
+    <div class="full-width quick-client-actions">
+      <button
+        mat-button
+        color="primary"
+        type="button"
+        (click)="toggleNuevoCliente()"
+        [disabled]="loading">
+        @if (mostrarFormularioNuevoCliente) {
+          Ocultar creación rápida de cliente
+        } @else {
+          Crear cliente rápido
+        }
+      </button>
+    </div>
+
+    @if (mostrarFormularioNuevoCliente) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo documento</mat-label>
+        <input matInput formControlName="tipoDocumento" placeholder="Ej: CC, NIT">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Número documento</mat-label>
+        <input matInput formControlName="numeroDocumento" placeholder="Ej: 123456789">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Correo cliente</mat-label>
+        <input matInput formControlName="correoCliente" placeholder="cliente@correo.com">
+      </mat-form-field>
+    }
 
     <div mat-dialog-actions class="dialog-actions">
       <button mat-button type="button" (click)="onCancel()" [disabled]="loading">

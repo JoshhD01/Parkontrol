@@ -34,7 +34,7 @@ export class FacturaModalComponent {
 	) {
 			this.facturaForm = this.fb.group({
 				idPago: [null, [Validators.required, Validators.pattern('^[0-9]+$')]],
-				idClienteFactura: [null, [Validators.required]],
+				idClienteFactura: [null],
 				cufe: ['', [Validators.required]],
 			});
 	}
@@ -45,9 +45,10 @@ export class FacturaModalComponent {
 
 	onSubmit() {
 		if (this.facturaForm.invalid) return;
+		const idCliente = this.facturaForm.value.idClienteFactura;
 		const dto = {
 			idPago: Number(this.facturaForm.value.idPago),
-			idClienteFactura: this.facturaForm.value.idClienteFactura,
+			idClienteFactura: idCliente ? Number(idCliente) : undefined,
 			cufe: this.facturaForm.value.cufe,
 		};
 		this.dialogRef.close(dto);

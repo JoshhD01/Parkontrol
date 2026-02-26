@@ -1,0 +1,14 @@
+<div class="contenedor-cliente">
+  <mat-card class="tarjeta-cliente">
+    <mat-card-title>Bienvenido, cliente</mat-card-title>
+    <mat-card-content>
+      <p>Acceso de cliente activo para: <strong>{{ correoCliente }}</strong></p>
+      <p>Tu sesión está separada del acceso administrativo y operativo.</p>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="cerrarSesion()">
+        Cerrar sesión
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

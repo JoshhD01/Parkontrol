@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, type TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { EmpresasModule } from './empresas/empresas.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { ParqueaderosModule } from './parqueaderos/parqueaderos.module';
@@ -20,27 +20,43 @@ import { VistasModule } from './vistas/vistas.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'oracle',
-        host: configService.get<string>('DB_HOST'),
-        port: Number(configService.get<number>('DB_PORT')),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        sid: configService.get<string>('DB_SID'),
-        synchronize: false,
-        autoLoadEntities: true,
-        logging: true,
-        extra: {
-          poolMin: 1,
-          poolMax: 1,
-          poolIncrement: 0,
-        },
-      }),
+      useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
+        const supabaseDbUrl = configService.get<string>('SUPABASE_DB_URL');
+        const dbSync = configService.get<string>('DB_SYNC') === 'true';
+
+        if (supabaseDbUrl) {
+          return {
+            type: 'postgres',
+            url: supabaseDbUrl,
+            synchronize: dbSync,
+            autoLoadEntities: true,
+            logging: true,
+            ssl: { rejectUnauthorized: false },
+          };
+        }
+
+        return {
+          type: 'oracle',
+          host: configService.get<string>('DB_HOST'),
+          port: Number(configService.get<number>('DB_PORT')),
+          username: configService.get<string>('DB_USERNAME'),
+          password: configService.get<string>('DB_PASSWORD'),
+          sid: configService.get<string>('DB_SID'),
+          synchronize: dbSync,
+          autoLoadEntities: true,
+          logging: true,
+          extra: {
+            poolMin: 1,
+            poolMax: 1,
+            poolIncrement: 0,
+          },
+        };
+      },
     }),
     SharedModule,
     AuthModule,

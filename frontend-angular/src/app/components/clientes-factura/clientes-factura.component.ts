@@ -1,6 +1,4 @@
 import { Component, Input } from '@angular/core';
-import { FacturacionService } from '../../services/facturacion.service';
-import { AuthService } from '../../services/autenticacion.service';
 import { ClienteFactura } from '../../models/facturacion.model';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';

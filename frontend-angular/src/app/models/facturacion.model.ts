@@ -10,7 +10,7 @@ export interface ClienteFactura {
 export interface FacturaElectronica {
   id: number;
   idPago: number;
-  idClienteFactura: number;
+  idClienteFactura?: number;
   cufe: string;
   urlPdf?: string;
   enviada: boolean;
@@ -27,7 +27,7 @@ export interface CrearClienteFacturaDto {
 
 export interface CrearFacturaElectronicaDto {
   idPago: number;
-  idClienteFactura: number;
+  idClienteFactura?: number;
   cufe: string;
   urlPdf?: string;
 }

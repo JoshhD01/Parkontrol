@@ -20,14 +20,24 @@ export class CeldasService {
   ) {}
 
   async crear(createCeldaDto: CreateCeldaDto): Promise<Celda> {
-    const parqueadero = await this.parqueaderosService.findParqueaderoById(createCeldaDto.idParqueadero);
-    const tipoCelda = await this.tipoCeldaRepository.findOne({ where: { id: createCeldaDto.idTipoCelda } });
+    const parqueadero = await this.parqueaderosService.findParqueaderoById(
+      createCeldaDto.idParqueadero,
+    );
+    const tipoCelda = await this.tipoCeldaRepository.findOne({
+      where: { id: createCeldaDto.idTipoCelda },
+    });
     if (!tipoCelda) {
-      throw new NotFoundException(`No existe tipo de celda con id: ${createCeldaDto.idTipoCelda}`);
+      throw new NotFoundException(
+        `No existe tipo de celda con id: ${createCeldaDto.idTipoCelda}`,
+      );
     }
-    const sensor = await this.sensorRepository.findOne({ where: { id: createCeldaDto.idSensor } });
+    const sensor = await this.sensorRepository.findOne({
+      where: { id: createCeldaDto.idSensor },
+    });
     if (!sensor) {
-      throw new NotFoundException(`No existe sensor con id: ${createCeldaDto.idSensor}`);
+      throw new NotFoundException(
+        `No existe sensor con id: ${createCeldaDto.idSensor}`,
+      );
     }
 
     const celda = this.celdaRepository.create({

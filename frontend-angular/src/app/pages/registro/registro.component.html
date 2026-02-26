@@ -4,35 +4,55 @@
 
     <mat-card-header>
       <div mat-card-avatar class="avatar-registro">
-        <mat-icon>admin_panel_settings</mat-icon>
+        <mat-icon>person_add</mat-icon>
       </div>
 
       <mat-card-title>ParkControl</mat-card-title>
-      <mat-card-subtitle>Registro de Administrador</mat-card-subtitle>
+      <mat-card-subtitle>Registro de Usuario Normal</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="formulario-registro">
         
-        @if (errorMessage) {
+        @if (errorMessages.length > 0) {
           <div class="mensaje-error">
             <mat-icon color="warn">error</mat-icon>
-            <span>{{ errorMessage }}</span>
+            <div>
+              @for (message of errorMessages; track message) {
+                <div>{{ message }}</div>
+              }
+            </div>
           </div>
         }
 
         <mat-form-field appearance="outline" class="campo-completo">
-          <mat-label>Nombre completo</mat-label>
-          <input matInput 
-                 formControlName="nombre"
-                 placeholder="Tu nombre completo">
-          <mat-icon matSuffix>person</mat-icon>
+          <mat-label>Tipo de documento</mat-label>
+          <input
+            matInput
+            formControlName="tipoDocumento"
+            placeholder="CC, CE o PAS"
+          >
+          <mat-icon matSuffix>badge</mat-icon>
 
-          @if (registerForm.get('nombre')?.hasError('required')) {
-            <mat-error>El nombre es requerido</mat-error>
+          @if (registerForm.get('tipoDocumento')?.hasError('required')) {
+            <mat-error>El tipo de documento es requerido</mat-error>
           }
-          @if (registerForm.get('nombre')?.hasError('minlength')) {
-            <mat-error>El nombre debe tener al menos 3 caracteres</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="campo-completo">
+          <mat-label>Numero de documento</mat-label>
+          <input
+            matInput
+            formControlName="numeroDocumento"
+            placeholder="Tu numero de documento"
+          >
+          <mat-icon matSuffix>fingerprint</mat-icon>
+
+          @if (registerForm.get('numeroDocumento')?.hasError('required')) {
+            <mat-error>El numero de documento es requerido</mat-error>
+          }
+          @if (registerForm.get('numeroDocumento')?.hasError('minlength')) {
+            <mat-error>El numero de documento debe tener al menos 3 caracteres</mat-error>
           }
         </mat-form-field>
 
@@ -72,36 +92,8 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="campo-completo">
-          <mat-label>ID de Empresa que Administrara</mat-label>
-          <input matInput 
-                 type="number"
-                 formControlName="idEmpresa"
-                 placeholder="Ejemplo: 1">
-          <mat-icon matSuffix>business</mat-icon>
-          <mat-hint>Ingresa el ID de la empresa que vas a administrar</mat-hint>
-          @if (registerForm.get('idEmpresa')?.hasError('required')) {
-            <mat-error>El ID de empresa es requerido</mat-error>
-          }
-          @if (registerForm.get('idEmpresa')?.hasError('min')) {
-            <mat-error>El ID de empresa debe ser mayor a 0</mat-error>
-          }
-        </mat-form-field>
-
-        <div class="info-registro">
-
-          <mat-card class="tarjeta-info">
-            <mat-card-content>
-              <div class="rol-info">
-                <mat-icon color="primary">admin_panel_settings</mat-icon>
-                <div>
-                  <strong>Administrador</strong>
-                  <p>Gestion completa de tu empresa y sus parqueaderos</p>
-                </div>
-              </div>
-
-            </mat-card-content>
-          </mat-card>
+        <div class="nota-registro">
+          Los administradores son creados internamente. Los operadores solo pueden ser creados desde la vista de administrador.
         </div>
 
 
@@ -118,7 +110,7 @@
 
 
             @if (!loading) {
-              <span>Registrarme como Administrador</span>
+              <span>Registrarme como Usuario Normal</span>
             }
           </button>
         </div>

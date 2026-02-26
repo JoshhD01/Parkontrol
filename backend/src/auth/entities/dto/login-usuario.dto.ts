@@ -1,5 +1,18 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
+
+export enum TipoAccesoLogin {
+  CLIENTE = 'CLIENTE',
+  ADMIN = 'ADMIN',
+  OPERADOR = 'OPERADOR',
+}
 
 export class LoginUsuarioDto {
   @IsNotEmpty()
@@ -11,4 +24,8 @@ export class LoginUsuarioDto {
   @IsString()
   @MinLength(6)
   contrasena: string;
+
+  @IsOptional()
+  @IsEnum(TipoAccesoLogin)
+  tipoAcceso?: TipoAccesoLogin;
 }

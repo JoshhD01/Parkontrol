@@ -11,7 +11,7 @@ import { FacturaModalComponent } from '../factura-modal/factura-modal.component'
 @Component({
   selector: 'app-facturas-lista',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, CommonModule, MatDialogModule, CommonModule],
+  imports: [MatTableModule, MatButtonModule, CommonModule, MatDialogModule],
   templateUrl: './facturas-lista.component.html',
   styleUrls: ['./facturas-lista.component.scss']
 })

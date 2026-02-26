@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/autenticacion.service';
-import { LoginUsuarioDto } from '../../models/usuario.model';
+import { LoginUsuarioDto, TipoAccesoLogin } from '../../models/usuario.model';
 import { RolUsuario } from '../../models/shared.model';
 
 @Component({
@@ -50,26 +50,62 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.loginByAccess('CLIENTE');
+  }
+
+  onLoginAdmin(): void {
+    this.loginByAccess('ADMIN');
+  }
+
+  onLoginOperador(): void {
+    this.loginByAccess('OPERADOR');
+  }
+
+  private loginByAccess(tipoAcceso: TipoAccesoLogin): void {
     if (this.loginForm.valid) {
       this.loading = true;
       this.errorMessage = '';
       
       const credentials: LoginUsuarioDto = {
         correo: this.loginForm.value.correo,
-        contrasena: this.loginForm.value.contrasena
+        contrasena: this.loginForm.value.contrasena,
+        tipoAcceso,
       };
 
-      this.authService.login(credentials).subscribe({
+      this.authService.loginByAccess(
+        {
+          correo: credentials.correo,
+          contrasena: credentials.contrasena,
+        },
+        tipoAcceso,
+      ).subscribe({
         next: (response) => {
           console.log('Login exitoso:', response);
           
           const currentUser = this.authService.getUsuarioActual();
-          
-          if (currentUser && currentUser.rol === RolUsuario.ADMINISTRADOR) {
+
+          if (
+            tipoAcceso === 'ADMIN' &&
+            currentUser &&
+            currentUser.rol === RolUsuario.ADMINISTRADOR
+          ) {
             this.router.navigate(['/dashboard']);
-          } else if (currentUser && currentUser.rol === RolUsuario.OPERADOR) {
+          } else if (
+            tipoAcceso === 'CLIENTE' &&
+            currentUser &&
+            currentUser.rol === RolUsuario.CLIENTE
+          ) {
+            this.router.navigate(['/cliente-dashboard']);
+          } else if (
+            tipoAcceso === 'OPERADOR' &&
+            currentUser &&
+            currentUser.rol === RolUsuario.OPERADOR
+          ) {
             this.router.navigate(['/operador-dashboard']);
           } else {
+            this.authService.logout();
+            this.errorMessage =
+              'Acceso denegado: el usuario no corresponde al tipo de ingreso seleccionado';
             this.router.navigate(['/login']);
           }
         },
@@ -77,6 +113,15 @@ export class LoginComponent implements OnInit {
         error: (error) => {
           this.loading = false;
           console.error('Error en el login:', error);
+
+          const backendMessage: string | undefined = error?.error?.message;
+          if (backendMessage) {
+            this.errorMessage = backendMessage;
+            setTimeout(() => {
+              this.errorMessage = '';
+            }, 5000);
+            return;
+          }
           
           if (error.status === 401) {
             this.errorMessage = 'Credenciales incorrectas, verifica otra vez tu correo y contraseña';
@@ -95,6 +140,6 @@ export class LoginComponent implements OnInit {
         }
       });
     }
-    }
+  }
 
 }

@@ -5,9 +5,9 @@ export class CreateFacturaElectronicaDto {
   @IsNumber()
   idPago: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  idClienteFactura: number;
+  idClienteFactura?: number;
 
   @IsNotEmpty()
   @IsString()

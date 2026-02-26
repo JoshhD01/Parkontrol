@@ -18,4 +18,5 @@ export interface CrearReservaDto {
   idVehiculo: number;
   idCelda: number;
   estado: string;
+  idClienteFactura?: number;
 }

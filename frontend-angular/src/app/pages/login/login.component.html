@@ -73,7 +73,7 @@
             }
 
             @if (!loading) {
-              <span>Iniciar Sesion</span>
+              <span>Iniciar Sesion Cliente</span>
             }
           </button>
         </div>
@@ -82,7 +82,12 @@
 
         <div class="info-roles">
 
-          <mat-card class="tarjeta-info">
+          <mat-card class="tarjeta-info tarjeta-info-clickable"
+                    role="button"
+                    tabindex="0"
+                    (click)="onLoginAdmin()"
+                    (keydown.enter)="onLoginAdmin()"
+                    (keydown.space)="onLoginAdmin()">
             <mat-card-content>
               <div class="rol-info">
                 <mat-icon color="primary">admin_panel_settings</mat-icon>
@@ -94,7 +99,12 @@
             </mat-card-content>
           </mat-card>
 
-          <mat-card class="tarjeta-info">
+          <mat-card class="tarjeta-info tarjeta-info-clickable"
+                    role="button"
+                    tabindex="0"
+                    (click)="onLoginOperador()"
+                    (keydown.enter)="onLoginOperador()"
+                    (keydown.space)="onLoginOperador()">
             <mat-card-content>
 
               <div class="rol-info">
@@ -113,7 +123,7 @@
 
     <mat-card-actions class="acciones-tarjeta">
       <p>No tienes cuenta? 
-        <a routerLink="/registro" class="enlace">Registrate como Administrador</a>
+        <a routerLink="/registro" class="enlace">Registrate como Usuario Normal</a>
       </p>
     </mat-card-actions>
   </mat-card>

@@ -8,7 +8,9 @@ import {
   Usuario, 
   LoginUsuarioDto, 
   LoginResponseDto, 
-  RegistrarUsuarioDto
+  RegistrarClienteDto,
+  RegistroClienteResponse,
+  TipoAccesoLogin,
 } from '../models/usuario.model';
 
 @Injectable({ providedIn: 'root' })
@@ -18,13 +20,27 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  register(userData: RegistrarUsuarioDto): Observable<Usuario> {
-    return this.http.post<Usuario>(`${this.apiUrl}/auth/register`, userData);
+  register(userData: RegistrarClienteDto): Observable<RegistroClienteResponse> {
+    return this.http.post<RegistroClienteResponse>(
+      `${this.apiUrl}/auth/register-client`,
+      userData,
+    );
   }
 
-
   login(credentials: LoginUsuarioDto): Observable<LoginResponseDto> {
-    return this.http.post<LoginResponseDto>(`${this.apiUrl}/auth/login`, credentials)
+    return this.loginByAccess(credentials, credentials.tipoAcceso ?? 'CLIENTE');
+  }
+
+  loginByAccess(
+    credentials: Omit<LoginUsuarioDto, 'tipoAcceso'>,
+    tipoAcceso: TipoAccesoLogin,
+  ): Observable<LoginResponseDto> {
+    const payload: LoginUsuarioDto = {
+      ...credentials,
+      tipoAcceso,
+    };
+
+    return this.http.post<LoginResponseDto>(`${this.apiUrl}/auth/login`, payload)
       .pipe(
         tap(response => {
           if (response.access_token) {
@@ -70,6 +86,10 @@ export class AuthService {
 
   isOperador(): boolean {
     return this.tieneRole(RolUsuario.OPERADOR);
+  }
+
+  isCliente(): boolean {
+    return this.tieneRole(RolUsuario.CLIENTE);
   }
 
   private obtenerUsuarioFromToken(token: string): Usuario | null {

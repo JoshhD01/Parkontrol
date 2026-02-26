@@ -1,8 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum RoleEnum {
-    ADMIN = 'ADMINISTRADOR',
-    OPERADOR = 'OPERADOR',
+  ADMIN = 'ADMINISTRADOR',
+  OPERADOR = 'OPERADOR',
 }
 
 @Entity('ROL')
@@ -10,6 +10,6 @@ export class Rol {
   @PrimaryGeneratedColumn({ name: 'ID_ROL' })
   id: number;
 
-  @Column({ name: 'NOMBRE',  unique: true })
+  @Column({ name: 'NOMBRE', unique: true })
   nombre: RoleEnum;
 }

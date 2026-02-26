@@ -26,6 +26,7 @@
 
 			<mat-label>Cliente Facturación</mat-label>
 			<mat-select formControlName="idClienteFactura">
+				<mat-option [value]="null">Sin cliente seleccionado</mat-option>
 				@if (data.clientes?.length === 0) {
 					<mat-option disabled>No hay clientes</mat-option>
 				} @else {
@@ -36,9 +37,9 @@
 				}
 
 			</mat-select>
-			@if (facturaForm.get('idClienteFactura')?.invalid && facturaForm.get('idClienteFactura')?.touched) {
-				<mat-error>Debe seleccionar un cliente</mat-error>
-			}
+			<mat-hint>
+				Opcional: si no seleccionas cliente, backend intentará usar el cliente asociado a la reserva del pago.
+			</mat-hint>
 		
 		</mat-form-field>
 

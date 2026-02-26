@@ -2,10 +2,9 @@ import { Parqueadero } from 'src/parqueaderos/entities/parqueadero.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
-@Entity({ name: 'EMPRESA' }) 
+@Entity({ name: 'EMPRESA' })
 export class Empresa {
-
-  @PrimaryGeneratedColumn({ name: 'ID_EMPRESA', type: 'number' })
+  @PrimaryGeneratedColumn({ name: 'ID_EMPRESA' })
   id: number;
 
   @Column({ name: 'NOMBRE', length: 20, nullable: false })

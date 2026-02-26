@@ -8,7 +8,7 @@ export class UsuarioResponseDto {
   rol: RoleEnum;
   idEmpresa: number;
 
-  constructor(usuario: Usuario){
+  constructor(usuario: Usuario) {
     this.id = usuario.id;
     this.nombre = usuario.nombre;
     this.correo = usuario.correo;

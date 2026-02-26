@@ -17,12 +17,16 @@ export class ReportesService {
   ) {}
 
   async crear(createReporteDto: CreateReporteDto): Promise<Reporte> {
-    const parqueadero = await this.parqueaderosService.findParqueaderoById(createReporteDto.idParqueadero);
+    const parqueadero = await this.parqueaderosService.findParqueaderoById(
+      createReporteDto.idParqueadero,
+    );
     const periodo = await this.periodoRepository.findOne({
       where: { id: createReporteDto.idPeriodo },
     });
     if (!periodo) {
-      throw new NotFoundException(`No existe periodo con id: ${createReporteDto.idPeriodo}`);
+      throw new NotFoundException(
+        `No existe periodo con id: ${createReporteDto.idPeriodo}`,
+      );
     }
 
     const reporte = this.reporteRepository.create({

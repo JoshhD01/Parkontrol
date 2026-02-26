@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/autenticacion.guard';
 import { roleGuard } from './guards/rol.guard';
+import { clienteGuard } from './guards/cliente.guard';
 import { RolUsuario } from './models/shared.model';
 
 export const routes: Routes = [
@@ -15,6 +16,12 @@ export const routes: Routes = [
   { 
     path: 'registro', 
     loadComponent: () => import('./pages/registro/registro.component').then(m => m.RegistroComponent)
+  },
+
+  {
+    path: 'cliente-dashboard',
+    canActivate: [clienteGuard],
+    loadComponent: () => import('./pages/cliente-dashboard/cliente-dashboard.component').then(m => m.ClienteDashboardComponent),
   },
 
   

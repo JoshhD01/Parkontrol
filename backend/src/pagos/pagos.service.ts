@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Pago } from './entities/pago.entity';
@@ -19,44 +23,67 @@ export class PagosService {
   ) {}
 
   async crear(createPagoDto: CreatePagoDto): Promise<Pago> {
-    const reserva = await this.reservasService.findReservaById(createPagoDto.idReserva);
-    
+    const reserva = await this.reservasService.findReservaById(
+      createPagoDto.idReserva,
+    );
+
     // Validar que el estado sea ABIERTA (no ACTIVA ni CERRADA)
     if (reserva.estado !== 'ABIERTA') {
-      throw new BadRequestException(`La reserva debe estar en estado ABIERTA para procesar el pago. Estado actual: ${reserva.estado}`);
+      throw new BadRequestException(
+        `La reserva debe estar en estado ABIERTA para procesar el pago. Estado actual: ${reserva.estado}`,
+      );
     }
 
-    const reservaFinalizada = await this.reservasService.finalizarReserva(createPagoDto.idReserva);
+    const reservaFinalizada = await this.reservasService.finalizarReserva(
+      createPagoDto.idReserva,
+    );
 
     if (!reservaFinalizada.fechaSalida) {
-      throw new BadRequestException('La reserva debe estar finalizada para procesar el pago');
+      throw new BadRequestException(
+        'La reserva debe estar finalizada para procesar el pago',
+      );
     }
 
     const pagoExistente = await this.pagoRepository.findOne({
       where: { reserva: { id: reserva.id } },
     });
     if (pagoExistente) {
-      throw new BadRequestException('Ya existe un pago registrado para esta reserva');
+      throw new BadRequestException(
+        'Ya existe un pago registrado para esta reserva',
+      );
     }
 
     const metodoPago = await this.metodoPagoRepository.findOne({
       where: { id: createPagoDto.idMetodoPago },
     });
     if (!metodoPago) {
-      throw new NotFoundException(`No existe método de pago con id: ${createPagoDto.idMetodoPago}`);
+      throw new NotFoundException(
+        `No existe método de pago con id: ${createPagoDto.idMetodoPago}`,
+      );
     }
 
-    
     const idParqueadero = reserva.celda.parqueadero.id;
     const idTipoVehiculo = reserva.vehiculo.tipoVehiculo.id;
 
-    const tarifa = await this.tarifasService.findByParqueaderoYTipo(idParqueadero, idTipoVehiculo);
+    const tarifa = await this.tarifasService.findByParqueaderoYTipo(
+      idParqueadero,
+      idTipoVehiculo,
+    );
     if (!tarifa) {
-      throw new NotFoundException(`No existe tarifa configurada para este parqueadero y tipo de vehículo`);
+      throw new NotFoundException(
+        `No existe tarifa configurada para este parqueadero y tipo de vehículo`,
+      );
     }
 
-    const horasTotales = this.calcularHoras(reserva.fechaEntrada, reserva.fechaSalida);
-    const monto = this.calcularMonto(horasTotales, tarifa.precioFraccionHora, tarifa.precioHoraAdicional);
+    const horasTotales = this.calcularHoras(
+      reserva.fechaEntrada,
+      reserva.fechaSalida,
+    );
+    const monto = this.calcularMonto(
+      horasTotales,
+      tarifa.precioFraccionHora,
+      tarifa.precioHoraAdicional,
+    );
 
     const pago = this.pagoRepository.create({
       reserva,
@@ -69,19 +96,24 @@ export class PagosService {
   }
 
   private calcularHoras(fechaEntrada: Date, fechaSalida: Date): number {
-    const milisegundos = new Date(fechaSalida).getTime() - new Date(fechaEntrada).getTime();
+    const milisegundos =
+      new Date(fechaSalida).getTime() - new Date(fechaEntrada).getTime();
     const horas = milisegundos / (1000 * 60 * 60);
     return Math.ceil(horas);
   }
 
-  private calcularMonto(horas: number, precioFraccionHora: number, precioHoraAdicional?: number): number {
+  private calcularMonto(
+    horas: number,
+    precioFraccionHora: number,
+    precioHoraAdicional?: number,
+  ): number {
     if (horas <= 1) {
       return precioFraccionHora;
     }
-    
+
     const horasAdicionales = horas - 1;
     const precioAdicional = precioHoraAdicional ?? precioFraccionHora;
-    return precioFraccionHora + (horasAdicionales * precioAdicional);
+    return precioFraccionHora + horasAdicionales * precioAdicional;
   }
 
   async findByReserva(idReserva: number): Promise<Pago | null> {
@@ -94,7 +126,13 @@ export class PagosService {
   async findPagoById(id: number): Promise<Pago> {
     const pago = await this.pagoRepository.findOne({
       where: { id },
-      relations: ['reserva', 'reserva.vehiculo', 'reserva.celda', 'metodoPago'],
+      relations: [
+        'reserva',
+        'reserva.vehiculo',
+        'reserva.celda',
+        'reserva.clienteFactura',
+        'metodoPago',
+      ],
     });
     if (!pago) {
       throw new NotFoundException(`No existe pago con id: ${id}`);

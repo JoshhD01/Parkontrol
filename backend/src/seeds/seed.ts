@@ -91,7 +91,7 @@ async function run() {
   const roles: Rol[] = [
     rolRepo.create({ nombre: RoleEnum.ADMIN }),
     rolRepo.create({ nombre: RoleEnum.OPERADOR }),
-    rolRepo.create({ nombre: ("GUEST" as any) }),
+    rolRepo.create({ nombre: 'GUEST' as any }),
   ];
   await saveMany(rolRepo, roles);
 
@@ -155,17 +155,50 @@ async function run() {
 
   // 8) Parqueaderos (3)
   const parques = [
-    parqueRepo.create({ nombre: 'Central Lot', capacidadTotal: 100, ubicacion: 'Center St', empresa: empresas[0] }),
-    parqueRepo.create({ nombre: 'North Lot', capacidadTotal: 50, ubicacion: 'North Ave', empresa: empresas[0] }),
-    parqueRepo.create({ nombre: 'South Lot', capacidadTotal: 30, ubicacion: 'South Blvd', empresa: empresas[1] }),
+    parqueRepo.create({
+      nombre: 'Central Lot',
+      capacidadTotal: 100,
+      ubicacion: 'Center St',
+      empresa: empresas[0],
+    }),
+    parqueRepo.create({
+      nombre: 'North Lot',
+      capacidadTotal: 50,
+      ubicacion: 'North Ave',
+      empresa: empresas[0],
+    }),
+    parqueRepo.create({
+      nombre: 'South Lot',
+      capacidadTotal: 30,
+      ubicacion: 'South Blvd',
+      empresa: empresas[1],
+    }),
   ];
   await saveMany(parqueRepo, parques);
 
   // 9) Celdas (3)
   const celdas = [
-    celdaRepo.create({ estado: 'DISPONIBLE', ultimoCambioEstado: new Date(), parqueadero: parques[0], tipoCelda: tiposCelda[0], sensor: sensors[0] }),
-    celdaRepo.create({ estado: 'OCUPADA', ultimoCambioEstado: new Date(), parqueadero: parques[0], tipoCelda: tiposCelda[1], sensor: sensors[1] }),
-    celdaRepo.create({ estado: 'DISPONIBLE', ultimoCambioEstado: new Date(), parqueadero: parques[1], tipoCelda: tiposCelda[2], sensor: sensors[2] }),
+    celdaRepo.create({
+      estado: 'DISPONIBLE',
+      ultimoCambioEstado: new Date(),
+      parqueadero: parques[0],
+      tipoCelda: tiposCelda[0],
+      sensor: sensors[0],
+    }),
+    celdaRepo.create({
+      estado: 'OCUPADA',
+      ultimoCambioEstado: new Date(),
+      parqueadero: parques[0],
+      tipoCelda: tiposCelda[1],
+      sensor: sensors[1],
+    }),
+    celdaRepo.create({
+      estado: 'DISPONIBLE',
+      ultimoCambioEstado: new Date(),
+      parqueadero: parques[1],
+      tipoCelda: tiposCelda[2],
+      sensor: sensors[2],
+    }),
   ];
   await saveMany(celdaRepo, celdas);
 
@@ -187,9 +220,24 @@ async function run() {
 
   // 12) Tarifas (3)
   const tarifas = [
-    tarifaRepo.create({ precioFraccionHora: 2.5, precioHoraAdicional: 2.0, parqueadero: parques[0], tipoVehiculo: tiposVeh[0] }),
-    tarifaRepo.create({ precioFraccionHora: 1.5, precioHoraAdicional: 1.0, parqueadero: parques[0], tipoVehiculo: tiposVeh[1] }),
-    tarifaRepo.create({ precioFraccionHora: 5.0, precioHoraAdicional: 4.0, parqueadero: parques[2], tipoVehiculo: tiposVeh[2] }),
+    tarifaRepo.create({
+      precioFraccionHora: 2.5,
+      precioHoraAdicional: 2.0,
+      parqueadero: parques[0],
+      tipoVehiculo: tiposVeh[0],
+    }),
+    tarifaRepo.create({
+      precioFraccionHora: 1.5,
+      precioHoraAdicional: 1.0,
+      parqueadero: parques[0],
+      tipoVehiculo: tiposVeh[1],
+    }),
+    tarifaRepo.create({
+      precioFraccionHora: 5.0,
+      precioHoraAdicional: 4.0,
+      parqueadero: parques[2],
+      tipoVehiculo: tiposVeh[2],
+    }),
   ];
   await saveMany(tarifaRepo, tarifas);
 
@@ -197,41 +245,117 @@ async function run() {
   const now = new Date();
   const later = new Date(now.getTime() + 60 * 60 * 1000); // +1h
   const reservas = [
-    reservaRepo.create({ fechaEntrada: now, estado: 'ABIERTA', vehiculo: vehs[0], celda: celdas[0] } as any),
-  reservaRepo.create({ fechaEntrada: now, fechaSalida: later, estado: 'CERRADA', vehiculo: vehs[1], celda: celdas[1] } as any),
-    reservaRepo.create({ fechaEntrada: now, estado: 'ABIERTA', vehiculo: vehs[2], celda: celdas[2] } as any),
+    reservaRepo.create({
+      fechaEntrada: now,
+      estado: 'ABIERTA',
+      vehiculo: vehs[0],
+      celda: celdas[0],
+    } as any),
+    reservaRepo.create({
+      fechaEntrada: now,
+      fechaSalida: later,
+      estado: 'CERRADA',
+      vehiculo: vehs[1],
+      celda: celdas[1],
+    } as any),
+    reservaRepo.create({
+      fechaEntrada: now,
+      estado: 'ABIERTA',
+      vehiculo: vehs[2],
+      celda: celdas[2],
+    } as any),
   ];
   await saveMany(reservaRepo, reservas);
 
   // 14) Pagos (3)
   const pagos = [
-    pagoRepo.create({ monto: 5.0, fechaPago: new Date(), reserva: reservas[1], metodoPago: metodos[0] } as any),
-    pagoRepo.create({ monto: 2.5, fechaPago: new Date(), reserva: reservas[1], metodoPago: metodos[1] } as any),
-    pagoRepo.create({ monto: 10.0, fechaPago: new Date(), reserva: reservas[2], metodoPago: metodos[2] } as any),
+    pagoRepo.create({
+      monto: 5.0,
+      fechaPago: new Date(),
+      reserva: reservas[1],
+      metodoPago: metodos[0],
+    } as any),
+    pagoRepo.create({
+      monto: 2.5,
+      fechaPago: new Date(),
+      reserva: reservas[1],
+      metodoPago: metodos[1],
+    } as any),
+    pagoRepo.create({
+      monto: 10.0,
+      fechaPago: new Date(),
+      reserva: reservas[2],
+      metodoPago: metodos[2],
+    } as any),
   ];
   await saveMany(pagoRepo, pagos);
 
   // 15) ClienteFactura (3)
   const clientes = [
-    clienteRepo.create({ tipoDocumento: 'CC', numeroDocumento: '1001', correo: 'c1@example.com' }),
-    clienteRepo.create({ tipoDocumento: 'NIT', numeroDocumento: '2002', correo: 'c2@example.com' }),
-    clienteRepo.create({ tipoDocumento: 'CC', numeroDocumento: '3003', correo: 'c3@example.com' }),
+    clienteRepo.create({
+      tipoDocumento: 'CC',
+      numeroDocumento: '1001',
+      correo: 'c1@example.com',
+    }),
+    clienteRepo.create({
+      tipoDocumento: 'NIT',
+      numeroDocumento: '2002',
+      correo: 'c2@example.com',
+    }),
+    clienteRepo.create({
+      tipoDocumento: 'CC',
+      numeroDocumento: '3003',
+      correo: 'c3@example.com',
+    }),
   ];
   await saveMany(clienteRepo, clientes);
 
   // 16) Facturas (3)
   const facturas = [
-    facturaRepo.create({ cufe: 'CUFE1', urlPdf: 'http://example.com/f1.pdf', enviada: 'Y', fechaCreacion: new Date(), pago: pagos[0], clienteFactura: clientes[0] } as any),
-    facturaRepo.create({ cufe: 'CUFE2', urlPdf: 'http://example.com/f2.pdf', enviada: 'N', fechaCreacion: new Date(), pago: pagos[1], clienteFactura: clientes[1] } as any),
-    facturaRepo.create({ cufe: 'CUFE3', urlPdf: 'http://example.com/f3.pdf', enviada: 'Y', fechaCreacion: new Date(), pago: pagos[2], clienteFactura: clientes[2] } as any),
+    facturaRepo.create({
+      cufe: 'CUFE1',
+      urlPdf: 'http://example.com/f1.pdf',
+      enviada: 'Y',
+      fechaCreacion: new Date(),
+      pago: pagos[0],
+      clienteFactura: clientes[0],
+    } as any),
+    facturaRepo.create({
+      cufe: 'CUFE2',
+      urlPdf: 'http://example.com/f2.pdf',
+      enviada: 'N',
+      fechaCreacion: new Date(),
+      pago: pagos[1],
+      clienteFactura: clientes[1],
+    } as any),
+    facturaRepo.create({
+      cufe: 'CUFE3',
+      urlPdf: 'http://example.com/f3.pdf',
+      enviada: 'Y',
+      fechaCreacion: new Date(),
+      pago: pagos[2],
+      clienteFactura: clientes[2],
+    } as any),
   ];
   await saveMany(facturaRepo, facturas);
 
   // 17) Reportes (3)
   const reportes = [
-    reporteRepo.create({ urlArchivo: 'http://example.com/r1.pdf', parqueadero: parques[0], periodo: periodos[0] }),
-    reporteRepo.create({ urlArchivo: 'http://example.com/r2.pdf', parqueadero: parques[1], periodo: periodos[1] }),
-    reporteRepo.create({ urlArchivo: 'http://example.com/r3.pdf', parqueadero: parques[2], periodo: periodos[2] }),
+    reporteRepo.create({
+      urlArchivo: 'http://example.com/r1.pdf',
+      parqueadero: parques[0],
+      periodo: periodos[0],
+    }),
+    reporteRepo.create({
+      urlArchivo: 'http://example.com/r2.pdf',
+      parqueadero: parques[1],
+      periodo: periodos[1],
+    }),
+    reporteRepo.create({
+      urlArchivo: 'http://example.com/r3.pdf',
+      parqueadero: parques[2],
+      periodo: periodos[2],
+    }),
   ];
   await saveMany(reporteRepo, reportes);
 

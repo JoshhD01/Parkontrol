@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vehiculo } from './entities/vehiculo.entity';
@@ -19,14 +23,18 @@ export class VehiculosService {
       where: { placa: createVehiculoDto.placa },
     });
     if (existeVehiculo) {
-      throw new ConflictException(`Ya existe un vehículo con placa: ${createVehiculoDto.placa}`);
+      throw new ConflictException(
+        `Ya existe un vehículo con placa: ${createVehiculoDto.placa}`,
+      );
     }
 
     const tipoVehiculo = await this.tipoVehiculoRepository.findOne({
       where: { id: createVehiculoDto.idTipoVehiculo },
     });
     if (!tipoVehiculo) {
-      throw new NotFoundException(`No existe tipo de vehículo con id: ${createVehiculoDto.idTipoVehiculo}`);
+      throw new NotFoundException(
+        `No existe tipo de vehículo con id: ${createVehiculoDto.idTipoVehiculo}`,
+      );
     }
 
     const vehiculo = this.vehiculoRepository.create({
