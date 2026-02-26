@@ -11,10 +11,13 @@ import { AuthService } from '../../services/autenticacion.service';
 import { ParqueaderosService } from '../../services/parqueaderos.service';
 import { ReservasService } from '../../services/reservas.service';
 import { FacturacionService } from '../../services/facturacion.service';
+import { UsuariosService } from '../../services/usuarios.service';
+import { PagosService } from '../../services/pagos.service';
 import { Parqueadero } from '../../models/parqueadero.model';
 import { Reserva } from '../../models/reserva.model';
 import { FacturaElectronica } from '../../models/facturacion.model';
 import { Vehiculo } from '../../models/vehiculo.model';
+import { Pago } from '../../models/pago.model';
 import { Subscription, interval } from 'rxjs';
 
 @Component({
@@ -37,9 +40,19 @@ export class ClienteDashboardComponent {
   vehiculosCliente: Vehiculo[] = [];
   reservas: Reserva[] = [];
   facturas: FacturaElectronica[] = [];
+  misPagos: Pago[] = [];
   loading = false;
   errorMessage = '';
   private autoRefreshSub?: Subscription;
+
+  // Password change
+  mostrarCambioContrasena = false;
+  contrasenaActual = '';
+  nuevaContrasena = '';
+  hideContrasenaActual = true;
+  hideNuevaContrasena = true;
+  mensajeContrasena = '';
+  errorContrasena = '';
 
   nuevaReserva = {
     idParqueadero: 0,
@@ -57,6 +70,8 @@ export class ClienteDashboardComponent {
     private readonly parqueaderosService: ParqueaderosService,
     private readonly reservasService: ReservasService,
     private readonly facturacionService: FacturacionService,
+    private readonly usuariosService: UsuariosService,
+    private readonly pagosService: PagosService,
   ) {}
 
   ngOnInit(): void {
@@ -168,6 +183,15 @@ export class ClienteDashboardComponent {
         }
       },
     });
+
+    this.pagosService.getMisPagos().subscribe({
+      next: (data) => {
+        this.misPagos = data;
+      },
+      error: () => {
+        this.misPagos = [];
+      },
+    });
   }
 
   private iniciarAutoRefresh(): void {
@@ -259,5 +283,50 @@ export class ClienteDashboardComponent {
   cerrarSesion(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  toggleCambioContrasena(): void {
+    this.mostrarCambioContrasena = !this.mostrarCambioContrasena;
+    if (!this.mostrarCambioContrasena) {
+      this.contrasenaActual = '';
+      this.nuevaContrasena = '';
+      this.mensajeContrasena = '';
+      this.errorContrasena = '';
+    }
+  }
+
+  cambiarContrasena(): void {
+    if (!this.contrasenaActual || !this.nuevaContrasena) {
+      this.errorContrasena = 'Ambos campos son obligatorios';
+      return;
+    }
+    if (this.nuevaContrasena.length < 6) {
+      this.errorContrasena = 'La nueva contraseña debe tener al menos 6 caracteres';
+      return;
+    }
+
+    this.usuariosService.cambiarContrasena({
+      contrasenaActual: this.contrasenaActual,
+      nuevaContrasena: this.nuevaContrasena,
+    }).subscribe({
+      next: (res) => {
+        this.mensajeContrasena = res.mensaje;
+        this.errorContrasena = '';
+        this.contrasenaActual = '';
+        this.nuevaContrasena = '';
+        setTimeout(() => {
+          this.mensajeContrasena = '';
+          this.mostrarCambioContrasena = false;
+        }, 3000);
+      },
+      error: (error) => {
+        this.errorContrasena = error.error?.message || 'Error al cambiar la contraseña';
+        setTimeout(() => { this.errorContrasena = ''; }, 4000);
+      },
+    });
+  }
+
+  get totalPagos(): number {
+    return this.misPagos.length;
   }
 }

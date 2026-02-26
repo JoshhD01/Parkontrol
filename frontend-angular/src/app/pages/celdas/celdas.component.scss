@@ -49,6 +49,13 @@ mat-card-title {
   align-items: center;
 }
 
+.filtro-estado {
+  margin: 12px 0;
+  mat-form-field {
+    min-width: 200px;
+  }
+}
+
 .filtro-parqueadero {
   min-width: 300px;
 }

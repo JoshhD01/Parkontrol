@@ -1,8 +1,10 @@
-import { Component} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { VehiculosService } from '../../services/vehiculos.service';
 import { Vehiculo, CrearVehiculoDto } from '../../models/vehiculo.model';
-import { CommonModule } from '@angular/common';
+import { Reserva } from '../../models/reserva.model';
+import { TipoVehiculo } from '../../models/shared.model';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,11 +12,14 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-vehiculos',
   standalone: true,
   imports: [
+    CommonModule,
+    DatePipe,
     ReactiveFormsModule,
     MatCardModule,
     MatButtonModule,
@@ -22,21 +27,25 @@ import { MatInputModule } from '@angular/material/input';
     MatTableModule,
     MatProgressSpinnerModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatSelectModule
   ],
   templateUrl: './vehiculos.component.html',
   styleUrls: ['./vehiculos.component.scss']
 })
-export class VehiculosComponent  {
+export class VehiculosComponent implements OnInit {
   searchForm: FormGroup;
   createForm: FormGroup;
   vehiculo: Vehiculo | null = null;
-
+  reservasVehiculo: Reserva[] = [];
+  tiposVehiculo: TipoVehiculo[] = [];
 
   loading = false;
+  loadingReservas = false;
   errorMessage = '';
   mensajeExito = '';
   displayedColumns: string[] = ['id', 'placa', 'tipoVehiculo'];
+  reservasColumns: string[] = ['id', 'parqueadero', 'estado', 'fechaEntrada', 'fechaSalida'];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -48,7 +57,25 @@ export class VehiculosComponent  {
 
     this.createForm = this.formBuilder.group({
       placa: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]],
-      idTipoVehiculo: [1, [Validators.required, Validators.min(1)]]
+      idTipoVehiculo: [null, [Validators.required, Validators.min(1)]]
+    });
+  }
+
+  ngOnInit(): void {
+    this.cargarTiposVehiculo();
+  }
+
+  private cargarTiposVehiculo(): void {
+    this.vehiculosService.getTiposVehiculo().subscribe({
+      next: (tipos) => {
+        this.tiposVehiculo = tipos;
+        if (tipos.length > 0 && !this.createForm.get('idTipoVehiculo')?.value) {
+          this.createForm.patchValue({ idTipoVehiculo: tipos[0].id });
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar tipos de vehículo', error);
+      }
     });
   }
 
@@ -56,6 +83,7 @@ export class VehiculosComponent  {
     if (this.searchForm.valid) {
 
       this.loading = true;
+      this.reservasVehiculo = [];
  
       
       const { placa } = this.searchForm.value;
@@ -66,7 +94,7 @@ export class VehiculosComponent  {
           this.vehiculo = vehiculo;
           this.loading = false;
           console.log('Vehiculo', vehiculo);
-         
+          this.cargarReservasVehiculo(vehiculo.id);
         },
         error: (error) => {
           console.error('No encontro vehiculo', error);
@@ -85,6 +113,21 @@ export class VehiculosComponent  {
         }
       });
     }
+  }
+
+  private cargarReservasVehiculo(idVehiculo: number): void {
+    this.loadingReservas = true;
+    this.vehiculosService.getHistorialReservas(idVehiculo).subscribe({
+      next: (reservas) => {
+        this.reservasVehiculo = reservas;
+        this.loadingReservas = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar historial de reservas', error);
+        this.reservasVehiculo = [];
+        this.loadingReservas = false;
+      }
+    });
   }
 
   onCrear(): void {
@@ -133,7 +176,7 @@ export class VehiculosComponent  {
 
   limpiarBusqueda(): void {
     this.vehiculo = null;
+    this.reservasVehiculo = [];
     this.searchForm.reset();
-
   }
 }

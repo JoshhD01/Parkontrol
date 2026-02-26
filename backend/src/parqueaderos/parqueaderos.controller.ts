@@ -26,14 +26,14 @@ export class ParqueaderosController {
   @UseGuards(JwtAuthGuard)
   async obtenerDisponiblesParaCliente(
     @GetUser() user: JwtUsuario,
-  ): Promise<ParqueaderoResponseDto[]> {
+  ) {
     if (user.nombreRol !== 'CLIENTE') {
       throw new UnauthorizedException(
         'Acceso exclusivo para clientes autenticados',
       );
     }
 
-    return this.parqueaderosService.findAll();
+    return this.parqueaderosService.findAllConDisponibilidad();
   }
 
   @Post()

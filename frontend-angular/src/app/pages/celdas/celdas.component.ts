@@ -47,6 +47,7 @@ export class CeldasComponent implements OnInit {
   parqueaderos: Parqueadero[] = [];
   celdasFiltradas: Celda[] = [];
   parqueaderoSeleccionado: number | null = null;
+  estadoFiltro: string = '';
   usuarioIsAdmin: boolean = false;
   loading = false;
   errorMessage = '';
@@ -104,7 +105,7 @@ export class CeldasComponent implements OnInit {
     this.celdasService.getByParqueadero(idParqueadero).subscribe({
       next: (celdas) => {
         this.celdas = celdas;
-        this.celdasFiltradas = celdas;
+        this.aplicarFiltroEstado();
         this.loading = false;
       },
       error: (error) => {
@@ -118,8 +119,22 @@ export class CeldasComponent implements OnInit {
 
   onParqueaderoCambia(idParqueadero: number): void {
     this.parqueaderoSeleccionado = idParqueadero;
+    this.estadoFiltro = '';
     this.cargarCeldas(idParqueadero);
     console.log('celdas obtenidas', {...this.celdas});
+  }
+
+  onEstadoFiltroChange(estado: string): void {
+    this.estadoFiltro = estado;
+    this.aplicarFiltroEstado();
+  }
+
+  private aplicarFiltroEstado(): void {
+    if (!this.estadoFiltro) {
+      this.celdasFiltradas = [...this.celdas];
+    } else {
+      this.celdasFiltradas = this.celdas.filter(c => c.estado === this.estadoFiltro);
+    }
   }
 
   abrirModalCrear(): void {

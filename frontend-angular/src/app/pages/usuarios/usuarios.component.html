@@ -5,7 +5,51 @@
         <mat-icon>person_add</mat-icon>
         Nuevo Usuario
       </button>
+      <button mat-raised-button color="accent" (click)="toggleCambioContrasena()">
+        <mat-icon>lock</mat-icon>
+        Cambiar Contraseña
+      </button>
     </div>
+
+    @if (mostrarCambioContrasena) {
+      <div class="cambio-contrasena-section">
+        <h3>Cambiar mi contraseña</h3>
+        <form [formGroup]="cambioContrasenaForm" (ngSubmit)="cambiarContrasena()" class="cambio-contrasena-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña actual</mat-label>
+            <input matInput [type]="hideContrasenaActual ? 'password' : 'text'" formControlName="contrasenaActual">
+            <button mat-icon-button matSuffix type="button" (click)="hideContrasenaActual = !hideContrasenaActual">
+              <mat-icon>{{ hideContrasenaActual ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (cambioContrasenaForm.get('contrasenaActual')?.hasError('required') && cambioContrasenaForm.get('contrasenaActual')?.touched) {
+              <mat-error>La contraseña actual es requerida</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nueva contraseña</mat-label>
+            <input matInput [type]="hideNuevaContrasena ? 'password' : 'text'" formControlName="nuevaContrasena">
+            <button mat-icon-button matSuffix type="button" (click)="hideNuevaContrasena = !hideNuevaContrasena">
+              <mat-icon>{{ hideNuevaContrasena ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (cambioContrasenaForm.get('nuevaContrasena')?.hasError('required') && cambioContrasenaForm.get('nuevaContrasena')?.touched) {
+              <mat-error>La nueva contraseña es requerida</mat-error>
+            } @else if (cambioContrasenaForm.get('nuevaContrasena')?.hasError('minlength') && cambioContrasenaForm.get('nuevaContrasena')?.touched) {
+              <mat-error>Debe tener al menos 6 caracteres</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="cambio-contrasena-actions">
+            <button mat-raised-button color="primary" type="submit" [disabled]="cambioContrasenaForm.invalid">
+              <mat-icon>save</mat-icon> Guardar
+            </button>
+            <button mat-stroked-button type="button" (click)="toggleCambioContrasena()">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    }
     @if (mensajeExito) {
       <div class="mensaje-exito">
         <mat-icon>check_circle</mat-icon> {{ mensajeExito }}

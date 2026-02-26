@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Post,
   NotFoundException,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { PagosService } from './pagos.service';
@@ -15,6 +16,8 @@ import { Roles } from 'src/shared/decorators';
 import { RoleEnum } from 'src/shared/entities/rol.entity';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { RolesGuard } from 'src/shared/guards';
+import { GetUser } from 'src/shared/decorators';
+import type { JwtUsuario } from 'src/auth/interfaces';
 
 @Controller('payments')
 export class PagosController {
@@ -34,6 +37,18 @@ export class PagosController {
     @Param('idParqueadero', ParseIntPipe) idParqueadero: number,
   ): Promise<Pago[]> {
     return await this.pagosService.findByParqueadero(idParqueadero);
+  }
+
+  @Get('client/mis-pagos')
+  @UseGuards(JwtAuthGuard)
+  async obtenerMisPagos(@GetUser() user: JwtUsuario): Promise<Pago[]> {
+    if (user.nombreRol !== 'CLIENTE') {
+      throw new UnauthorizedException(
+        'Acceso exclusivo para clientes autenticados',
+      );
+    }
+
+    return await this.pagosService.findByCliente(user.id, user.correo);
   }
 
   @Get('reserva/:idReserva')

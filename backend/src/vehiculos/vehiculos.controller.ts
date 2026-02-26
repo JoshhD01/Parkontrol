@@ -14,6 +14,8 @@ import { CreateVehiculoDto } from './entities/dto/crear-vehiculo.dto';
 import { Vehiculo } from './entities/vehiculo.entity';
 import { Roles } from 'src/shared/decorators';
 import { RoleEnum } from 'src/shared/entities/rol.entity';
+import { TipoVehiculo } from 'src/shared/entities/tipo-vehiculo.entity';
+import { Reserva } from 'src/reservas/entities/reserva.entity';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { RolesGuard } from 'src/shared/guards';
 
@@ -52,6 +54,22 @@ export class VehiculosController {
       );
     }
     return vehiculo;
+  }
+
+  @Get('tipos')
+  @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async obtenerTiposVehiculo(): Promise<TipoVehiculo[]> {
+    return await this.vehiculosService.findAllTiposVehiculo();
+  }
+
+  @Get(':id/reservas')
+  @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async obtenerReservasPorVehiculo(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Reserva[]> {
+    return await this.vehiculosService.findReservasByVehiculo(id);
   }
 
   @Get(':id')

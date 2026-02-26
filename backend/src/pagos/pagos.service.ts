@@ -149,4 +149,30 @@ export class PagosService {
       order: { fechaPago: 'DESC' },
     });
   }
+
+  async findByCliente(
+    idClienteFactura: number,
+    correoCliente: string,
+  ): Promise<Pago[]> {
+    const correoNormalizado = correoCliente.trim().toLowerCase();
+
+    return await this.pagoRepository
+      .createQueryBuilder('pago')
+      .leftJoinAndSelect('pago.reserva', 'reserva')
+      .leftJoinAndSelect('reserva.vehiculo', 'vehiculo')
+      .leftJoinAndSelect('vehiculo.tipoVehiculo', 'tipoVehiculo')
+      .leftJoinAndSelect('reserva.celda', 'celda')
+      .leftJoinAndSelect('celda.parqueadero', 'parqueadero')
+      .leftJoinAndSelect('pago.metodoPago', 'metodoPago')
+      .leftJoin('reserva.clienteFactura', 'clienteFactura')
+      .where('clienteFactura.ID_CLIENTE_FACTURA = :idClienteFactura', {
+        idClienteFactura,
+      })
+      .orWhere(
+        "LOWER(TRIM(clienteFactura.CORREO)) = LOWER(TRIM(:correoNormalizado))",
+        { correoNormalizado },
+      )
+      .orderBy('pago.FECHA_PAGO', 'DESC')
+      .getMany();
+  }
 }

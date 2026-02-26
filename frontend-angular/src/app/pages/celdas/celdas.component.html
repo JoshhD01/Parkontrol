@@ -34,6 +34,20 @@
             (parqueaderoCambia)="onParqueaderoCambia($event)">
           </app-filtro-parqueaderos>
 
+          @if (parqueaderoSeleccionado) {
+            <div class="filtro-estado">
+              <mat-form-field appearance="outline">
+                <mat-label>Filtrar por estado</mat-label>
+                <mat-select [value]="estadoFiltro" (selectionChange)="onEstadoFiltroChange($event.value)">
+                  <mat-option value="">Todos</mat-option>
+                  @for (estado of estadosCeldas; track estado.valor) {
+                    <mat-option [value]="estado.valor">{{ estado.nombre }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+
           @if (errorMessage) {
             <div class="mensaje-error">
               <mat-icon color="warn">error</mat-icon>

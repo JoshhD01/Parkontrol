@@ -136,6 +136,45 @@
   }
 }
 
+.reservas-section {
+  margin-top: 24px;
+
+  h3 {
+    color: #424242;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .no-data {
+    color: #888;
+    text-align: center;
+    padding: 16px;
+  }
+}
+
+.reservas-table {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+
+  th {
+    background-color: #f5f5f5;
+    color: #424242;
+    font-weight: 600;
+    padding: 12px 16px;
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  tr:hover td {
+    background-color: #f9f9f9;
+  }
+}
+
 
 
 .create-form {

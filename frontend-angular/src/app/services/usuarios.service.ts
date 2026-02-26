@@ -21,4 +21,8 @@ export class UsuariosService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  cambiarContrasena(data: { contrasenaActual: string; nuevaContrasena: string }): Observable<{ mensaje: string }> {
+    return this.http.patch<{ mensaje: string }>(`${this.apiUrl}/cambiar-contrasena`, data);
+  }
 }

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/autenticacion.service';
 import { UsuariosService } from '../../services/usuarios.service';
 import { CreateUsuarioDto, Usuario } from '../../models/usuario.model';
@@ -9,6 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { UsuarioModalComponent, UsuarioDialogData } from '../../components/usuario-modal/usuario-modal.component';
 import { RolUsuario } from '../../models/shared.model';
 
@@ -21,7 +24,10 @@ import { RolUsuario } from '../../models/shared.model';
     MatIconModule,
     MatCardModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule
   ],
   templateUrl: './usuarios.component.html',
   styleUrls: ['./usuarios.component.scss']
@@ -36,7 +42,11 @@ export class UsuariosComponent implements OnInit {
   errorMessage = '';
   mensajeExito: string = '';
 
-
+  // Password change
+  cambioContrasenaForm: FormGroup;
+  mostrarCambioContrasena = false;
+  hideContrasenaActual = true;
+  hideNuevaContrasena = true;
 
   displayedColumns: string[] = ['id', 'nombre', 'correo', 'acciones'];
   
@@ -45,7 +55,13 @@ export class UsuariosComponent implements OnInit {
     private usuariosService: UsuariosService,
     private authService: AuthService,
     private dialog: MatDialog,
-  ) {}
+    private fb: FormBuilder,
+  ) {
+    this.cambioContrasenaForm = this.fb.group({
+      contrasenaActual: ['', [Validators.required]],
+      nuevaContrasena: ['', [Validators.required, Validators.minLength(6)]],
+    });
+  }
 
   ngOnInit(): void {
 
@@ -139,6 +155,39 @@ export class UsuariosComponent implements OnInit {
           this.errorMessage = 'Solo se pueden eliminar usuarios con rol OPERADOR';
         } else {
           this.errorMessage = 'Error al eliminar usuario';
+        }
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 3000);
+      }
+    });
+  }
+
+  toggleCambioContrasena(): void {
+    this.mostrarCambioContrasena = !this.mostrarCambioContrasena;
+    if (!this.mostrarCambioContrasena) {
+      this.cambioContrasenaForm.reset();
+    }
+  }
+
+  cambiarContrasena(): void {
+    if (this.cambioContrasenaForm.invalid) return;
+
+    const data = this.cambioContrasenaForm.value;
+    this.usuariosService.cambiarContrasena(data).subscribe({
+      next: (res) => {
+        this.mensajeExito = res.mensaje;
+        this.cambioContrasenaForm.reset();
+        this.mostrarCambioContrasena = false;
+        setTimeout(() => {
+          this.mensajeExito = '';
+        }, 3000);
+      },
+      error: (error) => {
+        if (error.status === 400) {
+          this.errorMessage = error.error?.message || 'La contraseña actual es incorrecta';
+        } else {
+          this.errorMessage = 'Error al cambiar la contraseña';
         }
         setTimeout(() => {
           this.errorMessage = '';

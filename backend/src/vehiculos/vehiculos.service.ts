@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Vehiculo } from './entities/vehiculo.entity';
 import { CreateVehiculoDto } from './entities/dto/crear-vehiculo.dto';
 import { TipoVehiculo } from 'src/shared/entities/tipo-vehiculo.entity';
+import { Reserva } from 'src/reservas/entities/reserva.entity';
 
 @Injectable()
 export class VehiculosService {
@@ -16,6 +17,8 @@ export class VehiculosService {
     private readonly vehiculoRepository: Repository<Vehiculo>,
     @InjectRepository(TipoVehiculo)
     private readonly tipoVehiculoRepository: Repository<TipoVehiculo>,
+    @InjectRepository(Reserva)
+    private readonly reservaRepository: Repository<Reserva>,
   ) {}
 
   async crear(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
@@ -61,5 +64,27 @@ export class VehiculosService {
       throw new NotFoundException(`No existe vehículo con id: ${id}`);
     }
     return vehiculo;
+  }
+
+  async findReservasByVehiculo(idVehiculo: number): Promise<Reserva[]> {
+    await this.findVehiculoById(idVehiculo);
+
+    return await this.reservaRepository.find({
+      where: { vehiculo: { id: idVehiculo } },
+      relations: [
+        'vehiculo',
+        'vehiculo.tipoVehiculo',
+        'celda',
+        'celda.parqueadero',
+        'clienteFactura',
+      ],
+      order: { fechaEntrada: 'DESC' },
+    });
+  }
+
+  async findAllTiposVehiculo(): Promise<TipoVehiculo[]> {
+    return await this.tipoVehiculoRepository.find({
+      order: { id: 'ASC' },
+    });
   }
 }

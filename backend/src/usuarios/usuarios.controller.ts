@@ -5,16 +5,20 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './entities/dto/crear-usuario.dto';
+import { CambiarContrasenaDto } from './entities/dto/cambiar-contrasena.dto';
 import { RoleEnum } from 'src/shared/entities/rol.entity';
 import { UsuarioResponseDto } from './entities/dto/usuario-response.dto';
 import { Roles } from 'src/shared/decorators';
 import { JwtAuthGuard } from 'src/auth/guards';
 import { RolesGuard } from 'src/shared/guards';
+import { GetUser } from 'src/shared/decorators';
+import type { JwtUsuario } from 'src/auth/interfaces';
 
 @Controller('users')
 export class UsuariosController {
@@ -58,5 +62,17 @@ export class UsuariosController {
   ): Promise<{ mensaje: string }> {
     await this.usuariosService.eliminar(id);
     return { mensaje: 'Usuario Operador eliminado correctamente' };
+  }
+
+  @Patch('cambiar-contrasena')
+  @UseGuards(JwtAuthGuard)
+  async cambiarContrasena(
+    @GetUser() user: JwtUsuario,
+    @Body() cambiarContrasenaDto: CambiarContrasenaDto,
+  ): Promise<{ mensaje: string }> {
+    return await this.usuariosService.cambiarContrasena(
+      user.id,
+      cambiarContrasenaDto,
+    );
   }
 }

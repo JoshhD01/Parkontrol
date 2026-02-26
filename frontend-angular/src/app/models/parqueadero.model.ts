@@ -5,6 +5,7 @@ export interface Parqueadero {
   ubicacion: string;
   idEmpresa: number;
   empresa?: any;
+  celdasDisponibles?: number;
 }
 
 export interface CrearParqueaderoDto {

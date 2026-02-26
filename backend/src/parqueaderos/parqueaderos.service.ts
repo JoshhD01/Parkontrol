@@ -72,6 +72,29 @@ export class ParqueaderosService {
     return parqueaderos.map((p) => new ParqueaderoResponseDto(p));
   }
 
+  async findAllConDisponibilidad(): Promise<(ParqueaderoResponseDto & { celdasDisponibles: number })[]> {
+    const parqueaderos = await this.parqueaderoRepository.find({
+      relations: ['empresa'],
+    });
+
+    const resultado: (ParqueaderoResponseDto & { celdasDisponibles: number })[] = [];
+
+    for (const parqueadero of parqueaderos) {
+      await this.asegurarCapacidadCeldas(parqueadero);
+
+      const celdasLibres = await this.celdaRepository.count({
+        where: { parqueadero: { id: parqueadero.id }, estado: 'LIBRE' },
+      });
+
+      resultado.push({
+        ...new ParqueaderoResponseDto(parqueadero),
+        celdasDisponibles: celdasLibres,
+      });
+    }
+
+    return resultado;
+  }
+
   async findByEmpresa(idEmpresa: number): Promise<ParqueaderoResponseDto[]> {
     const parqueaderos = await this.parqueaderoRepository.find({
       where: { empresa: { id: idEmpresa } },

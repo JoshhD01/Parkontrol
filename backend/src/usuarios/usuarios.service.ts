@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { Repository } from 'typeorm';
 import { RoleEnum } from 'src/shared/entities/rol.entity';
 import { CreateUsuarioDto } from './entities/dto/crear-usuario.dto';
+import { CambiarContrasenaDto } from './entities/dto/cambiar-contrasena.dto';
 import { RolesService } from 'src/shared/services/roles/roles.service';
 import { UsuarioValidator } from './validators/usuario.validator';
 import * as bcrypt from 'bcrypt';
@@ -84,5 +85,34 @@ export class UsuariosService {
     const usuario = await this.findUsuarioById(id);
     this.usuarioValidator.validarEsOperador(usuario);
     await this.usuarioRepository.remove(usuario);
+  }
+
+  async cambiarContrasena(
+    id: number,
+    cambiarContrasenaDto: CambiarContrasenaDto,
+  ): Promise<{ mensaje: string }> {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { id },
+    });
+    if (!usuario) {
+      throw new NotFoundException(`No existe usuario con id: ${id}`);
+    }
+
+    const contrasenaValida = await bcrypt.compare(
+      cambiarContrasenaDto.contrasenaActual,
+      usuario.contrasena,
+    );
+    if (!contrasenaValida) {
+      throw new BadRequestException('La contraseña actual es incorrecta');
+    }
+
+    const saltRounds = 10;
+    usuario.contrasena = await bcrypt.hash(
+      cambiarContrasenaDto.nuevaContrasena,
+      saltRounds,
+    );
+
+    await this.usuarioRepository.save(usuario);
+    return { mensaje: 'Contraseña actualizada correctamente' };
   }
 }

@@ -27,4 +27,8 @@ export class PagosService {
   getByParqueadero(idParqueadero: number): Observable<Pago[]> {
     return this.http.get<Pago[]>(`${this.apiUrl}/payments/parqueadero/${idParqueadero}`);
   }
+
+  getMisPagos(): Observable<Pago[]> {
+    return this.http.get<Pago[]>(`${this.apiUrl}/payments/client/mis-pagos`);
+  }
 }
