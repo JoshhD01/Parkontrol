@@ -22,30 +22,30 @@ export class VehiculosService {
   ) {}
 
   async crear(createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
-    const existeVehiculo = await this.vehiculoRepository.findOne({
+    const existeVehiculo = await this.vehiculoRepository.findOne({ 
       where: { placa: createVehiculoDto.placa },
     });
-    if (existeVehiculo) {
+    if (existeVehiculo) { 
       throw new ConflictException(
         `Ya existe un vehículo con placa: ${createVehiculoDto.placa}`,
       );
     }
 
-    const tipoVehiculo = await this.tipoVehiculoRepository.findOne({
+    const tipoVehiculo = await this.tipoVehiculoRepository.findOne({ 
       where: { id: createVehiculoDto.idTipoVehiculo },
     });
-    if (!tipoVehiculo) {
+    if (!tipoVehiculo) { 
       throw new NotFoundException(
         `No existe tipo de vehículo con id: ${createVehiculoDto.idTipoVehiculo}`,
       );
     }
 
-    const vehiculo = this.vehiculoRepository.create({
+    const vehiculo = this.vehiculoRepository.create({ 
       placa: createVehiculoDto.placa.toUpperCase(),
       tipoVehiculo,
     });
 
-    return await this.vehiculoRepository.save(vehiculo);
+    return await this.vehiculoRepository.save(vehiculo); 
   }
 
   async findByPlaca(placa: string): Promise<Vehiculo | null> {

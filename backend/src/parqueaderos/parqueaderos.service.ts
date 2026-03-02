@@ -114,32 +114,32 @@ export class ParqueaderosService {
   }
 
   private async asegurarCapacidadCeldas(parqueadero: Parqueadero): Promise<void> {
-    const capacidad = Math.max(0, Number(parqueadero.capacidadTotal ?? 0));
-    if (capacidad === 0) {
+    const capacidad = Math.max(0, Number(parqueadero.capacidadTotal ?? 0)); 
+    if (capacidad === 0) { 
       return;
     }
 
-    const totalCeldasActuales = await this.celdaRepository.count({
+    const totalCeldasActuales = await this.celdaRepository.count({ 
       where: { parqueadero: { id: parqueadero.id } },
     });
 
-    if (totalCeldasActuales >= capacidad) {
+    if (totalCeldasActuales >= capacidad) { 
       return;
     }
 
-    const tipoCeldaDefault = await this.obtenerTipoCeldaDefault();
-    const faltantes = capacidad - totalCeldasActuales;
+    const tipoCeldaDefault = await this.obtenerTipoCeldaDefault(); 
+    const faltantes = capacidad - totalCeldasActuales; 
 
-    const sensores = Array.from({ length: faltantes }, (_, index) =>
-      this.sensorRepository.create({
+    const sensores = Array.from({ length: faltantes }, (_, index) => 
+      this.sensorRepository.create({ 
         descripcion: `Sensor ${parqueadero.id}-${totalCeldasActuales + index + 1}`,
       }),
     );
 
-    const sensoresGuardados = await this.sensorRepository.save(sensores);
+    const sensoresGuardados = await this.sensorRepository.save(sensores); 
 
-    const celdasNuevas = sensoresGuardados.map((sensor) =>
-      this.celdaRepository.create({
+    const celdasNuevas = sensoresGuardados.map((sensor) => 
+      this.celdaRepository.create({ 
         estado: 'LIBRE',
         ultimoCambioEstado: new Date(),
         parqueadero,
@@ -148,7 +148,7 @@ export class ParqueaderosService {
       }),
     );
 
-    await this.celdaRepository.save(celdasNuevas);
+    await this.celdaRepository.save(celdasNuevas); 
   }
 
   private async obtenerTipoCeldaDefault(): Promise<TipoCelda> {
