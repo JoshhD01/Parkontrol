@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsBoolean,
+  ValidateIf,
+} from 'class-validator';
 
 export class CreateFacturaElectronicaDto {
   @IsNotEmpty()
@@ -9,9 +17,19 @@ export class CreateFacturaElectronicaDto {
   @IsNumber()
   idClienteFactura?: number;
 
+  @IsOptional()
+  @IsBoolean()
+  emitirElectronica?: boolean;
+
+  @ValidateIf((dto: CreateFacturaElectronicaDto) => dto.emitirElectronica === true)
   @IsNotEmpty()
   @IsString()
-  cufe: string;
+  cufe?: string;
+
+  @ValidateIf((dto: CreateFacturaElectronicaDto) => dto.emitirElectronica === true)
+  @IsNotEmpty()
+  @IsEmail()
+  correoElectronico?: string;
 
   @IsOptional()
   @IsString()

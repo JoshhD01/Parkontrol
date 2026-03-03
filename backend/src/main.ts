@@ -27,8 +27,7 @@ async function bootstrap() {
 
   // Habilitar CORS para que el frontend pueda hacer peticiones
   app.enableCors({
-    // Añadí el origen del frontend Angular (puerto 4200). Si usas más frontends de dev,
-    // agrégalos aquí o usa una función para permitir dinámicamente.
+
     origin: [
       'http://localhost:5173',
       'http://localhost:5174',

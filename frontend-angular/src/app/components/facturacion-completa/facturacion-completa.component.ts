@@ -17,6 +17,7 @@ export class FacturacionCompletaComponent {
   @Input() loading: boolean = false;
 
   displayedColumns: string[] = [
+    'tipoFactura',
     'cufe',
     'numeroDocumento',
     'correoCliente',

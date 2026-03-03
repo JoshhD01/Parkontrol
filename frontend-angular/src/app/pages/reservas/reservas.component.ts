@@ -86,7 +86,11 @@ export class ReservasComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error No cargo parqueaderos', error);
+        if (error?.status === 404) {
+          this.parqueaderos = [];
+        } else {
+          console.error('Error No cargo parqueaderos', error);
+        }
         this.loading = false;
 
       }});
@@ -103,7 +107,9 @@ export class ReservasComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('no cargo reservas', error);
+        if (error?.status !== 404) {
+          console.error('no cargo reservas', error);
+        }
         this.reservas = [];
         this.loading = false;
       }

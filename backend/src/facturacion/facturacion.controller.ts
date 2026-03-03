@@ -13,6 +13,7 @@ import {
 import { FacturacionService } from './facturacion.service';
 import { CreateFacturaElectronicaDto } from './entities/dto/crear-factura-electronica.dto';
 import { CreateClienteFacturaDto } from './entities/dto/crear-cliente-factura.dto';
+import { EmitirFacturaElectronicaDto } from './entities/dto/emitir-factura-electronica.dto';
 import { FacturaElectronica } from './entities/factura-electronica.entity';
 import { ClienteFactura } from './entities/cliente-factura.entity';
 import { Roles } from 'src/shared/decorators';
@@ -30,7 +31,7 @@ export class FacturacionController {
   @UseGuards(JwtAuthGuard)
   async obtenerFacturasCliente(
     @GetUser() user: JwtUsuario,
-  ): Promise<FacturaElectronica[]> {
+  ): Promise<any[]> {
     if (user.nombreRol !== 'CLIENTE') {
       throw new UnauthorizedException(
         'Acceso exclusivo para clientes autenticados',
@@ -57,8 +58,18 @@ export class FacturacionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   async crearFactura(
     @Body() createFacturaDto: CreateFacturaElectronicaDto,
-  ): Promise<FacturaElectronica> {
+  ): Promise<any> {
     return await this.facturacionService.crearFactura(createFacturaDto);
+  }
+
+  @Patch('facturas/:id/electronica')
+  @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async emitirFacturaElectronica(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: EmitirFacturaElectronicaDto,
+  ): Promise<any> {
+    return await this.facturacionService.emitirFacturaElectronica(id, dto);
   }
 
   @Patch('facturas/:id/enviar')
@@ -66,7 +77,7 @@ export class FacturacionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   async marcarEnviada(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<FacturaElectronica> {
+  ): Promise<any> {
     return await this.facturacionService.marcarComoEnviada(id);
   }
 
@@ -75,7 +86,7 @@ export class FacturacionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorPago(
     @Param('idPago', ParseIntPipe) idPago: number,
-  ): Promise<FacturaElectronica> {
+  ): Promise<any> {
     const factura = await this.facturacionService.findByPago(idPago);
     if (!factura) {
       throw new NotFoundException(

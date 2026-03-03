@@ -20,6 +20,7 @@ export interface HistorialReserva {
 
 export interface FacturacionCompleta {
   idFacturaElectronica: number;
+  tipoFactura?: 'NORMAL' | 'ELECTRONICA';
   tipoDocumento: string;
   numeroDocumento: string;
   correo: string;
@@ -27,9 +28,9 @@ export interface FacturacionCompleta {
   monto: number;
   metodoPago: string;
   fechaPago: string;
-  cufe: string;
-  urlPdf: string;
-  enviada: number;
+  cufe?: string | null;
+  urlPdf?: string | null;
+  enviada: boolean;
 }
 
 export interface IngresosMensuales {

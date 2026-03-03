@@ -11,7 +11,8 @@ export interface FacturaElectronica {
   id: number;
   idPago: number;
   idClienteFactura?: number;
-  cufe: string;
+  tipoFactura?: 'NORMAL' | 'ELECTRONICA';
+  cufe?: string | null;
   urlPdf?: string;
   enviada: boolean;
   fechaEmision: string;
@@ -28,6 +29,8 @@ export interface CrearClienteFacturaDto {
 export interface CrearFacturaElectronicaDto {
   idPago: number;
   idClienteFactura?: number;
-  cufe: string;
+  emitirElectronica?: boolean;
+  cufe?: string;
+  correoElectronico?: string;
   urlPdf?: string;
 }

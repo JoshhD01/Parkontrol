@@ -332,7 +332,10 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
     horaInicioNueva: Date,
     horaFinNueva: Date | null,
   ): Promise<void> {
-    const reservaActivaPorPlaca = await this.reservaRepository
+    const aplicaFiltroHoraFin =
+      horaFinNueva instanceof Date && !Number.isNaN(horaFinNueva.getTime());
+
+    const queryReservaActivaPorPlaca = this.reservaRepository
       .createQueryBuilder('reserva')
       .leftJoinAndSelect('reserva.celda', 'celda')
       .leftJoinAndSelect('celda.parqueadero', 'parqueadero')
@@ -342,11 +345,16 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       })
       .andWhere('(reserva."FECHA_SALIDA" IS NULL OR reserva."FECHA_SALIDA" > :horaInicioNueva)', {
         horaInicioNueva,
-      })
-      .andWhere('(:horaFinNueva IS NULL OR reserva."FECHA_ENTRADA" < :horaFinNueva)', {
-        horaFinNueva,
-      })
-      .getOne();
+      });
+
+    if (aplicaFiltroHoraFin) {
+      queryReservaActivaPorPlaca.andWhere(
+        'reserva."FECHA_ENTRADA" < :horaFinNueva',
+        { horaFinNueva },
+      );
+    }
+
+    const reservaActivaPorPlaca = await queryReservaActivaPorPlaca.getOne();
 
     if (reservaActivaPorPlaca) {
       const parqueadero = reservaActivaPorPlaca.celda?.parqueadero?.nombre;
@@ -362,7 +370,7 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
     }
 
     const correoNormalizado = clienteFactura.correo.trim().toLowerCase();
-    const reservaActivaPorCorreo = await this.reservaRepository
+    const queryReservaActivaPorCorreo = this.reservaRepository
       .createQueryBuilder('reserva')
       .leftJoinAndSelect('reserva.celda', 'celda')
       .leftJoinAndSelect('celda.parqueadero', 'parqueadero')
@@ -374,11 +382,16 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       )
       .andWhere('(reserva."FECHA_SALIDA" IS NULL OR reserva."FECHA_SALIDA" > :horaInicioNueva)', {
         horaInicioNueva,
-      })
-      .andWhere('(:horaFinNueva IS NULL OR reserva."FECHA_ENTRADA" < :horaFinNueva)', {
-        horaFinNueva,
-      })
-      .getOne();
+      });
+
+    if (aplicaFiltroHoraFin) {
+      queryReservaActivaPorCorreo.andWhere(
+        'reserva."FECHA_ENTRADA" < :horaFinNueva',
+        { horaFinNueva },
+      );
+    }
+
+    const reservaActivaPorCorreo = await queryReservaActivaPorCorreo.getOne();
 
     if (reservaActivaPorCorreo) {
       const parqueadero = (reservaActivaPorCorreo as any).celda?.parqueadero
@@ -390,17 +403,22 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    const reservaActivaMismaCelda = await this.reservaRepository
+    const queryReservaActivaMismaCelda = this.reservaRepository
       .createQueryBuilder('reserva')
       .where('reserva.ESTADO = :estado', { estado: 'ABIERTA' })
       .andWhere('reserva."ID_CELDA" = :idCelda', { idCelda })
       .andWhere('(reserva."FECHA_SALIDA" IS NULL OR reserva."FECHA_SALIDA" > :horaInicioNueva)', {
         horaInicioNueva,
-      })
-      .andWhere('(:horaFinNueva IS NULL OR reserva."FECHA_ENTRADA" < :horaFinNueva)', {
-        horaFinNueva,
-      })
-      .getOne();
+      });
+
+    if (aplicaFiltroHoraFin) {
+      queryReservaActivaMismaCelda.andWhere(
+        'reserva."FECHA_ENTRADA" < :horaFinNueva',
+        { horaFinNueva },
+      );
+    }
+
+    const reservaActivaMismaCelda = await queryReservaActivaMismaCelda.getOne();
 
     if (reservaActivaMismaCelda) {
       throw new BadRequestException(

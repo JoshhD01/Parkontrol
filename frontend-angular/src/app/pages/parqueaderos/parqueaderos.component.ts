@@ -65,7 +65,11 @@ export class ParqueaderosComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al cargar parqueaderos:', error);
+        if (error?.status === 404) {
+          this.parqueaderos = [];
+        } else {
+          console.error('Error al cargar parqueaderos:', error);
+        }
         this.loading = false;
       }
     });

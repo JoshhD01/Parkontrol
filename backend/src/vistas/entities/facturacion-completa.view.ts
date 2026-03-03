@@ -36,5 +36,8 @@ export class FacturacionCompletaView {
   urlPdf: string;
 
   @ViewColumn({ name: 'ENVIADA' })
-  enviada: number;
+  enviada: boolean;
+
+  @ViewColumn({ name: 'TIPO_FACTURA' })
+  tipoFactura: string;
 }

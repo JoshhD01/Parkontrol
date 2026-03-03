@@ -55,11 +55,17 @@ export class UsuariosService {
   }
 
   async findUsuarioByCorreo(correo: string): Promise<Usuario | null> {
-    const usuario = await this.usuarioRepository.findOne({
-      where: { correo },
-      relations: ['empresa'],
-    });
-    return usuario;
+    const correoNormalizado = correo.trim().toLowerCase();
+    const usuario = await this.usuarioRepository
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.empresa', 'empresa')
+      .leftJoinAndSelect('usuario.rol', 'rol')
+      .where('LOWER(usuario.CORREO) = :correoNormalizado', {
+        correoNormalizado,
+      })
+      .getOne();
+
+    return usuario ?? null;
   }
 
   async findUsuarioById(id: number): Promise<Usuario> {

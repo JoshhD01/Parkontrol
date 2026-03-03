@@ -10,13 +10,21 @@
 
         <div class="factura-item">
             <mat-icon>code</mat-icon>
-            <span>CUFE: {{ data.factura.cufe || 'No disponible' }}</span>
+            <span>
+              Tipo: {{ data.factura.tipoFactura || (data.factura.cufe ? 'ELECTRONICA' : 'NORMAL') }}
+              @if (data.factura.cufe) {
+                | CUFE: {{ data.factura.cufe }}
+              }
+            </span>
         </div>
 
 
         <div class="factura-item">
             <mat-icon>check_circle</mat-icon>
-            <span>Estado: {{ data.factura.enviada ? 'Enviado' : 'Pendiente' }}</span>
+            <span>
+              Estado:
+              {{ (data.factura.tipoFactura === 'ELECTRONICA' || data.factura.cufe) ? (data.factura.enviada ? 'Enviado' : 'Pendiente') : 'No aplica' }}
+            </span>
         </div>
     </div>
 

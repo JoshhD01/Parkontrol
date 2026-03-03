@@ -54,6 +54,7 @@ export class ReservaModalComponent implements OnInit {
   loadingClientes = false;
   mostrarFormularioNuevoCliente = false;
   errorMessage = '';
+  tiposDocumento = ['CC', 'CE', 'TI', 'PAS', 'NIT'];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -103,7 +104,9 @@ export class ReservaModalComponent implements OnInit {
 
       },
       error: (error) => {
-        console.error('Error al cargar celdas:', error);
+        if (error?.status !== 404) {
+          console.error('Error al cargar celdas:', error);
+        }
         this.celdas = [];
 
         this.loadingCeldas = false;
@@ -120,7 +123,9 @@ export class ReservaModalComponent implements OnInit {
         this.loadingClientes = false;
       },
       error: (error) => {
-        console.error('Error al cargar clientes de facturación:', error);
+        if (error?.status !== 404) {
+          console.error('Error al cargar clientes de facturación:', error);
+        }
         this.clientesFactura = [];
         this.loadingClientes = false;
       }
@@ -157,11 +162,51 @@ export class ReservaModalComponent implements OnInit {
       return false;
     }
 
+    const tipo = tipoDocumento.toUpperCase();
+    const reglas: Record<string, { pattern: RegExp; mensaje: string }> = {
+      CC: {
+        pattern: /^\d{6,10}$/,
+        mensaje: 'CC: solo números (6 a 10 dígitos).',
+      },
+      TI: {
+        pattern: /^\d{10,11}$/,
+        mensaje: 'TI: solo números (10 a 11 dígitos).',
+      },
+      CE: {
+        pattern: /^\d{6,12}$/,
+        mensaje: 'CE: solo números (6 a 12 dígitos).',
+      },
+      NIT: {
+        pattern: /^\d{8,10}(-\d)?$/,
+        mensaje:
+          'NIT: 8 a 10 dígitos y opcional guion con dígito verificador (ej: 900123456-7).',
+      },
+      PAS: {
+        pattern: /^[A-Za-z0-9]{5,20}$/,
+        mensaje: 'PAS: alfanumérico de 5 a 20 caracteres (sin espacios).',
+      },
+    };
+
+    const regla = reglas[tipo];
+    if (!regla) {
+      this.errorMessage = 'Tipo de documento inválido.';
+      return false;
+    }
+
+    if (!regla.pattern.test(numeroDocumento)) {
+      this.errorMessage = regla.mensaje;
+      return false;
+    }
+
     return true;
   }
 
   toggleNuevoCliente(): void {
     this.mostrarFormularioNuevoCliente = !this.mostrarFormularioNuevoCliente;
+
+    if (this.mostrarFormularioNuevoCliente && !this.reservaForm.get('tipoDocumento')?.value) {
+      this.reservaForm.patchValue({ tipoDocumento: 'CC' });
+    }
 
     if (!this.mostrarFormularioNuevoCliente) {
       this.reservaForm.patchValue({
@@ -339,7 +384,7 @@ export class ReservaModalComponent implements OnInit {
 
       const nuevoCliente: CrearClienteFacturaDto = {
         tipoDocumento: String(formValue.tipoDocumento).trim().toUpperCase(),
-        numeroDocumento: String(formValue.numeroDocumento).trim(),
+        numeroDocumento: String(formValue.numeroDocumento).trim().toUpperCase(),
         correo: String(formValue.correoCliente).trim().toLowerCase(),
       };
 

@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Crear Factura Electronica</h2>
+<h2 mat-dialog-title>Crear Factura</h2>
 <mat-dialog-content>
 	<form [formGroup]="facturaForm" (ngSubmit)="onSubmit()">
 
@@ -44,12 +44,37 @@
 		</mat-form-field>
 
 		<mat-form-field appearance="outline" class="full-width">
+			<mat-label>Tipo de factura</mat-label>
+			<mat-select formControlName="emitirElectronica">
+				<mat-option [value]="false">Factura normal</mat-option>
+				<mat-option [value]="true">Factura electrónica</mat-option>
+			</mat-select>
+			<mat-hint>La factura normal no exige CUFE. La electrónica sí.</mat-hint>
+		</mat-form-field>
+
+		@if (facturaForm.get('emitirElectronica')?.value) {
+		<mat-form-field appearance="outline" class="full-width">
 			<mat-label>CUFE</mat-label>
 			<input matInput formControlName="cufe" placeholder="Código Único de Facturación Electrónica">
 			@if (facturaForm.get('cufe')?.invalid && facturaForm.get('cufe')?.touched) {
 				<mat-error>Debe ingresar un CUFE</mat-error>
 			}
 		</mat-form-field>
+
+		<mat-form-field appearance="outline" class="full-width">
+			<mat-label>Correo para factura electrónica</mat-label>
+			<input matInput formControlName="correoElectronico" placeholder="correo@dominio.com">
+			@if (facturaForm.get('correoElectronico')?.invalid && facturaForm.get('correoElectronico')?.touched) {
+				<mat-error>
+					@if (facturaForm.get('correoElectronico')?.errors?.['required']) {
+						El correo electrónico es requerido
+					} @else {
+						El correo electrónico no es válido
+					}
+				</mat-error>
+			}
+		</mat-form-field>
+		}
 
 		<div mat-dialog-actions class="dialog-actions">
 			<button mat-button type="button" (click)="cancelar()">Cancelar</button>

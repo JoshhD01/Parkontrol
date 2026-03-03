@@ -75,8 +75,8 @@ export class LoginComponent implements OnInit {
     this.errorMessage = '';
 
     const credentials: LoginUsuarioDto = {
-      correo: this.loginForm.value.correo,
-      contrasena: this.loginForm.value.contrasena,
+      correo: String(this.loginForm.value.correo ?? '').trim().toLowerCase(),
+      contrasena: String(this.loginForm.value.contrasena ?? '').trim(),
       tipoAcceso,
     };
 

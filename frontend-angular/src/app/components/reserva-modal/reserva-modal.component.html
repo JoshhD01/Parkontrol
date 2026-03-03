@@ -111,7 +111,11 @@
     @if (mostrarFormularioNuevoCliente) {
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Tipo documento</mat-label>
-        <input matInput formControlName="tipoDocumento" placeholder="Ej: CC, NIT">
+        <mat-select formControlName="tipoDocumento">
+          @for (tipo of tiposDocumento; track tipo) {
+            <mat-option [value]="tipo">{{ tipo }}</mat-option>
+          }
+        </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">

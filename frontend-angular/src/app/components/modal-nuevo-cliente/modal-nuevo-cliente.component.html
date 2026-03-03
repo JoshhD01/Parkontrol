@@ -7,11 +7,15 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Tipo de Documento</mat-label>
-      <input matInput formControlName="tipoDocumento" placeholder="CC, NIT, CE, etc." required>
+      <mat-select formControlName="tipoDocumento" required>
+        @for (tipo of tiposDocumento; track tipo) {
+          <mat-option [value]="tipo">{{ tipo }}</mat-option>
+        }
+      </mat-select>
       @if (formGroup.get('tipoDocumento')?.hasError('required') && formGroup.get('tipoDocumento')?.touched) {
         <mat-error>Este campo es obligatorio</mat-error>
       }
-      <mat-hint>Ingrese el tipo de documento</mat-hint>
+      <mat-hint>Seleccione el tipo de documento</mat-hint>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
@@ -20,7 +24,22 @@
       @if (formGroup.get('numeroDocumento')?.hasError('required') && formGroup.get('numeroDocumento')?.touched) {
         <mat-error>Este campo es obligatorio</mat-error>
       }
-      <mat-hint>Ingrese el número de documento</mat-hint>
+      @if (formGroup.get('numeroDocumento')?.hasError('pattern') && formGroup.get('numeroDocumento')?.touched) {
+        <mat-error>{{ getMensajeErrorNumeroDocumento() }}</mat-error>
+      }
+      <mat-hint>
+        @if (formGroup.get('tipoDocumento')?.value === 'CC') {
+          CC: solo números (6-10)
+        } @else if (formGroup.get('tipoDocumento')?.value === 'TI') {
+          TI: solo números (10-11)
+        } @else if (formGroup.get('tipoDocumento')?.value === 'CE') {
+          CE: solo números (6-12)
+        } @else if (formGroup.get('tipoDocumento')?.value === 'NIT') {
+          NIT: 8-10 dígitos, opcional guion y dígito verificador
+        } @else {
+          PAS: alfanumérico (5-20)
+        }
+      </mat-hint>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">

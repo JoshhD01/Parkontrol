@@ -77,7 +77,11 @@ export class TarifasComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error cargando los parqueaderos', error);
+        if (error?.status === 404) {
+          this.parqueaderos = [];
+        } else {
+          console.error('Error cargando los parqueaderos', error);
+        }
         this.loading = false;
       }
    
@@ -96,7 +100,9 @@ export class TarifasComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error no cargaron las tarifas', error);
+        if (error?.status !== 404) {
+          console.error('Error no cargaron las tarifas', error);
+        }
         this.tarifas = [];
         this.loading = false;
       }

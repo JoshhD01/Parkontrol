@@ -92,7 +92,11 @@ export class CeldasComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error cargando los parqueaderos', error);
+        if (error?.status === 404) {
+          this.parqueaderos = [];
+        } else {
+          console.error('Error cargando los parqueaderos', error);
+        }
         this.loading = false;
       }
     });
@@ -109,7 +113,9 @@ export class CeldasComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error no cargaronlas celdas', error);
+        if (error?.status !== 404) {
+          console.error('Error no cargaronlas celdas', error);
+        }
         this.celdas = [];
         this.celdasFiltradas = [];
         this.loading = false;

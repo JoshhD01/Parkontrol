@@ -34,8 +34,15 @@ export class AuthService {
     correo: string,
     contrasena: string,
   ): Promise<Usuario | null> {
-    const usuario = await this.usuariosService.findUsuarioByCorreo(correo);
-    if (usuario && (await bcrypt.compare(contrasena, usuario?.contrasena))) {
+    const correoNormalizado = correo.trim().toLowerCase();
+    const contrasenaNormalizada = contrasena.trim();
+    const usuario = await this.usuariosService.findUsuarioByCorreo(
+      correoNormalizado,
+    );
+    if (
+      usuario &&
+      (await bcrypt.compare(contrasenaNormalizada, usuario?.contrasena))
+    ) {
       return usuario;
     }
     return null;
@@ -45,14 +52,16 @@ export class AuthService {
     correo: string,
     contrasena: string,
   ): Promise<ClienteAuth | null> {
+    const correoNormalizado = correo.trim().toLowerCase();
+    const contrasenaNormalizada = contrasena.trim();
     const clienteAuth = await this.clienteAuthRepository.findOne({
-      where: { correo, activo: true },
+      where: { correo: correoNormalizado, activo: true },
       relations: ['clienteFactura'],
     });
 
     if (
       clienteAuth &&
-      (await bcrypt.compare(contrasena, clienteAuth.contrasenaHash))
+      (await bcrypt.compare(contrasenaNormalizada, clienteAuth.contrasenaHash))
     ) {
       return clienteAuth;
     }
@@ -63,8 +72,8 @@ export class AuthService {
   async registrarCliente(
     registrarClienteDto: RegistrarClienteDto,
   ): Promise<{ idClienteFactura: number; correo: string }> {
-    const { tipoDocumento, numeroDocumento, correo, contrasena } =
-      registrarClienteDto;
+    const { tipoDocumento, numeroDocumento, contrasena } = registrarClienteDto;
+    const correo = registrarClienteDto.correo.trim().toLowerCase();
 
     let clienteFactura = await this.clienteFacturaRepository.findOne({
       where: { numeroDocumento },
@@ -113,12 +122,11 @@ export class AuthService {
 
   async login(loginUsuarioDto: LoginUsuarioDto): Promise<LoginResponseDto> {
     const tipoAcceso = loginUsuarioDto.tipoAcceso ?? TipoAccesoLogin.CLIENTE;
+    const correo = loginUsuarioDto.correo.trim().toLowerCase();
+    const contrasena = loginUsuarioDto.contrasena.trim();
 
     if (tipoAcceso === TipoAccesoLogin.CLIENTE) {
-      const clienteValido = await this.validarCliente(
-        loginUsuarioDto.correo,
-        loginUsuarioDto.contrasena,
-      );
+      const clienteValido = await this.validarCliente(correo, contrasena);
 
       if (!clienteValido) {
         throw new UnauthorizedException('email o password invalidos');
@@ -135,8 +143,8 @@ export class AuthService {
     }
 
     const usuarioValido = await this.validarUsuario(
-      loginUsuarioDto.correo,
-      loginUsuarioDto.contrasena,
+      correo,
+      contrasena,
     );
 
     if (!usuarioValido) {

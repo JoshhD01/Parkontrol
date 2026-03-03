@@ -77,7 +77,11 @@ export class PagosComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error No cargo parqueaderos', error);
+        if (error?.status === 404) {
+          this.parqueaderos = [];
+        } else {
+          console.error('Error No cargo parqueaderos', error);
+        }
         this.loading = false;
       }
     });
@@ -91,7 +95,9 @@ export class PagosComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('No se cargaron los pagos', error);
+        if (error?.status !== 404) {
+          console.error('No se cargaron los pagos', error);
+        }
         this.pagos = [];
         this.loading = false;
       }

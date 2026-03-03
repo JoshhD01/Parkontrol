@@ -68,7 +68,9 @@ export class PagoModalComponent implements OnInit {
           this.reservasActivas = reservas.filter(r => r.estado === EstadoReserva.ABIERTA);
         },
         error: (error) => {
-          console.error('No cargaron reservas', error);
+          if (error?.status !== 404) {
+            console.error('No cargaron reservas', error);
+          }
           this.reservasActivas = [];
         }
       });

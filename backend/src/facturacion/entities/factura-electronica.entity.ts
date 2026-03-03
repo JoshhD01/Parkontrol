@@ -16,8 +16,8 @@ export class FacturaElectronica {
   @Column({ name: 'CUFE', length: 50, nullable: false })
   cufe: string;
 
-  @Column({ name: 'URL_PDF', length: 200, nullable: true })
-  urlPdf: string;
+  @Column({ name: 'URL_PDF', type: 'varchar', length: 200, nullable: true })
+  urlPdf?: string | null;
 
   @Column({ name: 'ENVIADA', type: 'char', length: 1, nullable: true })
   enviada: string;

@@ -65,6 +65,27 @@ const dataSourceOptions: DataSourceOptions = {
 
 const dataSource = new DataSource(dataSourceOptions);
 
+const TABLES_FOR_RESET = [
+  'REPORTE',
+  'PERIODO',
+  'FACTURA_ELECTRONICA',
+  'CLIENTE_AUTH',
+  'PAGO',
+  'METODO_PAGO',
+  'RESERVA',
+  'TARIFA',
+  'VEHICULO',
+  'TIPO_VEHICULO',
+  'CELDA',
+  'SENSOR',
+  'TIPO_CELDA',
+  'PARQUEADERO',
+  'USUARIO',
+  'ROL',
+  'EMPRESA',
+  'CLIENTE_FACTURA',
+] as const;
+
 async function findOrCreate<T extends ObjectLiteral>(
   repo: Repository<T>,
   where: FindOptionsWhere<T>,
@@ -80,9 +101,23 @@ async function hash(password: string): Promise<string> {
   return await bcrypt.hash(password, 10);
 }
 
+function isResetEnabled(): boolean {
+  return process.argv.includes('--reset') || process.env.SEED_RESET === 'true';
+}
+
+async function resetDatabase(): Promise<void> {
+  const tables = TABLES_FOR_RESET.map((table) => `"${table}"`).join(', ');
+  await dataSource.query(`TRUNCATE TABLE ${tables} RESTART IDENTITY CASCADE;`);
+}
+
 async function run(): Promise<void> {
   console.log('Inicializando conexión para seed...');
   await dataSource.initialize();
+
+  if (isResetEnabled()) {
+    console.log('Limpiando datos de la BD (TRUNCATE + RESTART IDENTITY)...');
+    await resetDatabase();
+  }
 
   const empresaRepo = dataSource.getRepository(Empresa);
   const rolRepo = dataSource.getRepository(Rol);
@@ -210,6 +245,33 @@ async function run(): Promise<void> {
   const veh2 = await findOrCreate(vehiculoRepo, { placa: 'BBB222' }, { placa: 'BBB222', tipoVehiculo: tipoVeh2 });
   const veh3 = await findOrCreate(vehiculoRepo, { placa: 'CCC333' }, { placa: 'CCC333', tipoVehiculo: tipoVeh3 });
 
+  const placasExtras = [
+    'DDD444',
+    'EEE555',
+    'FFF666',
+    'GGG777',
+    'HHH888',
+    'III999',
+    'JJJ111',
+    'KKK222',
+    'LLL333',
+    'MMM444',
+    'NNN555',
+  ];
+  const tiposVehiculosCiclo = [tipoVeh1, tipoVeh2, tipoVeh3] as const;
+  const vehiculosExtras: Vehiculo[] = [];
+
+  for (let index = 0; index < placasExtras.length; index += 1) {
+    const placa = placasExtras[index];
+    const tipoVehiculo = tiposVehiculosCiclo[index % tiposVehiculosCiclo.length];
+    const vehiculo = await findOrCreate(
+      vehiculoRepo,
+      { placa },
+      { placa, tipoVehiculo },
+    );
+    vehiculosExtras.push(vehiculo);
+  }
+
   await findOrCreate(
     tarifaRepo,
     { parqueadero: { id: parque1.id }, tipoVehiculo: { id: tipoVeh1.id } },
@@ -262,10 +324,10 @@ async function run(): Promise<void> {
   );
   const cliente3 = await findOrCreate(
     clienteRepo,
-    { numeroDocumento: '3003003' },
+    { numeroDocumento: '900300300-3' },
     {
       tipoDocumento: 'NIT',
-      numeroDocumento: '3003003',
+      numeroDocumento: '900300300-3',
       correo: 'cliente3@parkontrol.com',
     },
   );
@@ -344,6 +406,47 @@ async function run(): Promise<void> {
     },
   );
 
+  const celdasCiclo = [celda1] as const;
+  const clientesCiclo: Array<ClienteFactura | null> = [
+    cliente1,
+    cliente2,
+    cliente3,
+    null,
+    cliente2,
+    cliente3,
+    cliente1,
+    cliente2,
+    cliente3,
+    cliente1,
+    cliente2,
+  ];
+
+  const reservasExtras: Reserva[] = [];
+  for (let index = 0; index < vehiculosExtras.length; index += 1) {
+    const vehiculo = vehiculosExtras[index];
+    const fechaEntrada = new Date(
+      Date.UTC(2026, 1, 21 + index, 8 + (index % 6), 0, 0),
+    );
+    const fechaSalida = new Date(fechaEntrada.getTime() + 2 * 60 * 60 * 1000);
+    const celda = celdasCiclo[index % celdasCiclo.length];
+    const clienteFactura = clientesCiclo[index] ?? undefined;
+
+    const reserva = await findOrCreate(
+      reservaRepo,
+      { vehiculo: { id: vehiculo.id }, fechaEntrada },
+      {
+        fechaEntrada,
+        fechaSalida,
+        estado: 'CERRADA',
+        vehiculo,
+        celda,
+        clienteFactura,
+      },
+    );
+
+    reservasExtras.push(reserva);
+  }
+
   const metodo1 = await findOrCreate(metodoPagoRepo, { nombre: 'EFECTIVO' }, { nombre: 'EFECTIVO' });
   const metodo2 = await findOrCreate(metodoPagoRepo, { nombre: 'TARJETA' }, { nombre: 'TARJETA' });
   const metodo3 = await findOrCreate(metodoPagoRepo, { nombre: 'TRANSFERENCIA' }, { nombre: 'TRANSFERENCIA' });
@@ -379,12 +482,37 @@ async function run(): Promise<void> {
     },
   );
 
+  const metodosCiclo = [metodo1, metodo2, metodo3] as const;
+  const pagosExtras: Pago[] = [];
+
+  for (let index = 0; index < reservasExtras.length; index += 1) {
+    const reserva = reservasExtras[index];
+    const metodoPago = metodosCiclo[index % metodosCiclo.length];
+    const monto = 9000 + index * 750;
+    const fechaPago = new Date(
+      Date.UTC(2026, 1, 21 + index, 11 + (index % 5), 15, 0),
+    );
+
+    const pago = await findOrCreate(
+      pagoRepo,
+      { reserva: { id: reserva.id }, metodoPago: { id: metodoPago.id } },
+      {
+        monto,
+        fechaPago,
+        reserva,
+        metodoPago,
+      },
+    );
+
+    pagosExtras.push(pago);
+  }
+
   await findOrCreate(
     facturaRepo,
-    { cufe: 'CUFE-SEED-001' },
+    { cufe: 'NF-SEED-001' },
     {
-      cufe: 'CUFE-SEED-001',
-      urlPdf: 'https://example.com/facturas/seed-1.pdf',
+      cufe: 'NF-SEED-001',
+      urlPdf: null,
       enviada: 'Y',
       fechaCreacion: new Date('2026-02-20T09:20:00.000Z'),
       pago: pago1,
@@ -413,6 +541,19 @@ async function run(): Promise<void> {
       fechaCreacion: new Date('2026-02-20T15:50:00.000Z'),
       pago: pago3,
       clienteFactura: cliente3,
+    },
+  );
+
+  await findOrCreate(
+    facturaRepo,
+    { cufe: 'CUFE-SEED-004' },
+    {
+      cufe: 'CUFE-SEED-004',
+      urlPdf: 'https://example.com/facturas/seed-4.pdf',
+      enviada: 'N',
+      fechaCreacion: new Date('2026-02-21T11:30:00.000Z'),
+      pago: pagosExtras[0],
+      clienteFactura: cliente1,
     },
   );
 
@@ -449,6 +590,10 @@ async function run(): Promise<void> {
   );
 
   console.log('✅ Seed completado con mínimo 3 registros por módulo clave.');
+  console.log(`Modo reset: ${isResetEnabled() ? 'ACTIVO' : 'INACTIVO'}`);
+  console.log(
+    `Datos creados: reservas=${3 + reservasExtras.length}, pagos=${3 + pagosExtras.length}, facturas base=4`,
+  );
   console.log('Credenciales de prueba:');
   console.log('- Admin: admin1@parkontrol.com / Admin1234');
   console.log('- Operador: operador1@parkontrol.com / Oper1234');

@@ -179,7 +179,11 @@
       @for (factura of facturas; track factura.id) {
         <div class="item-linea">
           <span>Factura #{{ factura.id }}</span>
-          <small>{{ factura.cufe }}</small>
+          @if (factura.tipoFactura === 'ELECTRONICA') {
+            <small>{{ factura.cufe || 'Sin CUFE' }}</small>
+          } @else {
+            <small>Factura normal</small>
+          }
         </div>
       }
     </mat-card>

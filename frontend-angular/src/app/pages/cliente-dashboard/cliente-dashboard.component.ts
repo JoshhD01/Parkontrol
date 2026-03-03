@@ -140,8 +140,12 @@ export class ClienteDashboardComponent {
       next: (data) => {
         this.parqueaderos = data;
       },
-      error: () => {
-        this.errorMessage = 'No se pudieron cargar los parqueaderos disponibles';
+      error: (error) => {
+        if (error?.status === 404) {
+          this.parqueaderos = [];
+        } else {
+          this.errorMessage = 'No se pudieron cargar los parqueaderos disponibles';
+        }
       },
     });
 
@@ -149,8 +153,12 @@ export class ClienteDashboardComponent {
       next: (data) => {
         this.reservas = data;
       },
-      error: () => {
-        this.errorMessage = 'No se pudieron cargar tus reservas';
+      error: (error) => {
+        if (error?.status === 404) {
+          this.reservas = [];
+        } else {
+          this.errorMessage = 'No se pudieron cargar tus reservas';
+        }
       },
     });
 
@@ -164,8 +172,13 @@ export class ClienteDashboardComponent {
           this.usarVehiculoExistente = false;
         }
       },
-      error: () => {
-        this.errorMessage = 'No se pudieron cargar tus vehículos';
+      error: (error) => {
+        if (error?.status === 404) {
+          this.vehiculosCliente = [];
+          this.usarVehiculoExistente = false;
+        } else {
+          this.errorMessage = 'No se pudieron cargar tus vehículos';
+        }
       },
     });
 
@@ -176,8 +189,12 @@ export class ClienteDashboardComponent {
           this.loading = false;
         }
       },
-      error: () => {
-        this.errorMessage = 'No se pudieron cargar tus facturas';
+      error: (error) => {
+        if (error?.status === 404) {
+          this.facturas = [];
+        } else {
+          this.errorMessage = 'No se pudieron cargar tus facturas';
+        }
         if (mostrarLoading) {
           this.loading = false;
         }
@@ -188,8 +205,12 @@ export class ClienteDashboardComponent {
       next: (data) => {
         this.misPagos = data;
       },
-      error: () => {
-        this.misPagos = [];
+      error: (error) => {
+        if (error?.status === 404) {
+          this.misPagos = [];
+        } else {
+          this.errorMessage = 'No se pudieron cargar tus pagos';
+        }
       },
     });
   }
