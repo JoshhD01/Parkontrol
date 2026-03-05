@@ -41,7 +41,15 @@ import { VistasModule } from './vistas/vistas.module';
           synchronize: dbSync,
           autoLoadEntities: true,
           logging: true,
+          retryAttempts: 20,
+          retryDelay: 3000,
+          connectTimeoutMS: 15000,
           ssl: { rejectUnauthorized: false },
+          extra: {
+            keepAlive: true,
+            keepAliveInitialDelayMillis: 10000,
+            connectionTimeoutMillis: 15000,
+          },
         };
       },
     }),
