@@ -93,20 +93,10 @@ export class VistasService {
          pg."MONTO",
          mp."NOMBRE" AS "METODO_PAGO",
          pg."FECHA_PAGO",
-         CASE
-           WHEN fe."CUFE" LIKE 'NF-%' THEN NULL
-           ELSE fe."CUFE"
-         END AS "CUFE",
+         NULL AS "CUFE",
          fe."URL_PDF",
-         CASE
-           WHEN fe."CUFE" LIKE 'NF-%' THEN false
-           WHEN fe."ENVIADA" = 'Y' THEN true
-           ELSE false
-         END AS "ENVIADA",
-         CASE
-           WHEN fe."CUFE" LIKE 'NF-%' THEN 'NORMAL'
-           ELSE 'ELECTRONICA'
-         END AS "TIPO_FACTURA"
+         false AS "ENVIADA",
+         'NORMAL' AS "TIPO_FACTURA"
        FROM "FACTURA_ELECTRONICA" fe
        LEFT JOIN "CLIENTE_FACTURA" cf ON cf."ID_CLIENTE_FACTURA" = fe."ID_CLIENTE_FACTURA"
        JOIN "PAGO" pg ON pg."ID_PAGO" = fe."ID_PAGO"
@@ -134,20 +124,10 @@ export class VistasService {
          pg."MONTO",
          mp."NOMBRE" AS "METODO_PAGO",
          pg."FECHA_PAGO",
-         CASE
-           WHEN fe."CUFE" LIKE 'NF-%' THEN NULL
-           ELSE fe."CUFE"
-         END AS "CUFE",
+         NULL AS "CUFE",
          fe."URL_PDF",
-         CASE
-           WHEN fe."CUFE" LIKE 'NF-%' THEN false
-           WHEN fe."ENVIADA" = 'Y' THEN true
-           ELSE false
-         END AS "ENVIADA",
-         CASE
-           WHEN fe."CUFE" LIKE 'NF-%' THEN 'NORMAL'
-           ELSE 'ELECTRONICA'
-         END AS "TIPO_FACTURA"
+         false AS "ENVIADA",
+         'NORMAL' AS "TIPO_FACTURA"
        FROM "FACTURA_ELECTRONICA" fe
        JOIN "CLIENTE_FACTURA" cf ON cf."ID_CLIENTE_FACTURA" = fe."ID_CLIENTE_FACTURA"
        JOIN "PAGO" pg ON pg."ID_PAGO" = fe."ID_PAGO"

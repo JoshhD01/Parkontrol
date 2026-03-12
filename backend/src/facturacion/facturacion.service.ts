@@ -139,7 +139,7 @@ export class FacturacionService {
   }
 
   private generarCodigoFactura(idPago: number): string {
-    return `FAC-${idPago}-${Date.now()}`;
+    return `NF-${idPago}-${Date.now()}`;
   }
 
   private toFacturaResponse(factura: FacturaElectronica): any {
