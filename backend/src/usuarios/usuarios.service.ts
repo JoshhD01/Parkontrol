@@ -97,28 +97,28 @@ export class UsuariosService {
     id: number,
     cambiarContrasenaDto: CambiarContrasenaDto,
   ): Promise<{ mensaje: string }> {
-    const usuario = await this.usuarioRepository.findOne({ 
+    const usuario = await this.usuarioRepository.findOne({
       where: { id },
-    }); 
-    if (!usuario) { 
+    });
+    if (!usuario) {
       throw new NotFoundException(`No existe usuario con id: ${id}`);
     }
 
-    const contrasenaValida = await bcrypt.compare( 
+    const contrasenaValida = await bcrypt.compare(
       cambiarContrasenaDto.contrasenaActual,
       usuario.contrasena,
     );
-    if (!contrasenaValida) { 
+    if (!contrasenaValida) {
       throw new BadRequestException('La contraseña actual es incorrecta');
     }
 
-    const saltRounds = 10; 
-    usuario.contrasena = await bcrypt.hash( 
+    const saltRounds = 10;
+    usuario.contrasena = await bcrypt.hash(
       cambiarContrasenaDto.nuevaContrasena,
       saltRounds,
     );
 
-    await this.usuarioRepository.save(usuario); 
-    return { mensaje: 'Contraseña actualizada correctamente' }; 
+    await this.usuarioRepository.save(usuario);
+    return { mensaje: 'Contraseña actualizada correctamente' };
   }
 }

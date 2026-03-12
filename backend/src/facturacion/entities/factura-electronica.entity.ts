@@ -29,7 +29,7 @@ export class FacturaElectronica {
   @JoinColumn({ name: 'ID_PAGO' })
   pago: Pago;
 
-  @ManyToOne(() => ClienteFactura, { nullable: true })
+  @ManyToOne(() => ClienteFactura, { nullable: false })
   @JoinColumn({ name: 'ID_CLIENTE_FACTURA' })
-  clienteFactura?: ClienteFactura | null;
+  clienteFactura: ClienteFactura;
 }

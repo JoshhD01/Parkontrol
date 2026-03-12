@@ -4,14 +4,17 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   NotFoundException,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { FacturacionService } from './facturacion.service';
-import { CreateFacturaDto } from './entities/dto/crear-factura-electronica.dto';
+import { CreateFacturaElectronicaDto } from './entities/dto/crear-factura-electronica.dto';
 import { CreateClienteFacturaDto } from './entities/dto/crear-cliente-factura.dto';
+import { EmitirFacturaElectronicaDto } from './entities/dto/emitir-factura-electronica.dto';
+import { FacturaElectronica } from './entities/factura-electronica.entity';
 import { ClienteFactura } from './entities/cliente-factura.entity';
 import { Roles } from 'src/shared/decorators';
 import { RoleEnum } from 'src/shared/entities/rol.entity';
@@ -24,7 +27,7 @@ import type { JwtUsuario } from 'src/auth/interfaces';
 export class FacturacionController {
   constructor(private readonly facturacionService: FacturacionService) {}
 
-  @Get('facturas/mias')
+  @Get('facturas/client/mias')
   @UseGuards(JwtAuthGuard)
   async obtenerFacturasCliente(
     @GetUser() user: JwtUsuario,
@@ -35,7 +38,10 @@ export class FacturacionController {
       );
     }
 
-    return await this.facturacionService.findMisFacturas(user.id);
+    return await this.facturacionService.findByClienteFacturaOrCorreo(
+      user.id,
+      user.correo,
+    );
   }
 
   @Post('clientes')
@@ -51,9 +57,28 @@ export class FacturacionController {
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
   @UseGuards(JwtAuthGuard, RolesGuard)
   async crearFactura(
-    @Body() createFacturaDto: CreateFacturaDto,
+    @Body() createFacturaDto: CreateFacturaElectronicaDto,
   ): Promise<any> {
     return await this.facturacionService.crearFactura(createFacturaDto);
+  }
+
+  @Patch('facturas/:id/electronica')
+  @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async emitirFacturaElectronica(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: EmitirFacturaElectronicaDto,
+  ): Promise<any> {
+    return await this.facturacionService.emitirFacturaElectronica(id, dto);
+  }
+
+  @Patch('facturas/:id/enviar')
+  @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async marcarEnviada(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<any> {
+    return await this.facturacionService.marcarComoEnviada(id);
   }
 
   @Get('facturas/pago/:idPago')

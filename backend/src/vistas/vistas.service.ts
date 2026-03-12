@@ -86,9 +86,9 @@ export class VistasService {
     return await this.dataSource.query(
       `SELECT
          fe."ID_FACTURA_ELECTRONICA",
-        COALESCE(cf."TIPO_DOCUMENTO", 'SIN_CLIENTE') AS "TIPO_DOCUMENTO",
-        COALESCE(cf."NUMERO_DOCUMENTO", 'SIN_CLIENTE') AS "NUMERO_DOCUMENTO",
-        cf."CORREO",
+         cf."TIPO_DOCUMENTO",
+         cf."NUMERO_DOCUMENTO",
+         cf."CORREO",
          pg."ID_PAGO",
          pg."MONTO",
          mp."NOMBRE" AS "METODO_PAGO",
@@ -108,7 +108,7 @@ export class VistasService {
            ELSE 'ELECTRONICA'
          END AS "TIPO_FACTURA"
        FROM "FACTURA_ELECTRONICA" fe
-       LEFT JOIN "CLIENTE_FACTURA" cf ON cf."ID_CLIENTE_FACTURA" = fe."ID_CLIENTE_FACTURA"
+       JOIN "CLIENTE_FACTURA" cf ON cf."ID_CLIENTE_FACTURA" = fe."ID_CLIENTE_FACTURA"
        JOIN "PAGO" pg ON pg."ID_PAGO" = fe."ID_PAGO"
        JOIN "METODO_PAGO" mp ON mp."ID_METODO_PAGO" = pg."ID_METODO_PAGO"
        JOIN "RESERVA" r ON r."ID_RESERVA" = pg."ID_RESERVA"
