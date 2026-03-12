@@ -9,13 +9,13 @@ export class FacturacionCompletaView {
   idFacturaElectronica: number;
 
   @ViewColumn({ name: 'TIPO_DOCUMENTO' })
-  tipoDocumento: string;
+  tipoDocumento?: string | null;
 
   @ViewColumn({ name: 'NUMERO_DOCUMENTO' })
-  numeroDocumento: string;
+  numeroDocumento?: string | null;
 
   @ViewColumn({ name: 'CORREO' })
-  correo: string;
+  correo?: string | null;
 
   @ViewColumn({ name: 'ID_PAGO' })
   idPago: number;
