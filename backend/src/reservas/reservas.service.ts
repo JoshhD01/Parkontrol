@@ -47,51 +47,51 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
   }
 
   async crear(createReservaDto: CreateReservaDto): Promise<Reserva> {
-    await this.sincronizarEstadosPorHorario();
+    await this.sincronizarEstadosPorHorario(); 
 
-    const vehiculo = await this.vehiculosService.findVehiculoById(
+    const vehiculo = await this.vehiculosService.findVehiculoById( 
       createReservaDto.idVehiculo,
     );
-    const celda = await this.celdasService.findCeldaById(
+    const celda = await this.celdasService.findCeldaById( 
       createReservaDto.idCelda,
     );
-    let clienteFactura: ClienteFactura | null = null;
+    let clienteFactura: ClienteFactura | null = null; 
 
-    if (createReservaDto.idClienteFactura) {
-      clienteFactura = await this.clienteFacturaRepository.findOne({
+    if (createReservaDto.idClienteFactura) { 
+      clienteFactura = await this.clienteFacturaRepository.findOne({ 
         where: { id: createReservaDto.idClienteFactura },
       });
 
-      if (!clienteFactura) {
-        throw new NotFoundException(
+      if (!clienteFactura) { 
+        throw new NotFoundException( 
           `No existe cliente con id: ${createReservaDto.idClienteFactura}`,
         );
       }
     }
 
-    if (celda.estado !== 'LIBRE') {
+    if (celda.estado !== 'LIBRE') { 
       throw new BadRequestException('La celda no está LIBRE');
     }
 
-    const ahora = new Date();
-    const horaInicio = new Date(createReservaDto.horaInicio);
-    const horaFin = new Date(createReservaDto.horaFin);
+    const ahora = new Date(); 
+    const horaInicio = new Date(createReservaDto.horaInicio); 
+    const horaFin = new Date(createReservaDto.horaFin); 
 
-    if (Number.isNaN(horaInicio.getTime())) {
+    if (Number.isNaN(horaInicio.getTime())) { 
       throw new BadRequestException('horaInicio no tiene un formato válido');
     }
 
-    if (Number.isNaN(horaFin.getTime())) {
+    if (Number.isNaN(horaFin.getTime())) { 
       throw new BadRequestException('horaFin no tiene un formato válido');
     }
 
-    if (horaFin <= horaInicio) {
+    if (horaFin <= horaInicio) { 
       throw new BadRequestException(
         'La hora fin debe ser mayor que la hora inicio',
       );
     }
 
-    await this.validarReglasReservaActiva(
+    await this.validarReglasReservaActiva( 
       vehiculo,
       clienteFactura,
       celda.id,
@@ -99,7 +99,7 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       horaFin,
     );
 
-    const reserva = this.reservaRepository.create({
+    const reserva = this.reservaRepository.create({ 
       vehiculo,
       celda,
       clienteFactura: clienteFactura ?? undefined,
@@ -108,9 +108,9 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       fechaSalida: horaFin,
     });
 
-    const reservaGuardada = await this.reservaRepository.save(reserva);
+    const reservaGuardada = await this.reservaRepository.save(reserva); 
 
-    if (horaInicio <= ahora && horaFin > ahora) {
+    if (horaInicio <= ahora && horaFin > ahora) { 
       await this.celdasService.actualizarEstado(celda.id, 'OCUPADA');
     }
 
@@ -121,11 +121,11 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
     idClienteFactura: number,
     reservarClienteDto: ReservarClienteDto,
   ): Promise<Reserva> {
-    const vehiculoExistente = await this.vehiculosService.findByPlaca(
+    const vehiculoExistente = await this.vehiculosService.findByPlaca( 
       reservarClienteDto.placa,
     );
 
-    if (
+    if ( 
       vehiculoExistente &&
       vehiculoExistente.tipoVehiculo.id !== reservarClienteDto.idTipoVehiculo
     ) {
@@ -134,30 +134,30 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    const vehiculo = vehiculoExistente
-      ? vehiculoExistente
-      : await this.vehiculosService.crear({
+    const vehiculo = vehiculoExistente 
+      ? vehiculoExistente 
+      : await this.vehiculosService.crear({ 
           placa: reservarClienteDto.placa,
           idTipoVehiculo: reservarClienteDto.idTipoVehiculo,
         });
 
-    const celdasParqueadero = await this.celdasService.findByParqueadero(
+    const celdasParqueadero = await this.celdasService.findByParqueadero( 
       reservarClienteDto.idParqueadero,
     );
 
-    const celdaLibre = celdasParqueadero.find(
+    const celdaLibre = celdasParqueadero.find( 
       (celda) =>
         celda.estado === 'LIBRE' &&
         celda.tipoCelda?.id === reservarClienteDto.idTipoVehiculo,
     );
 
-    if (!celdaLibre) {
+    if (!celdaLibre) { 
       throw new BadRequestException(
         'No hay celdas disponibles para el tipo de vehículo seleccionado en este parqueadero',
       );
     }
 
-    return await this.crear({
+    return await this.crear({ 
       idVehiculo: vehiculo.id,
       idCelda: celdaLibre.id,
       estado: 'ABIERTA',
@@ -167,29 +167,29 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async finalizarReserva(id: number): Promise<Reserva> {
-    await this.sincronizarEstadosPorHorario();
+  async finalizarReserva(id: number): Promise<Reserva> { 
+    await this.sincronizarEstadosPorHorario(); 
 
-    const reserva = await this.findReservaById(id);
+    const reserva = await this.findReservaById(id); 
 
-    if (reserva.estado === 'CERRADA') {
+    if (reserva.estado === 'CERRADA') { 
       throw new BadRequestException('La reserva ya ha sido cerrada');
     }
 
-    reserva.fechaSalida = new Date();
-    reserva.estado = 'CERRADA';
+    reserva.fechaSalida = new Date(); 
+    reserva.estado = 'CERRADA'; 
 
-    const reservaActualizada = await this.reservaRepository.save(reserva);
+    const reservaActualizada = await this.reservaRepository.save(reserva); 
 
-    const reservasActivasMismaCelda = await this.reservaRepository.count({
+    const reservasActivasMismaCelda = await this.reservaRepository.count({ 
       where: { estado: 'ABIERTA', celda: { id: reserva.celda.id } },
     });
 
-    if (reservasActivasMismaCelda === 0) {
-      await this.celdasService.actualizarEstado(reserva.celda.id, 'LIBRE');
+    if (reservasActivasMismaCelda === 0) { 
+      await this.celdasService.actualizarEstado(reserva.celda.id, 'LIBRE'); 
     }
 
-    return reservaActualizada;
+    return reservaActualizada; 
   }
 
   async findReservaById(id: number): Promise<Reserva> {

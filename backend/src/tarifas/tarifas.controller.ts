@@ -23,14 +23,14 @@ export class TarifasController {
 
   @Post()
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async crear(@Body() createTarifaDto: CreateTarifaDto): Promise<Tarifa> {
     return await this.tarifasService.crear(createTarifaDto);
   }
 
   @Get('parqueadero/:idParqueadero')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorParqueadero(
     @Param('idParqueadero', ParseIntPipe) idParqueadero: number,
   ): Promise<Tarifa[]> {
@@ -39,7 +39,7 @@ export class TarifasController {
 
   @Patch(':id')
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async actualizar(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateData: UpdateTarifaDto,

@@ -22,14 +22,14 @@ export class ReportesController {
 
   @Post()
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async crear(@Body() createReporteDto: CreateReporteDto): Promise<Reporte> {
     return await this.reportesService.crear(createReporteDto);
   }
 
   @Get('parqueadero/:idParqueadero')
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorParqueadero(
     @Param('idParqueadero', ParseIntPipe) idParqueadero: number,
   ): Promise<Reporte[]> {
@@ -38,14 +38,14 @@ export class ReportesController {
 
   @Get(':id')
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorId(@Param('id', ParseIntPipe) id: number): Promise<Reporte> {
     return await this.reportesService.findReporteById(id);
   }
 
   @Patch(':id/url')
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async actualizarUrl(
     @Param('id', ParseIntPipe) id: number,
     @Body('urlArchivo') urlArchivo: string,

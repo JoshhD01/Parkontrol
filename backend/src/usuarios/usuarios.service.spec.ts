@@ -5,7 +5,6 @@ jest.mock('bcrypt', () => ({
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { UsuariosService } from './usuarios.service';
@@ -13,6 +12,7 @@ import { Usuario } from './entities/usuario.entity';
 import { UsuarioValidator } from './validators/usuario.validator';
 import { RolesService } from 'src/shared/services/roles/roles.service';
 import { EmpresasService } from 'src/empresas/empresas.service';
+
 const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
 describe('UsuariosService - Setup', () => {
@@ -25,31 +25,22 @@ describe('UsuariosService - Setup', () => {
     find: jest.Mock;
     remove: jest.Mock;
   };
+
   let usuarioValidator: {
-    findOne: jest.Mock;
-    save: jest.Mock;
-    create: jest.Mock;
-    find: jest.Mock;
-    remove: jest.Mock;
+    validarUsuarioUnico: jest.Mock;
+    validarEsOperador: jest.Mock;
   };
+
   let rolesService: {
-    findOne: jest.Mock;
-    save: jest.Mock;
-    create: jest.Mock;
-    find: jest.Mock;
-    remove: jest.Mock;
+    findRoleByNombre: jest.Mock;
   };
+
   let empresasService: {
-    findOne: jest.Mock;
-    save: jest.Mock;
-    create: jest.Mock;
-    find: jest.Mock;
-    remove: jest.Mock;
+    findEmpresaById: jest.Mock;
   };
 
   beforeEach(async () => {
     // 🔹 Mock del repository
-    
     usuarioRepository = {
       create: jest.fn(),
       save: jest.fn(),
@@ -102,8 +93,8 @@ describe('UsuariosService - Setup', () => {
   });
 
 describe('cambiarContrasena', () => {
-
   const id = 1;
+
   const dto = {
     contrasenaActual: '123456',
     nuevaContrasena: 'abcdef',
@@ -114,58 +105,82 @@ describe('cambiarContrasena', () => {
     contrasena: 'hashedOldPassword',
   } as any;
 
-  // 🔹 1. Si la DB retorna null → debe lanzar NotFoundException
   it('CS00001 - debe lanzar NotFoundException si el usuario no existe (null)', async () => {
+
+    // Arrange
     usuarioRepository.findOne!.mockResolvedValue(null);
 
-    await expect(
-      service.cambiarContrasena(id, dto),
-    ).rejects.toThrow('No existe usuario con id: 1');
+    // Act
+    const action = service.cambiarContrasena(id, dto);
+
+    // Assert
+    await expect(action).rejects.toThrow(
+      'No existe usuario con id: 1',
+    );
 
     expect(usuarioRepository.save).not.toHaveBeenCalled();
   });
 
-  // 🔹 2. Si la DB retorna un objeto vacío → debe lanzar NotFoundException
-  it('CS0002 - debe lanzar error si la DB retorna un objeto vacío', async () => {
+
+  it('CS00002 - debe lanzar error si la DB retorna un objeto vacío', async () => {
+
+    // Arrange
     usuarioRepository.findOne!.mockResolvedValue({} as any);
 
     (bcrypt.compare as unknown as jest.Mock).mockResolvedValue(false);
 
-    await expect(
-      service.cambiarContrasena(id, dto),
-    ).rejects.toThrow();
+    // Act
+    const action = service.cambiarContrasena(id, dto);
+
+    // Assert
+    await expect(action).rejects.toThrow();
 
     expect(usuarioRepository.save).not.toHaveBeenCalled();
   });
 
-  // 🔹 3. Si la contraseña actual es inválida
+
   it('CS00003 - debe lanzar BadRequestException si la contraseña actual es incorrecta', async () => {
+
+    // Arrange
     usuarioRepository.findOne!.mockResolvedValue(usuarioMock);
 
     (bcrypt.compare as unknown as jest.Mock).mockResolvedValue(false);
 
-    await expect(
-      service.cambiarContrasena(id, dto),
-    ).rejects.toThrow('La contraseña actual es incorrecta');
+    // Act
+    const action = service.cambiarContrasena(id, dto);
+
+    // Assert
+    await expect(action).rejects.toThrow(
+      'La contraseña actual es incorrecta',
+    );
 
     expect(bcrypt.hash).not.toHaveBeenCalled();
     expect(usuarioRepository.save).not.toHaveBeenCalled();
   });
 
-  // 🔹 4. Si falla el guardado en DB
+
   it('CS00004 - debe lanzar error si falla el guardado del usuario en DB', async () => {
+
+    // Arrange
     usuarioRepository.findOne!.mockResolvedValue(usuarioMock);
 
-    (bcrypt.compare as unknown as jest.Mock).mockResolvedValue(false);
-    (bcrypt.hash as unknown as jest.Mock).mockResolvedValue('newHashedPassword');
+    (bcrypt.compare as unknown as jest.Mock).mockResolvedValue(true);
+
+    (bcrypt.hash as unknown as jest.Mock).mockResolvedValue(
+      'newHashedPassword',
+    );
 
     usuarioRepository.save!.mockRejectedValue(
       new Error('Error de conexión DB'),
     );
 
-    await expect(
-      service.cambiarContrasena(id, dto),
-    ).rejects.toThrow('Error de conexión DB');
+    // Act
+    const action = service.cambiarContrasena(id, dto);
+
+    // Assert
+    await expect(action).rejects.toThrow(
+      'Error de conexión DB',
+    );
   });
 
 });

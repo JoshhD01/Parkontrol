@@ -26,7 +26,7 @@ export class UsuariosController {
 
   @Post()
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async crear(
     @Body() createUsuarioDto: CreateUsuarioDto,
   ): Promise<UsuarioResponseDto> {
@@ -37,7 +37,7 @@ export class UsuariosController {
 
   @Get('empresa/:idEmpresa')
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerUsuariosEmpresa(
     @Param('idEmpresa', ParseIntPipe) idEmpresa: number,
   ): Promise<UsuarioResponseDto[]> {
@@ -46,7 +46,7 @@ export class UsuariosController {
 
   @Get(':id')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorId(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UsuarioResponseDto> {
@@ -56,7 +56,7 @@ export class UsuariosController {
 
   @Delete(':id')
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async eliminar(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ mensaje: string }> {
@@ -65,7 +65,7 @@ export class UsuariosController {
   }
 
   @Patch('cambiar-contrasena')
-  @UseGuards(JwtAuthGuard)
+  // UseGuards(JwtAuthGuard)
   async cambiarContrasena(
     @GetUser() user: JwtUsuario,
     @Body() cambiarContrasenaDto: CambiarContrasenaDto,

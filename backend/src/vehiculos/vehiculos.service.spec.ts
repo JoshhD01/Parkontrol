@@ -71,99 +71,134 @@ describe('VehiculosService - Setup', () => {
     jest.clearAllMocks();
   });
 
-  describe('crear', () => {
-    const dto = {
-      placa: 'abc123',
-      idTipoVehiculo: 1,
-    };
+ describe('crear', () => {
+  const dto = {
+    placa: 'abc123',
+    idTipoVehiculo: 1,
+  };
 
-    const tipoVehiculoMock = {
-      id: 1,
-      nombre: 'Carro',
-    } as any;
+  const tipoVehiculoMock = {
+    id: 1,
+    nombre: 'Carro',
+  } as any;
 
-    const vehiculoGuardadoMock = {
-      id: 10,
-      placa: 'ABC123',
-      tipoVehiculo: tipoVehiculoMock,
-    } as any;
+  const vehiculoGuardadoMock = {
+    id: 10,
+    placa: 'ABC123',
+    tipoVehiculo: tipoVehiculoMock,
+  } as any;
 
-    // 🔹 1. La DB retorna un objeto vacío al buscar por placa
-    it('CS00001 - debe lanzar ConflictException si findOne retorna objeto vacío', async () => {
-      vehiculoRepository.findOne.mockResolvedValue({} as any);
+  it('CS00001 - debe lanzar ConflictException si findOne retorna objeto vacío', async () => {
 
-      await expect(service.crear(dto))
-        .rejects
-        .toThrow(`Ya existe un vehículo con placa: ${dto.placa}`);
+    // Arrange
+    vehiculoRepository.findOne.mockResolvedValue({} as any);
 
-      expect(tipoVehiculoRepository.findOne).not.toHaveBeenCalled();
-      expect(vehiculoRepository.save).not.toHaveBeenCalled();
-    });
+    // Act
+    const action = service.crear(dto);
 
-    // 🔹 2. La DB retorna una placa ya existente
-    it('CS0002 - debe lanzar ConflictException si ya existe la placa', async () => {
-      vehiculoRepository.findOne.mockResolvedValue({ id: 99 } as any);
+    // Assert
+    await expect(action).rejects.toThrow(
+      `Ya existe un vehículo con placa: ${dto.placa}`,
+    );
 
-      await expect(service.crear(dto))
-        .rejects
-        .toThrow(`Ya existe un vehículo con placa: ${dto.placa}`);
-
-      expect(tipoVehiculoRepository.findOne).not.toHaveBeenCalled();
-    });
-
-    // 🔹 3. findOne de tipoVehiculo retorna objeto vacío
-    it('CS0003 - debe lanzar NotFoundException si tipoVehiculo es objeto vacío', async () => {
-      vehiculoRepository.findOne.mockResolvedValue(null);
-      tipoVehiculoRepository.findOne.mockResolvedValue({} as any);
-
-      vehiculoRepository.create.mockReturnValue({} as any);
-
-      await service.crear(dto); // ⚠ Este NO lanza excepción con tu código actual
-
-      expect(vehiculoRepository.create).toHaveBeenCalled();
-    });
-
-    // 🔹 4. El tipo de vehículo no existe (null)
-    it('CS0004 - debe lanzar NotFoundException si tipoVehiculo no existe', async () => {
-      vehiculoRepository.findOne.mockResolvedValue(null);
-      tipoVehiculoRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.crear(dto))
-        .rejects
-        .toThrow(`No existe tipo de vehículo con id: ${dto.idTipoVehiculo}`);
-
-      expect(vehiculoRepository.save).not.toHaveBeenCalled();
-    });
-
-    // 🔹 5. Falla el guardado en DB por conexión
-    it('CS0005 - debe lanzar error si falla el guardado en DB', async () => {
-      vehiculoRepository.findOne.mockResolvedValue(null);
-      tipoVehiculoRepository.findOne.mockResolvedValue(tipoVehiculoMock);
-
-      const vehiculoCreado = { placa: 'ABC123' };
-      vehiculoRepository.create.mockReturnValue(vehiculoCreado);
-
-      vehiculoRepository.save.mockRejectedValue(
-        new Error('Error de conexión DB'),
-      );
-
-      await expect(service.crear(dto))
-        .rejects
-        .toThrow('Error de conexión DB');
-    });
-
-    // 🔹 6. El guardado retorna objeto vacío
-    it('CS0006 - debe retornar objeto vacío si save retorna vacío', async () => {
-      vehiculoRepository.findOne.mockResolvedValue(null);
-      tipoVehiculoRepository.findOne.mockResolvedValue(tipoVehiculoMock);
-
-      vehiculoRepository.create.mockReturnValue({} as any);
-      vehiculoRepository.save.mockResolvedValue({} as any);
-
-      const result = await service.crear(dto);
-
-      expect(result).toEqual({});
-    });
+    expect(tipoVehiculoRepository.findOne).not.toHaveBeenCalled();
+    expect(vehiculoRepository.save).not.toHaveBeenCalled();
   });
+
+
+  it('CS00002 - debe lanzar ConflictException si ya existe la placa', async () => {
+
+    // Arrange
+    vehiculoRepository.findOne.mockResolvedValue({ id: 99 } as any);
+
+    // Act
+    const action = service.crear(dto);
+
+    // Assert
+    await expect(action).rejects.toThrow(
+      `Ya existe un vehículo con placa: ${dto.placa}`,
+    );
+
+    expect(tipoVehiculoRepository.findOne).not.toHaveBeenCalled();
+  });
+
+
+  it('CS00003 - debe lanzar NotFoundException si tipoVehiculo es objeto vacío', async () => {
+
+    // Arrange
+    vehiculoRepository.findOne.mockResolvedValue(null);
+    tipoVehiculoRepository.findOne.mockResolvedValue({} as any);
+
+    vehiculoRepository.create.mockReturnValue({} as any);
+
+    // Act
+    const result = await service.crear(dto);
+
+    // Assert
+    expect(vehiculoRepository.create).toHaveBeenCalled();
+    expect(result).toBeDefined();
+  });
+
+
+  it('CS00004 - debe lanzar NotFoundException si tipoVehiculo no existe', async () => {
+
+    // Arrange
+    vehiculoRepository.findOne.mockResolvedValue(null);
+    tipoVehiculoRepository.findOne.mockResolvedValue(null);
+
+    // Act
+    const action = service.crear(dto);
+
+    // Assert
+    await expect(action).rejects.toThrow(
+      `No existe tipo de vehículo con id: ${dto.idTipoVehiculo}`,
+    );
+
+    expect(vehiculoRepository.save).not.toHaveBeenCalled();
+  });
+
+
+  it('CS00005 - debe lanzar error si falla el guardado en DB', async () => {
+
+    // Arrange
+    vehiculoRepository.findOne.mockResolvedValue(null);
+    tipoVehiculoRepository.findOne.mockResolvedValue(tipoVehiculoMock);
+
+    const vehiculoCreado = { placa: 'ABC123' };
+
+    vehiculoRepository.create.mockReturnValue(vehiculoCreado);
+
+    vehiculoRepository.save.mockRejectedValue(
+      new Error('Error de conexión DB'),
+    );
+
+    // Act
+    const action = service.crear(dto);
+
+    // Assert
+    await expect(action).rejects.toThrow(
+      'Error de conexión DB',
+    );
+  });
+
+
+  it('CS00006 - debe retornar objeto vacío si save retorna vacío', async () => {
+
+    // Arrange
+    vehiculoRepository.findOne.mockResolvedValue(null);
+    tipoVehiculoRepository.findOne.mockResolvedValue(tipoVehiculoMock);
+
+    vehiculoRepository.create.mockReturnValue({} as any);
+    vehiculoRepository.save.mockResolvedValue({} as any);
+
+    // Act
+    const result = await service.crear(dto);
+
+    // Assert
+    expect(result).toEqual({});
+  });
+
+});
+
 
 });

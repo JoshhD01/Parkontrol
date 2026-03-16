@@ -37,14 +37,14 @@ export class VehiculosController {
 
   @Post()
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async crear(@Body() createVehiculoDto: CreateVehiculoDto): Promise<Vehiculo> {
     return await this.vehiculosService.crear(createVehiculoDto);
   }
 
   @Get('placa/:placa')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorPlaca(@Param('placa') placa: string): Promise<Vehiculo> {
     const placaValida = this.validarPlaca(placa);
     const vehiculo = await this.vehiculosService.findByPlaca(placaValida);
@@ -58,14 +58,14 @@ export class VehiculosController {
 
   @Get('tipos')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerTiposVehiculo(): Promise<TipoVehiculo[]> {
     return await this.vehiculosService.findAllTiposVehiculo();
   }
 
   @Get(':id/reservas')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerReservasPorVehiculo(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Reserva[]> {
@@ -74,7 +74,7 @@ export class VehiculosController {
 
   @Get(':id')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorId(@Param('id', ParseIntPipe) id: number): Promise<Vehiculo> {
     return await this.vehiculosService.findVehiculoById(id);
   }

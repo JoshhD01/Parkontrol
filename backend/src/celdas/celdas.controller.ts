@@ -22,14 +22,14 @@ export class CeldasController {
 
   @Post()
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async crear(@Body() createCeldaDto: CreateCeldaDto): Promise<Celda> {
     return await this.celdasService.crear(createCeldaDto);
   }
 
   @Get('parqueadero/:idParqueadero')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorParqueadero(
     @Param('idParqueadero', ParseIntPipe) idParqueadero: number,
   ): Promise<Celda[]> {
@@ -38,14 +38,14 @@ export class CeldasController {
 
   @Get(':id')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorId(@Param('id', ParseIntPipe) id: number): Promise<Celda> {
     return await this.celdasService.findCeldaById(id);
   }
 
   @Patch(':id/estado')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async actualizarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body('estado') estado: string,

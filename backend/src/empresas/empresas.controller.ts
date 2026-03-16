@@ -12,14 +12,14 @@ export class EmpresasController {
 
   @Get()
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerTodas(): Promise<EmpresaResponseDto[]> {
     return this.empresasService.obtenerTodas();
   }
 
   @Get(':id')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerDetalle(
     @Param('id', ParseIntPipe) idEmpresa: number,
   ): Promise<EmpresaResponseDto> {

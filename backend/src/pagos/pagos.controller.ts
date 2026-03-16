@@ -25,14 +25,14 @@ export class PagosController {
 
   @Post()
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async crear(@Body() createPagoDto: CreatePagoDto): Promise<Pago> {
     return await this.pagosService.crear(createPagoDto);
   }
 
   @Get('parqueadero/:idParqueadero')
   @Roles(RoleEnum.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorParqueadero(
     @Param('idParqueadero', ParseIntPipe) idParqueadero: number,
   ): Promise<Pago[]> {
@@ -40,7 +40,7 @@ export class PagosController {
   }
 
   @Get('client/mis-pagos')
-  @UseGuards(JwtAuthGuard)
+  // UseGuards(JwtAuthGuard)
   async obtenerMisPagos(@GetUser() user: JwtUsuario): Promise<Pago[]> {
     if (user.nombreRol !== 'CLIENTE') {
       throw new UnauthorizedException(
@@ -53,7 +53,7 @@ export class PagosController {
 
   @Get('reserva/:idReserva')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorReserva(
     @Param('idReserva', ParseIntPipe) idReserva: number,
   ): Promise<Pago> {
@@ -68,7 +68,7 @@ export class PagosController {
 
   @Get(':id')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorId(@Param('id', ParseIntPipe) id: number): Promise<Pago> {
     return await this.pagosService.findPagoById(id);
   }

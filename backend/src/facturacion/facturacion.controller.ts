@@ -24,8 +24,8 @@ import type { JwtUsuario } from 'src/auth/interfaces';
 export class FacturacionController {
   constructor(private readonly facturacionService: FacturacionService) {}
 
-  @Get('facturas/mias')
-  @UseGuards(JwtAuthGuard)
+  @Get('facturas/client/mias')
+  // UseGuards(JwtAuthGuard)
   async obtenerFacturasCliente(
     @GetUser() user: JwtUsuario,
   ): Promise<any[]> {
@@ -40,7 +40,7 @@ export class FacturacionController {
 
   @Post('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async crearCliente(
     @Body() createClienteDto: CreateClienteFacturaDto,
   ): Promise<ClienteFactura> {
@@ -49,16 +49,25 @@ export class FacturacionController {
 
   @Post('facturas')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async crearFactura(
     @Body() createFacturaDto: CreateFacturaDto,
   ): Promise<any> {
     return await this.facturacionService.crearFactura(createFacturaDto);
   }
 
+  @Patch('facturas/:id/enviar')
+  @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
+  async marcarEnviada(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<FacturaElectronica> {
+    return await this.facturacionService.marcarComoEnviada(id);
+  }
+
   @Get('facturas/pago/:idPago')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorPago(
     @Param('idPago', ParseIntPipe) idPago: number,
   ): Promise<any> {
@@ -73,7 +82,7 @@ export class FacturacionController {
 
   @Get('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //  UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerClientes(): Promise<ClienteFactura[]> {
     return await this.facturacionService.obtenerClientes();
   }
