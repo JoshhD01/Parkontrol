@@ -55,7 +55,7 @@ export class FacturacionController {
   ): Promise<any> {
     return await this.facturacionService.crearFactura(createFacturaDto);
   }
-
+/*
   @Patch('facturas/:id/enviar')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
   //  UseGuards(JwtAuthGuard, RolesGuard)
@@ -64,6 +64,8 @@ export class FacturacionController {
   ): Promise<FacturaElectronica> {
     return await this.facturacionService.marcarComoEnviada(id);
   }
+    
+  */
 
   @Get('facturas/pago/:idPago')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
