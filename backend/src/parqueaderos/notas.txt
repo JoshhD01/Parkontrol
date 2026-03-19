@@ -1,0 +1,11 @@
+he tenido que cambiar la configuracion deltro del package.json para que jest reconozca la distribucion de las carpetas
+
+para levantar el contenedor que ya fue creado:
+buscar el nombre con docker ps -a
+ejecutarlo con docker start [nombre]
+
+para generar el archivo de coverage correr:
+npm run test:cov
+
+para correr el sonarqube:
+npm run sonar
