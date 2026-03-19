@@ -1,1 +1,0 @@
-he tenido que cambiar la configuracion deltro del package.json para que jest reconozca la distribucion de las carpetas
