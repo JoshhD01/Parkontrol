@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tarifa } from './entities/tarifa.entity';
@@ -18,19 +18,19 @@ export class TarifasService {
   ) {}
 
   async crear(createTarifaDto: CreateTarifaDto): Promise<Tarifa> {
-    const parqueadero = await this.parqueaderosService.findParqueaderoById(
+    const parqueadero = await this.parqueaderosService.findParqueaderoById( 
       createTarifaDto.idParqueadero,
     );
-    const tipoVehiculo = await this.tipoVehiculoRepository.findOne({
+    const tipoVehiculo = await this.tipoVehiculoRepository.findOne({ 
       where: { id: createTarifaDto.idTipoVehiculo },
     });
-    if (!tipoVehiculo) {
-      throw new NotFoundException(
+    if (!tipoVehiculo) { 
+      throw new NotFoundException( 
         `No existe tipo de vehículo con id: ${createTarifaDto.idTipoVehiculo}`,
       );
     }
 
-    const tarifa = this.tarifaRepository.create({
+    const tarifa = this.tarifaRepository.create({ 
       parqueadero,
       tipoVehiculo,
       precioFraccionHora: createTarifaDto.precioFraccionHora,
@@ -41,67 +41,123 @@ export class TarifasService {
   }
 
   async findByParqueadero(idParqueadero: number): Promise<Tarifa[]> {
-    return await this.tarifaRepository.find({
+    if (!idParqueadero || idParqueadero <= 0) { 
+      throw new BadRequestException('El idParqueadero es inválido'); 
+    }
+
+    const parqueadero =
+      await this.parqueaderosService.findParqueaderoById(idParqueadero); 
+
+    if (!parqueadero) { 
+      throw new NotFoundException( 
+        `No existe parqueadero con id: ${idParqueadero}`,
+      );
+    }
+
+    const tarifas = await this.tarifaRepository.find({ 
       where: { parqueadero: { id: idParqueadero } },
       relations: ['parqueadero', 'tipoVehiculo'],
     });
+
+    return tarifas; 
   }
+
 
   async findByParqueaderoYTipo(
     idParqueadero: number,
     idTipoVehiculo: number,
   ): Promise<Tarifa | null> {
-    return await this.tarifaRepository.findOne({
+
+    if (!idParqueadero || idParqueadero <= 0) { 
+      throw new BadRequestException('El idParqueadero es inválido'); 
+    }
+
+    if (!idTipoVehiculo || idTipoVehiculo <= 0) { 
+      throw new BadRequestException('El idTipoVehiculo es inválido'); 
+    }
+
+
+    const parqueadero =
+      await this.parqueaderosService.findParqueaderoById(idParqueadero); 
+
+    if (!parqueadero) { 
+      throw new NotFoundException( 
+        `No existe parqueadero con id: ${idParqueadero}`,
+      );
+    }
+
+    const tipoVehiculo = await this.tipoVehiculoRepository.findOne({ 
+      where: { id: idTipoVehiculo },
+    });
+
+    if (!tipoVehiculo) { 
+      throw new NotFoundException( 
+        `No existe tipo de vehículo con id: ${idTipoVehiculo}`,
+      );
+    }
+
+
+    const tarifa = await this.tarifaRepository.findOne({ 
       where: {
         parqueadero: { id: idParqueadero },
         tipoVehiculo: { id: idTipoVehiculo },
       },
       relations: ['parqueadero', 'tipoVehiculo'],
     });
+
+
+    return tarifa; 
   }
 
   async actualizar(id: number, updateData: UpdateTarifaDto): Promise<Tarifa> {
-    const tarifa = await this.tarifaRepository.findOne({
+    const tarifa = await this.tarifaRepository.findOne({ 
       where: { id },
       relations: ['parqueadero', 'tipoVehiculo'],
     });
 
-    if (!tarifa) {
-      throw new NotFoundException(`No existe tarifa con id: ${id}`);
+    if (!tarifa) { 
+      throw new NotFoundException(`No existe tarifa con id: ${id}`); 
     }
 
-    if (updateData.precioFraccionHora !== undefined) {
-      tarifa.precioFraccionHora = updateData.precioFraccionHora;
+    if (updateData.precioFraccionHora !== undefined) { 
+      tarifa.precioFraccionHora = updateData.precioFraccionHora; 
     }
 
-    if (updateData.precioHoraAdicional !== undefined) {
-      tarifa.precioHoraAdicional = updateData.precioHoraAdicional;
+    if (updateData.precioHoraAdicional !== undefined) { 
+      tarifa.precioHoraAdicional = updateData.precioHoraAdicional; 
     }
 
-    await this.tarifaRepository.save(tarifa);
+    await this.tarifaRepository.save(tarifa); 
 
-    const tarifaActualizada = await this.tarifaRepository.findOne({
+    const tarifaActualizada = await this.tarifaRepository.findOne({ 
       where: { id },
       relations: ['parqueadero', 'tipoVehiculo'],
     });
 
-    if (!tarifaActualizada) {
-      throw new NotFoundException(
+    if (!tarifaActualizada) { 
+      throw new NotFoundException( 
         `No se pudo recuperar la tarifa actualizada con id: ${id}`,
       );
     }
 
-    return tarifaActualizada;
+    return tarifaActualizada; 
   }
 
   async findTarifaById(id: number): Promise<Tarifa> {
-    const tarifa = await this.tarifaRepository.findOne({
+
+    if (!id || id <= 0) { 
+      throw new BadRequestException('El id de la tarifa es inválido'); 
+    }
+
+    const tarifa = await this.tarifaRepository.findOne({ 
       where: { id },
       relations: ['parqueadero', 'tipoVehiculo'],
     });
-    if (!tarifa) {
-      throw new NotFoundException(`No existe tarifa con id: ${id}`);
+
+    if (!tarifa) { 
+      throw new NotFoundException(`No existe tarifa con id: ${id}`); 
     }
-    return tarifa;
+
+    return tarifa; 
   }
 }

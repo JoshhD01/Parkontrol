@@ -81,15 +81,14 @@
 "collectCoverageFrom": [
   "**/*.(t|j)s",
 
-  "!**/*.spec.ts",
   "!**/auth/**",
   "!**/celdas/**",
   "!**/empresas/**",
   "!**/parqueaderos/**",
   "!**/reportes/**",
+  "!**/reservas/**",
   "!**/seeds/**",
   "!**/shared/**",
-  "!**/tarifas/**",
   "!**/usuarios/**",
   "!**/vehiculos/**",
   "!**/vistas/**"
