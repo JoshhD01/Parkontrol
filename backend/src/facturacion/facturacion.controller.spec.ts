@@ -4,18 +4,29 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FacturacionController } from './facturacion.controller';
 import { FacturacionService } from './facturacion.service';
 
+type FacturacionServiceDouble = {
+  findMisFacturas: jest.Mock;
+  crearCliente: jest.Mock;
+  crearFactura: jest.Mock;
+  findByPago: jest.Mock;
+  obtenerClientes: jest.Mock;
+};
+
 describe('FacturacionController', () => {
   let controller: FacturacionController;
+  let facturacionService: FacturacionServiceDouble;
 
-  const facturacionService = {
+  const buildFacturacionServiceDouble = (): FacturacionServiceDouble => ({
     findMisFacturas: jest.fn(),
     crearCliente: jest.fn(),
     crearFactura: jest.fn(),
     findByPago: jest.fn(),
     obtenerClientes: jest.fn(),
-  };
+  });
 
   beforeEach(async () => {
+    facturacionService = buildFacturacionServiceDouble();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FacturacionController],
       providers: [
@@ -33,47 +44,52 @@ describe('FacturacionController', () => {
     jest.clearAllMocks();
   });
 
-  describe('5) obtenerFacturasCliente caminos C1 y parte de C3/C5/C6', () => {
-    it('C1 - rol distinto de CLIENTE => Unauthorized', async () => {
-      await expect(
-        controller.obtenerFacturasCliente({
-          id: 1,
-          correo: 'u@x.com',
-          nombreRol: 'ADMIN',
-        } as any),
-      ).rejects.toThrow(UnauthorizedException);
+  describe('obtenerFacturasCliente', () => {
+    it('C1 rol distinto de CLIENTE lanza Unauthorized', async () => {
+      const userDummy = {
+        id: 1,
+        correo: 'u@x.com',
+        nombreRol: 'ADMIN',
+      } as any;
+
+      await expect(controller.obtenerFacturasCliente(userDummy)).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       expect(facturacionService.findMisFacturas).not.toHaveBeenCalled();
     });
 
-    it('Rol CLIENTE => delega a service.findMisFacturas con id/correo', async () => {
-      facturacionService.findMisFacturas.mockResolvedValue([{ id: 10 }]);
-
-      const result = await controller.obtenerFacturasCliente({
+    it('C2 rol CLIENTE delega en findMisFacturas', async () => {
+      const userStub = {
         id: 5,
         correo: 'cliente@x.com',
         nombreRol: 'CLIENTE',
-      } as any);
+      } as any;
+
+      const facturasFake = [{ id: 10 }];
+      facturacionService.findMisFacturas.mockResolvedValue(facturasFake);
+
+      const result = await controller.obtenerFacturasCliente(userStub);
 
       expect(facturacionService.findMisFacturas).toHaveBeenCalledWith(5);
-      expect(result).toEqual([{ id: 10 }]);
+      expect(result).toEqual(facturasFake);
     });
   });
 
-  describe('4) obtenerPorPago caminos C1-C2', () => {
-    it('C1 - service retorna null => NotFound', async () => {
+  describe('obtenerPorPago', () => {
+    it('C1 si service retorna null lanza NotFound', async () => {
       facturacionService.findByPago.mockResolvedValue(null);
 
       await expect(controller.obtenerPorPago(99)).rejects.toThrow(NotFoundException);
     });
 
-    it('C2 - service retorna factura => respuesta OK', async () => {
-      const factura = { id: 4, tipoFactura: 'NORMAL' };
-      facturacionService.findByPago.mockResolvedValue(factura);
+    it('C2 si service retorna factura responde OK', async () => {
+      const facturaStub = { id: 4, tipoFactura: 'NORMAL' };
+      facturacionService.findByPago.mockResolvedValue(facturaStub);
 
       const result = await controller.obtenerPorPago(4);
 
-      expect(result).toEqual(factura);
+      expect(result).toEqual(facturaStub);
       expect(facturacionService.findByPago).toHaveBeenCalledWith(4);
     });
   });
