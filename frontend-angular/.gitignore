@@ -37,6 +37,10 @@ yarn-error.log
 testem.log
 /typings
 
+# Local SonarQube artifacts
+.scannerwork/
+sonar-project.properties
+
 # System files
 .DS_Store
 Thumbs.db

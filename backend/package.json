@@ -18,7 +18,7 @@
     "test:watch": "jest --config package.json --watch",
     "test:cov": "jest --config package.json --coverage",
     "cov": "jest --config package.json --coverage",
-    "sonar": "sonar-scanner",
+    "sonar": "if defined SONAR_TOKEN (sonar-scanner -Dsonar.token=%SONAR_TOKEN%) else (echo SONAR_TOKEN no definido & exit /b 1)",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },

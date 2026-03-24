@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:cov": "ng test --code-coverage --watch=false",
+    "sonar": "if defined SONAR_TOKEN (sonar-scanner -Dsonar.token=%SONAR_TOKEN%) else (echo SONAR_TOKEN no definido & exit /b 1)"
   },
   "prettier": {
     "printWidth": 100,
