@@ -3,19 +3,19 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, type TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { EmpresasModule } from './empresas/empresas.module';
-import { UsuariosModule } from './usuarios/usuarios.module';
-import { ParqueaderosModule } from './parqueaderos/parqueaderos.module';
-import { SharedModule } from './shared/shared.module';
-import { AuthModule } from './auth/auth.module';
-import { CeldasModule } from './celdas/celdas.module';
-import { VehiculosModule } from './vehiculos/vehiculos.module';
-import { ReservasModule } from './reservas/reservas.module';
-import { TarifasModule } from './tarifas/tarifas.module';
-import { PagosModule } from './pagos/pagos.module';
-import { FacturacionModule } from './facturacion/facturacion.module';
-import { ReportesModule } from './reportes/reportes.module';
-import { VistasModule } from './vistas/vistas.module';
+import { EmpresasModule } from './entities/empresas/empresas.module';
+import { UsuariosModule } from './entities/usuarios/usuarios.module';
+import { ParqueaderosModule } from './entities/parqueaderos/parqueaderos.module';
+import { SharedModule } from './entities/shared/shared.module';
+import { AuthModule } from './entities/auth/auth.module';
+import { CeldasModule } from './entities/celdas/celdas.module';
+import { VehiculosModule } from './entities/vehiculos/vehiculos.module';
+import { ReservasModule } from './entities/reservas/reservas.module';
+import { TarifasModule } from './entities/tarifas/tarifas.module';
+import { PagosModule } from './entities/pagos/pagos.module';
+import { FacturacionModule } from './entities/facturacion/facturacion.module';
+import { ReportesModule } from './entities/reportes/reportes.module';
+import { VistasModule } from './entities/vistas/vistas.module';
 
 @Module({
   imports: [

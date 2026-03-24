@@ -8,17 +8,17 @@
   "scripts": {
     "build": "nest build",
     "seed": "ts-node -r tsconfig-paths/register src/seeds/seed.ts",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/*/.ts\" \"test/*/.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint": "eslint \"{src,apps,libs,test}/*/.ts\" --fix",
     "test": "NODE_ENV=test jest --config package.json",
     "test:watch": "jest --config package.json --watch",
     "test:cov": "jest --config package.json --coverage",
     "cov": "jest --config package.json --coverage",
-    "sonar": "sonar-scanner",
+    "sonar": "if defined SONAR_TOKEN (sonar-scanner -Dsonar.token=%SONAR_TOKEN%) else (echo SONAR_TOKEN no definido & exit /b 1)",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
@@ -80,19 +80,19 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
 "collectCoverageFrom": [
-  "**/*.(t|j)s",
+  "*/.(t|j)s",
 
-  "!**/auth/**",
-  "!**/celdas/**",
-  "!**/empresas/**",
-  "!**/parqueaderos/**",
-  "!**/reportes/**",
-  "!**/reservas/**",
-  "!**/seeds/**",
-  "!**/shared/**",
-  "!**/usuarios/**",
-  "!**/vehiculos/**",
-  "!**/vistas/**"
+  "!*/auth/*",
+  "!*/celdas/*",
+  "!*/empresas/*",
+  "!*/parqueaderos/*",
+  "!*/reportes/*",
+  "!*/reservas/*",
+  "!*/seeds/*",
+  "!*/shared/*",
+  "!*/usuarios/*",
+  "!*/vehiculos/*",
+  "!*/vistas/*"
 ],
 "coveragePathIgnorePatterns": [
   "/node_modules/",
