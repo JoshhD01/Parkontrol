@@ -134,12 +134,10 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    const vehiculo = vehiculoExistente 
-      ? vehiculoExistente 
-      : await this.vehiculosService.crear({ 
-          placa: reservarClienteDto.placa,
-          idTipoVehiculo: reservarClienteDto.idTipoVehiculo,
-        });
+  const vehiculo = vehiculoExistente ?? await this.vehiculosService.crear({
+    placa: reservarClienteDto.placa,
+    idTipoVehiculo: reservarClienteDto.idTipoVehiculo,
+  });
 
     const celdasParqueadero = await this.celdasService.findByParqueadero( 
       reservarClienteDto.idParqueadero,

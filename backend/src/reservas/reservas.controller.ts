@@ -7,18 +7,15 @@ import {
   Patch,
   Post,
   UnauthorizedException,
-  UseGuards,
+  //UseGuards,
 } from '@nestjs/common';
 import { ReservasService } from './reservas.service';
 import { CreateReservaDto } from './entities/dto/crear-reserva.dto';
 import { ReservarClienteDto } from './entities/dto/reservar-cliente.dto';
 import { Reserva } from './entities/reserva.entity';
 import { Vehiculo } from 'src/vehiculos/entities/vehiculo.entity';
-import { Roles } from 'src/shared/decorators';
+import { Roles, GetUser } from 'src/shared/decorators';
 import { RoleEnum } from 'src/shared/entities/rol.entity';
-import { JwtAuthGuard } from 'src/auth/guards';
-import { RolesGuard } from 'src/shared/guards';
-import { GetUser } from 'src/shared/decorators';
 import type { JwtUsuario } from 'src/auth/interfaces';
 
 @Controller('reservations')
