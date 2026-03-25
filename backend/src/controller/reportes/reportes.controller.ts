@@ -6,15 +6,11 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { ReportesService } from 'src/service/reportes/reportes.service';
 import { CreateReporteDto } from './dto/crear-reporte.dto';
 import { Reporte } from 'src/entities/reportes/entities/reporte.entity';
-import { Roles } from 'src/entities/shared';
-import { RoleEnum } from 'src/entities/shared';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard } from 'src/entities/shared';
+import { Roles, RoleEnum } from 'src/entities/shared';
 
 @Controller('reports')
 export class ReportesController {

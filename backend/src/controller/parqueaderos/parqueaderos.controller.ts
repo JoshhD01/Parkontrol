@@ -5,17 +5,11 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { ParqueaderosService } from 'src/service/parqueaderos/parqueaderos.service';
 import { CreateParqueaderoDto } from './dto/crear-parqueadero.dto';
 import { ParqueaderoResponseDto } from './dto/parqueadero-response.dto';
-import { Roles } from 'src/entities/shared';
-import { RoleEnum } from 'src/entities/shared';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard, GetUser } from 'src/entities/shared';
-import type { JwtUsuario } from '../auth/interfaces';
+import { Roles,RoleEnum } from 'src/entities/shared';
 
 @Controller('parking-lots')
 export class ParqueaderosController {

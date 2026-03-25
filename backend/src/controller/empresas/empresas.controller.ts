@@ -1,10 +1,7 @@
 import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { EmpresasService } from 'src/service/empresas/empresas.service';
 import { EmpresaResponseDto } from './dto/empresa-response.dto';
-import { Roles } from 'src/entities/shared';
-import { RoleEnum } from 'src/entities/shared';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard } from 'src/entities/shared';
+import { Roles, RoleEnum } from 'src/entities/shared';
 
 @Controller('companies')
 export class EmpresasController {

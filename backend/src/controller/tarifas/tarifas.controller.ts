@@ -6,16 +6,12 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { TarifasService } from 'src/service/tarifas/tarifas.service';
 import { CreateTarifaDto } from './dto/crear-tarifa.dto';
 import { UpdateTarifaDto } from './dto/actualizar-tarifa.dto';
 import { Tarifa } from 'src/entities/tarifas/entities/tarifa.entity';
-import { Roles } from 'src/entities/shared';
-import { RoleEnum } from 'src/entities/shared';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard } from 'src/entities/shared';
+import { Roles,RoleEnum } from 'src/entities/shared';
 
 @Controller('rates')
 export class TarifasController {

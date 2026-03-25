@@ -2,12 +2,12 @@ import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
-import { FacturacionService } from '../facturacion.service';
-import { FacturacionController } from '../facturacion.controller';
-import { FacturaElectronica } from '../entities/factura-electronica.entity';
-import { ClienteFactura } from '../entities/cliente-factura.entity';
-import { Usuario } from 'src/usuarios/entities/usuario.entity';
-import { PagosService } from 'src/pagos/pagos.service';
+import { FacturacionService } from './facturacion.service';
+import { FacturacionController } from 'src/controller/facturacion/facturacion.controller';
+import { FacturaElectronica } from 'src/entities/facturacion/entities/factura-electronica.entity';
+import { ClienteFactura } from 'src/entities/facturacion/entities/cliente-factura.entity';
+import { Usuario } from 'src/entities/usuarios/entities/usuario.entity';
+import { PagosService } from '../pagos/pagos.service';
 
 /**
  * Tests de Integración para Facturacion

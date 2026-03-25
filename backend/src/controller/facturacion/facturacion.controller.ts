@@ -7,17 +7,12 @@ import {
   Post,
   NotFoundException,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { FacturacionService } from 'src/service/facturacion/facturacion.service';
 import { CreateFacturaDto } from './dto/crear-factura-electronica.dto';
 import { CreateClienteFacturaDto } from './dto/crear-cliente-factura.dto';
 import { ClienteFactura } from 'src/entities/facturacion/entities/cliente-factura.entity';
-import { Roles } from 'src/entities/shared';
-import { RoleEnum } from 'src/entities/shared';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard } from 'src/entities/shared';
-import { GetUser } from 'src/entities/shared';
+import { Roles, RoleEnum, GetUser } from 'src/entities/shared';
 import type { JwtUsuario } from '../auth/interfaces';
 
 @Controller('invoicing')

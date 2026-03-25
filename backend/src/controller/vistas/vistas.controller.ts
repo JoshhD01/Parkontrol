@@ -8,14 +8,10 @@ import {
   ParseIntPipe,
   NotFoundException,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { VistasService } from 'src/service/vistas/vistas.service';
 import { ProcesarPagoDto } from './dto/procesar-pago.dto';
-import { Roles } from 'src/entities/shared';
-import { RoleEnum } from 'src/entities/shared';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard } from 'src/entities/shared';
+import { RoleEnum, Roles } from 'src/entities/shared';
 @Controller('views')
 export class VistasController {
   constructor(private readonly vistasService: VistasService) {}

@@ -7,17 +7,13 @@ import {
   ParseIntPipe,
   Post,
   NotFoundException,
-  UseGuards,
 } from '@nestjs/common';
 import { VehiculosService } from 'src/service/vehiculos/vehiculos.service';
 import { CreateVehiculoDto } from './dto/crear-vehiculo.dto';
 import { Vehiculo } from 'src/entities/vehiculos/entities/vehiculo.entity';
-import { Roles } from 'src/entities/shared';
-import { RoleEnum } from 'src/entities/shared';
+import { RoleEnum, Roles } from 'src/entities/shared';
 import { TipoVehiculo } from 'src/entities/shared/entities/tipo-vehiculo.entity';
 import { Reserva } from 'src/entities/reservas/entities/reserva.entity';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard } from 'src/entities/shared';
 
 @Controller('vehicles')
 export class VehiculosController {
