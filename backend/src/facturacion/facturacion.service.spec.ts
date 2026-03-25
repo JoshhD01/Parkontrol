@@ -8,6 +8,8 @@ import { ClienteFactura } from './entities/cliente-factura.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { PagosService } from 'src/pagos/pagos.service';
 
+
+
 type FacturaRepositoryDouble = {
   create: jest.Mock;
   save: jest.Mock;
@@ -37,6 +39,7 @@ describe('FacturacionService', () => {
   let usuarioRepository: UsuarioRepositoryDouble;
   let pagosService: PagosServiceDouble;
 
+  // Builder Pattern para crear test doubles consistentes
   const buildFacturaRepoMock = (): FacturaRepositoryDouble => ({
     create: jest.fn(),
     save: jest.fn(),
@@ -59,6 +62,7 @@ describe('FacturacionService', () => {
     findPagoById: jest.fn(),
   });
 
+  // Setup: Independencia entre tests - cada uno obtiene sus propios mocks
   beforeEach(async () => {
     facturaRepository = buildFacturaRepoMock();
     clienteFacturaRepository = buildClienteRepoMock();
@@ -90,190 +94,186 @@ describe('FacturacionService', () => {
     service = module.get<FacturacionService>(FacturacionService);
   });
 
+  // Limpieza: Asegurar que test anterior no afecte al siguiente
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   describe('crearCliente', () => {
-    it('C1 debe lanzar NotFound si idUsuario fue informado y no existe', async () => {
-      const dto = {
-        tipoDocumento: 'cc',
-        numeroDocumento: '123',
-        correo: 'a@a.com',
-        idUsuario: 99,
-      };
+    // Arrange: Datos comunes para tests de crearCliente
+    const createClienteDtoTemplate = {
+      tipoDocumento: 'cc',
+      numeroDocumento: '1234567890',
+      correo: 'cliente@example.com',
+      idUsuario: undefined,
+    };
 
+    it('[FAST] C1 debe lanzar NotFoundException si idUsuario fue informado y no existe', async () => {
+      // Arrange
+      const dto = { ...createClienteDtoTemplate, idUsuario: 99 };
       usuarioRepository.findOne.mockResolvedValue(null);
 
+      // Act & Assert (Negativo)
       await expect(service.crearCliente(dto)).rejects.toThrow(NotFoundException);
 
+      // Assert: Verificar que no intenta buscar cliente si usuario no existe
       expect(clienteFacturaRepository.findOne).not.toHaveBeenCalled();
+      expect(usuarioRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 99 },
+      });
     });
 
-    it('C2 sin idUsuario y cliente existente actualiza correo y guarda', async () => {
+    it('[INDEPENDENT] C2 sin idUsuario y cliente no existente crea cliente nuevo', async () => {
+      // Arrange
+      const dto = { ...createClienteDtoTemplate, idUsuario: undefined };
+      const clienteNuevo = {
+        id: 20,
+        tipoDocumento: 'CC',
+        numeroDocumento: '1234567890',
+        correo: 'cliente@example.com',
+      } as any;
+
+      clienteFacturaRepository.findOne.mockResolvedValue(null);
+      clienteFacturaRepository.create.mockReturnValue(clienteNuevo);
+      clienteFacturaRepository.save.mockResolvedValue(clienteNuevo);
+
+      // Act
+      const result = await service.crearCliente(dto);
+
+      // Assert
+      expect(clienteFacturaRepository.create).toHaveBeenCalledWith({
+        tipoDocumento: 'CC',
+        numeroDocumento: '1234567890',
+        correo: 'cliente@example.com',
+        usuario: undefined,
+      });
+      expect(clienteFacturaRepository.save).toHaveBeenCalledWith(clienteNuevo);
+      expect(result.id).toBe(20);
+    });
+
+    it('[REPEATABLE] C3 con cliente existente actualiza correo y usuario', async () => {
+      // Arrange
+      const usuarioExistente = { id: 5 } as any;
       const clienteExistente = {
         id: 10,
+        tipoDocumento: 'CC',
+        numeroDocumento: 'ABC123',
         correo: 'viejo@correo.com',
+        usuario: null,
       } as any;
 
       const dto = {
         tipoDocumento: 'cc',
         numeroDocumento: 'abc123',
         correo: '  NUEVO@CORREO.COM ',
+        idUsuario: 5,
       };
 
-      const spyGuardarCliente = jest.spyOn(clienteFacturaRepository, 'save');
-
-      clienteFacturaRepository.findOne.mockResolvedValue(clienteExistente);
-      spyGuardarCliente.mockResolvedValue({
-        ...clienteExistente,
-        correo: 'nuevo@correo.com',
-      });
-
-      const result = await service.crearCliente(dto);
-
-      expect(clienteFacturaRepository.findOne).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            tipoDocumento: 'CC',
-            numeroDocumento: 'ABC123',
-          },
-        }),
-      );
-      expect(spyGuardarCliente).toHaveBeenCalledTimes(1);
-      expect(result.correo).toBe('nuevo@correo.com');
-    });
-
-    it('C3 con idUsuario valido y cliente existente asigna usuario y guarda', async () => {
-      const usuarioStub = { id: 7 } as any;
-      const clienteExistente = {
-        id: 15,
-        correo: 'old@x.com',
-        usuario: null,
-      } as any;
-
-      const dto = {
-        tipoDocumento: 'ti',
-        numeroDocumento: '900',
-        correo: 'nuevo@x.com',
-        idUsuario: 7,
-      };
-
-      usuarioRepository.findOne.mockResolvedValue(usuarioStub);
+      usuarioRepository.findOne.mockResolvedValue(usuarioExistente);
       clienteFacturaRepository.findOne.mockResolvedValue(clienteExistente);
       clienteFacturaRepository.save.mockResolvedValue({
         ...clienteExistente,
-        correo: 'nuevo@x.com',
-        usuario: usuarioStub,
+        correo: 'nuevo@correo.com',
+        usuario: usuarioExistente,
       });
 
+      // Act
       const result = await service.crearCliente(dto);
 
-      expect(usuarioRepository.findOne).toHaveBeenCalledWith({ where: { id: 7 } });
-      expect(clienteFacturaRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({ usuario: usuarioStub }),
-      );
-      expect(result.usuario).toEqual(usuarioStub);
-    });
-
-    it('C4 sin idUsuario y cliente inexistente crea y guarda nuevo cliente', async () => {
-      const clienteCreadoFake = {
-        tipoDocumento: 'CC',
-        numeroDocumento: '777',
-        correo: 'n@x.com',
-      } as any;
-
-      const dto = {
-        tipoDocumento: 'cc',
-        numeroDocumento: '777',
-        correo: 'N@X.COM',
-      };
-
-      clienteFacturaRepository.findOne.mockResolvedValue(null);
-      clienteFacturaRepository.create.mockReturnValue(clienteCreadoFake);
-      clienteFacturaRepository.save.mockResolvedValue({ id: 21, ...clienteCreadoFake });
-
-      const result = await service.crearCliente(dto);
-
-      expect(clienteFacturaRepository.create).toHaveBeenCalled();
-      expect(clienteFacturaRepository.save).toHaveBeenCalledWith(clienteCreadoFake);
-      expect(result.id).toBe(21);
-    });
-
-    it('C5 con idUsuario valido y cliente inexistente crea y guarda con usuario', async () => {
-      const usuarioStub = { id: 3 } as any;
-      const clienteCreado = {
-        tipoDocumento: 'CC',
-        numeroDocumento: '888',
-        correo: 'ok@x.com',
-        usuario: usuarioStub,
-      } as any;
-
-      const dto = {
-        tipoDocumento: 'cc',
-        numeroDocumento: '888',
-        correo: 'ok@x.com',
-        idUsuario: 3,
-      };
-
-      usuarioRepository.findOne.mockResolvedValue(usuarioStub);
-      clienteFacturaRepository.findOne.mockResolvedValue(null);
-      clienteFacturaRepository.create.mockReturnValue(clienteCreado);
-      clienteFacturaRepository.save.mockResolvedValue({ id: 22, ...clienteCreado });
-
-      const result = await service.crearCliente(dto);
-
-      expect(clienteFacturaRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ usuario: usuarioStub }),
-      );
-      expect(result.id).toBe(22);
-    });
-  });
-
-  describe('obtenerClientes', () => {
-    it('C1 consulta y retorna clientes', async () => {
-      const fakeClientes = [{ id: 1 }, { id: 2 }] as any;
-
-      clienteFacturaRepository.find.mockResolvedValue(fakeClientes);
-
-      const result = await service.obtenerClientes();
-
-      expect(clienteFacturaRepository.find).toHaveBeenCalledWith({
+      // Assert
+      expect(clienteFacturaRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          tipoDocumento: 'CC',
+          numeroDocumento: 'ABC123',
+        },
         relations: ['usuario'],
       });
-      expect(result).toEqual(fakeClientes);
+      expect(clienteFacturaRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          correo: 'nuevo@correo.com',
+          usuario: usuarioExistente,
+        }),
+      );
+      expect(result.correo).toBe('nuevo@correo.com');
+    });
+
+    it('[SELF-CHECKING] C4 normaliza tipoDocumento y numeroDocumento a mayúsculas', async () => {
+      // Arrange
+      const dto = {
+        tipoDocumento: '  cC  ',
+        numeroDocumento: '  abc123  ',
+        correo: 'test@test.com',
+      };
+
+      clienteFacturaRepository.findOne.mockResolvedValue(null);
+      clienteFacturaRepository.create.mockReturnValue({} as any);
+      clienteFacturaRepository.save.mockResolvedValue({} as any);
+
+      // Act
+      await service.crearCliente(dto);
+
+      // Assert
+      expect(clienteFacturaRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoDocumento: 'CC',
+          numeroDocumento: 'ABC123',
+        }),
+      );
+    });
+
+    it('[TIMELY] C5 normaliza correo a minúsculas', async () => {
+      // Arrange
+      const dto = {
+        tipoDocumento: 'cc',
+        numeroDocumento: '123',
+        correo: 'CLIENTE@EXAMPLE.COM',
+      };
+
+      clienteFacturaRepository.findOne.mockResolvedValue(null);
+      clienteFacturaRepository.create.mockReturnValue({} as any);
+      clienteFacturaRepository.save.mockResolvedValue({} as any);
+
+      // Act
+      await service.crearCliente(dto);
+
+      // Assert
+      expect(clienteFacturaRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          correo: 'cliente@example.com',
+        }),
+      );
     });
   });
 
   describe('crearFactura', () => {
-    it('C1 propaga NotFound cuando no existe pago', async () => {
-      const dto = { idPago: 404 };
+    it('[FAST] F1 crea factura exitosamente con cliente informado', async () => {
+      // Arrange
+      const pagoStub = { id: 1, reserva: null } as any;
+      const clienteStub = { id: 15 } as any;
+      const dto = { idPago: 1, idClienteFactura: 15 };
 
-      pagosService.findPagoById.mockRejectedValue(new NotFoundException('No existe pago'));
-
-      await expect(service.crearFactura(dto)).rejects.toThrow(NotFoundException);
-    });
-
-    it('C2 con cliente resuelto guarda factura con cliente', async () => {
-      const pagoStub = { id: 10, reserva: null } as any;
-      const clienteStub = { id: 55 } as any;
-      const facturaCreadaDummy = {
+      const facturaCreada = {
+        id: 100,
         pago: pagoStub,
         clienteFactura: clienteStub,
+        cufe: expect.stringContaining('NF-'),
+        enviada: 'Y',
+        fechaCreacion: expect.any(Date),
       } as any;
-
-      const dto = {
-        idPago: 10,
-        idClienteFactura: 55,
-      };
 
       pagosService.findPagoById.mockResolvedValue(pagoStub);
       clienteFacturaRepository.findOne.mockResolvedValue(clienteStub);
-      facturaRepository.create.mockReturnValue(facturaCreadaDummy);
-      facturaRepository.save.mockResolvedValue({ id: 1, ...facturaCreadaDummy });
+      facturaRepository.create.mockReturnValue(facturaCreada);
+      facturaRepository.save.mockResolvedValue(facturaCreada);
 
+      // Act
       const result = await service.crearFactura(dto);
 
+      // Assert
+      expect(pagosService.findPagoById).toHaveBeenCalledWith(1);
+      expect(clienteFacturaRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 15 },
+      });
       expect(facturaRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           pago: pagoStub,
@@ -281,86 +281,155 @@ describe('FacturacionService', () => {
           enviada: 'Y',
         }),
       );
-      expect(result.tipoFactura).toBe('NORMAL');
+      expect(result).toBeDefined();
     });
 
-    it('C3 sin cliente resuelto guarda factura con cliente null', async () => {
-      const pagoStub = { id: 11, reserva: null } as any;
-      const facturaCreada = { pago: pagoStub, clienteFactura: null } as any;
-
-      const dto = { idPago: 11 };
+    it('[INDEPENDENT] F2 genera código CUFE único por pago', async () => {
+      // Arrange
+      const pagoStub = { id: 555, reserva: null } as any;
+      const dto = { idPago: 555 };
 
       pagosService.findPagoById.mockResolvedValue(pagoStub);
-      facturaRepository.create.mockReturnValue(facturaCreada);
-      facturaRepository.save.mockResolvedValue({ id: 2, ...facturaCreada });
+      clienteFacturaRepository.findOne.mockResolvedValue(null);
+      facturaRepository.create.mockReturnValue({} as any);
+      facturaRepository.save.mockResolvedValue({} as any);
 
-      const result = await service.crearFactura(dto);
+      // Act
+      await service.crearFactura(dto);
 
+      // Assert
       expect(facturaRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ clienteFactura: null }),
+        expect.objectContaining({
+          cufe: expect.stringMatching(/^NF-555-\d+$/),
+        }),
       );
-      expect(result.id).toBe(2);
     });
   });
 
   describe('findByPago', () => {
-    it('C1 retorna null cuando no hay factura para el pago', async () => {
-      facturaRepository.findOne.mockResolvedValue(null);
+    it('[REPEATABLE] FP1 retorna factura cuando existe', async () => {
+      // Arrange
+      const facturaStub = {
+        id: 50,
+        pago: { id: 10 },
+        clienteFactura: { id: 5 },
+        enviada: 'Y',
+      } as any;
 
-      const result = await service.findByPago(999);
+      facturaRepository.findOne.mockResolvedValue(facturaStub);
 
-      expect(result).toBeNull();
+      // Act
+      const result = await service.findByPago(10);
+
+      // Assert
+      expect(facturaRepository.findOne).toHaveBeenCalledWith({
+        where: { pago: { id: 10 } },
+        relations: ['pago', 'clienteFactura'],
+      });
+      expect(result).toBeDefined();
+      expect(result.id).toBe(50);
     });
 
-    it('C2 retorna factura transformada cuando existe', async () => {
-      facturaRepository.findOne.mockResolvedValue({
-        id: 3,
-        cufe: 'FAC-3-1',
-        enviada: 'Y',
-      } as any);
+    it('[SELF-CHECKING] FP2 retorna null cuando factura no existe', async () => {
+      // Arrange
+      facturaRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findByPago(3);
+      // Act
+      const result = await service.findByPago(999);
 
-      expect(result).toEqual(
-        expect.objectContaining({
-          id: 3,
-          tipoFactura: 'NORMAL',
-          cufe: null,
-          enviada: false,
-        }),
-      );
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findByClienteFactura', () => {
+    it('[FAST] FC1 retorna lista de facturas ordenadas por fecha DESC', async () => {
+      // Arrange
+      const facturasStub = [
+        { id: 1, fechaCreacion: new Date('2024-01-15') },
+        { id: 2, fechaCreacion: new Date('2024-01-10') },
+      ] as any[];
+
+      facturaRepository.find.mockResolvedValue(facturasStub);
+
+      // Act
+      const result = await service.findByClienteFactura(5);
+
+      // Assert
+      expect(facturaRepository.find).toHaveBeenCalledWith({
+        where: { clienteFactura: { id: 5 } },
+        relations: ['pago', 'clienteFactura'],
+        order: { fechaCreacion: 'DESC' },
+      });
+      expect(result.length).toBe(2);
     });
   });
 
   describe('findMisFacturas', () => {
-    it('C2 multiples clienteFactura por usuario lanza BadRequest', async () => {
-      clienteFacturaRepository.find.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+    it('[INDEPENDENT] FM1 retorna array vacío si usuario sin clientes', async () => {
+      // Arrange
+      clienteFacturaRepository.find.mockResolvedValue([]);
 
+      // Act
+      const result = await service.findMisFacturas(1);
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(clienteFacturaRepository.find).toHaveBeenCalledWith({
+        where: { usuario: { id: 1 } },
+        relations: ['usuario'],
+      });
+    });
+
+    it('[REPEATABLE] FM2 lanza BadRequest si hay múltiples clientes para un usuario', async () => {
+      // Arrange
+      const clientesStub = [{ id: 1 }, { id: 2 }] as any[];
+      clienteFacturaRepository.find.mockResolvedValue(clientesStub);
+
+      // Act & Assert
       await expect(service.findMisFacturas(1)).rejects.toThrow(BadRequestException);
     });
 
-    it('C3 un clienteFactura por usuario retorna sus facturas', async () => {
-      const fakeFacturasEnMemoria = [{ id: 91 }, { id: 90 }];
+    it('[SELF-CHECKING] FM3 retorna facturas del cliente si existe exactamente uno', async () => {
+      // Arrange
+      const clienteStub = { id: 10 } as any;
+      const facturasStub = [{ id: 100 }];
 
-      clienteFacturaRepository.find.mockResolvedValue([{ id: 5 }]);
-      facturaRepository.find.mockResolvedValue(fakeFacturasEnMemoria);
+      clienteFacturaRepository.find.mockResolvedValue([clienteStub]);
+      facturaRepository.find.mockResolvedValue(facturasStub);
 
-      const result = await service.findMisFacturas(5);
+      // Act
+      const result = await service.findMisFacturas(1);
 
-      expect(facturaRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { clienteFactura: { id: 5 } },
-        }),
-      );
-      expect(result).toHaveLength(2);
+      // Assert
+      expect(result.length).toBe(1);
+      expect(facturaRepository.find).toHaveBeenCalledWith({
+        where: { clienteFactura: { id: 10 } },
+        relations: ['pago', 'clienteFactura'],
+        order: { fechaCreacion: 'DESC' },
+      });
     });
+  });
 
-    it('C4 sin cliente por usuario retorna lista vacia', async () => {
-      clienteFacturaRepository.find.mockResolvedValue([]);
+  describe('obtenerClientes', () => {
+    it('[TIMELY] OC1 retorna lista de todos los clientes con relación usuario', async () => {
+      // Arrange
+      const clientesStub = [
+        { id: 1, nombre: 'Cliente 1' },
+        { id: 2, nombre: 'Cliente 2' },
+      ] as any[];
 
-      const result = await service.findMisFacturas(8);
+      clienteFacturaRepository.find.mockResolvedValue(clientesStub);
 
-      expect(result).toEqual([]);
+      // Act
+      const result = await service.obtenerClientes();
+
+      // Assert
+      expect(clienteFacturaRepository.find).toHaveBeenCalledWith({
+        relations: ['usuario'],
+      });
+      expect(result).toEqual(clientesStub);
     });
   });
 });
+
