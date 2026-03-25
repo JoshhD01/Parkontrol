@@ -14,11 +14,11 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/*/.ts\" --fix",
-    "test": "NODE_ENV=test jest --config package.json",
-    "test:watch": "jest --config package.json --watch",
-    "test:cov": "jest --config package.json --coverage",
-    "cov": "jest --config package.json --coverage",
-    "sonar": "if defined SONAR_TOKEN (sonar-scanner -Dsonar.token=%SONAR_TOKEN%) else (echo SONAR_TOKEN no definido & exit /b 1)",
+    "test": "NODE_ENV=test jest --config jest.config.ts",
+    "test:watch": "jest --config jest.config.ts --watch",
+    "test:cov": "jest --config jest.config.ts --coverage",
+    "cov": "jest --config jest.config.ts --coverage",
+    "sonar": "sonar-scanner",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
@@ -46,7 +46,7 @@
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.1",
+    "@nestjs/testing": "^11.1.17",
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
@@ -68,41 +68,28 @@
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-"collectCoverageFrom": [
-  "*/.(t|j)s",
-
-  "!*/auth/*",
-  "!*/celdas/*",
-  "!*/empresas/*",
-  "!*/parqueaderos/*",
-  "!*/reportes/*",
-  "!*/reservas/*",
-  "!*/seeds/*",
-  "!*/shared/*",
-  "!*/usuarios/*",
-  "!*/vehiculos/*",
-  "!*/vistas/*"
-],
-"coveragePathIgnorePatterns": [
-  "/node_modules/",
-  "/dist/",
-  "/coverage/"
-],
-    "coverageDirectory": "../coverage",
-    "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/$1"
-    },
-    "testEnvironment": "node"
-  }
+  "collectCoverageFrom": [
+    "*/.(t|j)s",
+    "!*/auth/*",
+    "!*/celdas/*",
+    "!*/empresas/*",
+    "!*/parqueaderos/*",
+    "!*/reportes/*",
+    "!*/reservas/*",
+    "!*/seeds/*",
+    "!*/shared/*",
+    "!*/usuarios/*",
+    "!*/vehiculos/*",
+    "!*/vistas/*"
+  ],
+  "coveragePathIgnorePatterns": [
+    "/node_modules/",
+    "/dist/",
+    "/coverage/"
+  ],
+  "coverageDirectory": "../coverage",
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/src/$1"
+  },
+  "testEnvironment": "node"
 }
