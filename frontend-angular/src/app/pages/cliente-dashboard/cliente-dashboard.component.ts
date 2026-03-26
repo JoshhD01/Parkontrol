@@ -174,7 +174,7 @@ export class ClienteDashboardComponent implements OnInit, OnDestroy {
           ...vehiculo,
           idTipoVehiculo: this.obtenerIdTipoVehiculo(vehiculo),
         }));
-        if (!data.length) {
+        if (data.length === 0) {
           this.usarVehiculoExistente = false;
         }
       },
@@ -243,7 +243,7 @@ export class ClienteDashboardComponent implements OnInit, OnDestroy {
     }
 
     const horas = Number(duracionHoras);
-    if (!Number.isFinite(horas) || horas <= 0) {
+    if (Number.isFinite(horas) === false || horas <= 0) {
       return null;
     }
 
@@ -256,17 +256,17 @@ export class ClienteDashboardComponent implements OnInit, OnDestroy {
 
     const idParqueadero = Number(this.nuevaReserva.idParqueadero);
 
-    if (!Number.isFinite(idParqueadero) || idParqueadero <= 0) {
+    if (Number.isFinite(idParqueadero) === false || idParqueadero <= 0) {
       this.errorMessage = 'Debes seleccionar un parqueadero';
       return;
     }
 
-    if (!this.nuevaReserva.horaInicio) {
+    if (this.nuevaReserva.horaInicio.length === 0) {
       this.errorMessage = 'Debes ingresar hora de inicio';
       return;
     }
 
-    if (!Number.isFinite(this.duracionHoras) || this.duracionHoras <= 0) {
+    if (Number.isFinite(this.duracionHoras) === false || this.duracionHoras <= 0) {
       this.errorMessage = 'La duración debe ser mayor a 0 horas';
       return;
     }
@@ -277,7 +277,7 @@ export class ClienteDashboardComponent implements OnInit, OnDestroy {
       this.duracionHoras,
     );
 
-    if (!horaInicioISO || !horaFinISO) {
+    if (horaInicioISO === null || horaFinISO === null) {
       this.errorMessage = 'El formato de hora no es válido';
       return;
     }
@@ -350,7 +350,7 @@ export class ClienteDashboardComponent implements OnInit, OnDestroy {
 
   toggleCambioContrasena(): void {
     this.mostrarCambioContrasena = !this.mostrarCambioContrasena;
-    if (!this.mostrarCambioContrasena) {
+    if (this.mostrarCambioContrasena === false) {
       this.contrasenaActual = '';
       this.nuevaContrasena = '';
       this.mensajeContrasena = '';
@@ -359,7 +359,7 @@ export class ClienteDashboardComponent implements OnInit, OnDestroy {
   }
 
   cambiarContrasena(): void {
-    if (!this.contrasenaActual || !this.nuevaContrasena) {
+    if (this.contrasenaActual.length === 0 || this.nuevaContrasena.length === 0) {
       this.errorContrasena = 'Ambos campos son obligatorios';
       return;
     }
