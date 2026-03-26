@@ -12,7 +12,7 @@ import { environment } from '../../environments/environment';
 export class VehiculosService {
   private readonly apiUrl = `${environment.urlApi}/vehicles`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getByPlaca(placa: string): Observable<Vehiculo> {
     return this.http.get<Vehiculo>(`${this.apiUrl}/placa/${placa}`);

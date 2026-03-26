@@ -18,9 +18,9 @@ export class LayoutComponent implements OnInit {
   usuarioActual: Usuario | null = null;
 
   constructor(
-    private authService: AuthService,
-    private menuService: MenuService,
-    private router: Router
+    private readonly authService: AuthService,
+    private readonly menuService: MenuService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {

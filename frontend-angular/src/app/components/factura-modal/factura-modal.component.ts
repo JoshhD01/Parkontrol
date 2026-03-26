@@ -29,35 +29,13 @@ export class FacturaModalComponent {
 	facturaForm: any;
 
 	constructor(
-		private fb: FormBuilder,
-		private dialogRef: MatDialogRef<FacturaModalComponent>,
+		private readonly fb: FormBuilder,
+		private readonly dialogRef: MatDialogRef<FacturaModalComponent>,
 		@Inject(MAT_DIALOG_DATA) public data: { idEmpresa?: number; clientes?: any[] }
 	) {
 			this.facturaForm = this.fb.group({
 				idPago: [null, [Validators.required, Validators.pattern('^[0-9]+$')]],
 				idClienteFactura: [null],
-				emitirElectronica: [false],
-				cufe: [''],
-				correoElectronico: [''],
-			});
-
-			this.facturaForm.get('emitirElectronica')?.valueChanges.subscribe((value: boolean) => {
-				const cufeControl = this.facturaForm.get('cufe');
-				const correoControl = this.facturaForm.get('correoElectronico');
-				if (!cufeControl || !correoControl) return;
-
-				if (value) {
-					cufeControl.setValidators([Validators.required]);
-					correoControl.setValidators([Validators.required, Validators.email]);
-				} else {
-					cufeControl.clearValidators();
-					cufeControl.setValue('');
-					correoControl.clearValidators();
-					correoControl.setValue('');
-				}
-
-				cufeControl.updateValueAndValidity();
-				correoControl.updateValueAndValidity();
 			});
 	}
 
@@ -71,13 +49,6 @@ export class FacturaModalComponent {
 		const dto: CrearFacturaElectronicaDto = {
 			idPago: Number(this.facturaForm.value.idPago),
 			idClienteFactura: idCliente ? Number(idCliente) : undefined,
-			emitirElectronica: Boolean(this.facturaForm.value.emitirElectronica),
-			cufe: this.facturaForm.value.emitirElectronica
-				? this.facturaForm.value.cufe
-				: undefined,
-			correoElectronico: this.facturaForm.value.emitirElectronica
-				? this.facturaForm.value.correoElectronico
-				: undefined,
 		};
 		this.dialogRef.close(dto);
 	}

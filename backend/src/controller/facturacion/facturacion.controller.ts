@@ -12,7 +12,8 @@ import { FacturacionService } from 'src/service/facturacion/facturacion.service'
 import { CreateFacturaDto } from './dto/crear-factura-electronica.dto';
 import { CreateClienteFacturaDto } from './dto/crear-cliente-factura.dto';
 import { ClienteFactura } from 'src/entities/facturacion/entities/cliente-factura.entity';
-import { Roles, RoleEnum, GetUser } from 'src/entities/shared';
+import { Roles, RoleEnum, GetUser, RolesGuard } from 'src/entities/shared';
+import { JwtAuthGuard } from '../auth/guards';
 import type { JwtUsuario } from '../auth/interfaces';
 
 @Controller('invoicing')
@@ -20,7 +21,7 @@ export class FacturacionController {
   constructor(private readonly facturacionService: FacturacionService) {}
 
   @Get('facturas/client/mias')
-  // UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async obtenerFacturasCliente(
     @GetUser() user: JwtUsuario,
   ): Promise<any[]> {
@@ -30,12 +31,12 @@ export class FacturacionController {
       );
     }
 
-    return await this.facturacionService.findMisFacturas(user.id);
+    return await this.facturacionService.findMisFacturas(user.id, user.correo);
   }
 
   @Post('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async crearCliente(
     @Body() createClienteDto: CreateClienteFacturaDto,
   ): Promise<ClienteFactura> {
@@ -44,7 +45,7 @@ export class FacturacionController {
 
   @Post('facturas')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async crearFactura(
     @Body() createFacturaDto: CreateFacturaDto,
   ): Promise<any> {
@@ -64,7 +65,7 @@ export class FacturacionController {
 
   @Get('facturas/pago/:idPago')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorPago(
     @Param('idPago', ParseIntPipe) idPago: number,
   ): Promise<any> {
@@ -79,7 +80,7 @@ export class FacturacionController {
 
   @Get('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerClientes(): Promise<ClienteFactura[]> {
     return await this.facturacionService.obtenerClientes();
   }

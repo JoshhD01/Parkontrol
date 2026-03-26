@@ -46,10 +46,10 @@ export class PagoModalComponent implements OnInit {
   loading = false;
 
   constructor(
-    private formBuilder: FormBuilder,
-    private dialogRef: MatDialogRef<PagoModalComponent>,
+    private readonly formBuilder: FormBuilder,
+    private readonly dialogRef: MatDialogRef<PagoModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: PagoDialogData,
-    private reservasService: ReservasService
+    private readonly reservasService: ReservasService
   ) {}
 
   ngOnInit(): void {
@@ -90,7 +90,7 @@ export class PagoModalComponent implements OnInit {
       this.loading = true;
       
       const pagoData: CrearPagoDto = {
-        idReserva: this.data.idReserva ? this.data.idReserva : this.pagoForm.get('idReserva')?.value,
+        idReserva: this.data.idReserva ?? this.pagoForm.get('idReserva')?.value,
         idMetodoPago: this.pagoForm.get('idMetodoPago')?.value
       };
       

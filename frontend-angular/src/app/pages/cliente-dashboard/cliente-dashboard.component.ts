@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -35,13 +35,19 @@ import { Subscription, interval } from 'rxjs';
   templateUrl: './cliente-dashboard.component.html',
   styleUrls: ['./cliente-dashboard.component.scss'],
 })
-export class ClienteDashboardComponent {
+export class ClienteDashboardComponent implements OnInit, OnDestroy {
+  private readonly maxItemsVisible = 4;
+
   parqueaderos: Parqueadero[] = [];
   vehiculosCliente: Vehiculo[] = [];
   reservas: Reserva[] = [];
   facturas: FacturaElectronica[] = [];
   misPagos: Pago[] = [];
+  mostrarTodasReservas = false;
+  mostrarTodasFacturas = false;
+  mostrarTodosPagos = false;
   loading = false;
+  creandoReserva = false;
   errorMessage = '';
   private autoRefreshSub?: Subscription;
 
@@ -59,8 +65,8 @@ export class ClienteDashboardComponent {
     placa: '',
     idTipoVehiculo: 1 as 1 | 2,
     horaInicio: '',
-    horaFin: '',
   };
+  duracionHoras = 2;
   usarVehiculoExistente = true;
   idVehiculoSeleccionado = 0;
 
@@ -230,27 +236,46 @@ export class ClienteDashboardComponent {
     return fecha.toISOString();
   }
 
+  private calcularHoraFinISO(horaInicio: string, duracionHoras: number): string | null {
+    const fechaInicio = new Date(horaInicio);
+    if (Number.isNaN(fechaInicio.getTime())) {
+      return null;
+    }
+
+    const horas = Number(duracionHoras);
+    if (!Number.isFinite(horas) || horas <= 0) {
+      return null;
+    }
+
+    const fechaFin = new Date(fechaInicio.getTime() + horas * 60 * 60 * 1000);
+    return fechaFin.toISOString();
+  }
+
   crearReserva(): void {
-    if (!this.nuevaReserva.idParqueadero) {
+    this.errorMessage = '';
+
+    const idParqueadero = Number(this.nuevaReserva.idParqueadero);
+
+    if (!Number.isFinite(idParqueadero) || idParqueadero <= 0) {
       this.errorMessage = 'Debes seleccionar un parqueadero';
       return;
     }
 
-    if (!this.nuevaReserva.horaInicio || !this.nuevaReserva.horaFin) {
-      this.errorMessage = 'Debes ingresar hora de inicio y hora de fin';
+    if (!this.nuevaReserva.horaInicio) {
+      this.errorMessage = 'Debes ingresar hora de inicio';
       return;
     }
 
-    if (
-      new Date(this.nuevaReserva.horaFin).getTime() <=
-      new Date(this.nuevaReserva.horaInicio).getTime()
-    ) {
-      this.errorMessage = 'La hora de fin debe ser mayor a la hora de inicio';
+    if (!Number.isFinite(this.duracionHoras) || this.duracionHoras <= 0) {
+      this.errorMessage = 'La duración debe ser mayor a 0 horas';
       return;
     }
 
     const horaInicioISO = this.convertirAISO(this.nuevaReserva.horaInicio);
-    const horaFinISO = this.convertirAISO(this.nuevaReserva.horaFin);
+    const horaFinISO = this.calcularHoraFinISO(
+      this.nuevaReserva.horaInicio,
+      this.duracionHoras,
+    );
 
     if (!horaInicioISO || !horaFinISO) {
       this.errorMessage = 'El formato de hora no es válido';
@@ -259,15 +284,17 @@ export class ClienteDashboardComponent {
 
     let payload = {
       ...this.nuevaReserva,
+      idParqueadero,
       horaInicio: horaInicioISO,
       horaFin: horaFinISO,
     };
 
     if (this.usarVehiculoExistente) {
+      const idVehiculoNum = Number(this.idVehiculoSeleccionado);
       const vehiculo = this.vehiculosCliente.find(
-        (item) => item.id === this.idVehiculoSeleccionado,
+        (item) => item.id === idVehiculoNum,
       );
-      if (!vehiculo) {
+      if (vehiculo === undefined) {
         this.errorMessage = 'Debes seleccionar un vehículo existente';
         return;
       }
@@ -275,12 +302,19 @@ export class ClienteDashboardComponent {
       payload = {
         ...payload,
         placa: vehiculo.placa,
-        idTipoVehiculo: vehiculo.idTipoVehiculo as 1 | 2,
+        idTipoVehiculo: Number(vehiculo.idTipoVehiculo) as 1 | 2,
       };
-    } else if (!this.nuevaReserva.placa.trim()) {
+    } else if (this.nuevaReserva.placa.trim().length === 0) {
       this.errorMessage = 'Debes ingresar una placa';
       return;
+    } else {
+      payload = {
+        ...payload,
+        idTipoVehiculo: Number(this.nuevaReserva.idTipoVehiculo) as 1 | 2,
+      };
     }
+
+    this.creandoReserva = true;
 
     this.reservasService.crearComoCliente(payload).subscribe({
       next: () => {
@@ -289,14 +323,22 @@ export class ClienteDashboardComponent {
           placa: '',
           idTipoVehiculo: 1,
           horaInicio: '',
-          horaFin: '',
         };
+        this.duracionHoras = 2;
         this.idVehiculoSeleccionado = 0;
+        this.creandoReserva = false;
         this.cargarDatos();
       },
       error: (error) => {
-        this.errorMessage =
-          error?.error?.message ?? 'No fue posible crear la reserva';
+        const backendMessage = error?.error?.message;
+        if (Array.isArray(backendMessage)) {
+          this.errorMessage = backendMessage.join('. ');
+        } else if (typeof backendMessage === 'string' && backendMessage.trim()) {
+          this.errorMessage = backendMessage;
+        } else {
+          this.errorMessage = 'No fue posible crear la reserva';
+        }
+        this.creandoReserva = false;
       },
     });
   }
@@ -349,5 +391,59 @@ export class ClienteDashboardComponent {
 
   get totalPagos(): number {
     return this.misPagos.length;
+  }
+
+  get reservasVisibles(): Reserva[] {
+    return this.mostrarTodasReservas
+      ? this.reservas
+      : this.reservas.slice(0, this.maxItemsVisible);
+  }
+
+  get facturasVisibles(): FacturaElectronica[] {
+    return this.mostrarTodasFacturas
+      ? this.facturas
+      : this.facturas.slice(0, this.maxItemsVisible);
+  }
+
+  get pagosVisibles(): Pago[] {
+    return this.mostrarTodosPagos
+      ? this.misPagos
+      : this.misPagos.slice(0, this.maxItemsVisible);
+  }
+
+  get hayMasReservas(): boolean {
+    return this.reservas.length > this.maxItemsVisible;
+  }
+
+  get hayMasFacturas(): boolean {
+    return this.facturas.length > this.maxItemsVisible;
+  }
+
+  get hayMasPagos(): boolean {
+    return this.misPagos.length > this.maxItemsVisible;
+  }
+
+  get reservasOcultas(): number {
+    return Math.max(0, this.reservas.length - this.maxItemsVisible);
+  }
+
+  get facturasOcultas(): number {
+    return Math.max(0, this.facturas.length - this.maxItemsVisible);
+  }
+
+  get pagosOcultos(): number {
+    return Math.max(0, this.misPagos.length - this.maxItemsVisible);
+  }
+
+  toggleReservas(): void {
+    this.mostrarTodasReservas = !this.mostrarTodasReservas;
+  }
+
+  toggleFacturas(): void {
+    this.mostrarTodasFacturas = !this.mostrarTodasFacturas;
+  }
+
+  togglePagos(): void {
+    this.mostrarTodosPagos = !this.mostrarTodosPagos;
   }
 }

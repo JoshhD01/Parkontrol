@@ -1,23 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { PagosService } from '../../services/pagos.service';
-import { ParqueaderosService } from '../../services/parqueaderos.service';
-import { AuthService } from '../../services/autenticacion.service';
-import { Pago } from '../../models/pago.model';
+import { CrearPagoDto, Pago } from '../../models/pago.model';
 import { Parqueadero } from '../../models/parqueadero.model';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FiltroParqueaderosComponent } from '../../components/filtro-parqueaderos/filtro-parqueaderos.component';
 import { PagoModalComponent, PagoDialogData } from '../../components/pago-modal/pago-modal.component';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
 import { FacturaPagoModalComponent } from '../../components/factura-pago-modal/factura-pago-modal.component';
 import { FacturacionService } from '../../services/facturacion.service';
 import { FacturaElectronica } from '../../models/facturacion.model';
+import { CompanyContextService } from '../../services/company-context.service';
 
 
 @Component({
@@ -47,11 +45,10 @@ export class PagosComponent implements OnInit {
   displayedColumns: string[] = ['id', 'idReserva', 'monto', 'fechaPago', 'idMetodoPago', 'acciones'];
 
   constructor(
-    private pagosService: PagosService,
-    private parqueaderosService: ParqueaderosService,
-    private authService: AuthService,
-    private dialog: MatDialog,
-    private facturasService: FacturacionService,
+    private readonly pagosService: PagosService,
+    private readonly companyContextService: CompanyContextService,
+    private readonly dialog: MatDialog,
+    private readonly facturasService: FacturacionService,
 
   ) {}
 
@@ -60,13 +57,8 @@ export class PagosComponent implements OnInit {
   }
 
   private cargarParqueaderos(): void {
-    const usuario = this.authService.getUsuarioActual();
-    if (!usuario || !usuario.idEmpresa) {
-      console.error('No hay usuario autenticado');
-      return;
-    }
     this.loading = true;
-    this.parqueaderosService.getByEmpresa(usuario.idEmpresa).subscribe({
+    this.companyContextService.getParqueaderosEmpresaActual().subscribe({
       next: (parqueaderos) => {
         this.parqueaderos = parqueaderos;
         if (parqueaderos.length > 0) {
@@ -77,11 +69,8 @@ export class PagosComponent implements OnInit {
         }
       },
       error: (error) => {
-        if (error?.status === 404) {
-          this.parqueaderos = [];
-        } else {
-          console.error('Error No cargo parqueaderos', error);
-        }
+        console.error('Error No cargo parqueaderos', error);
+        this.parqueaderos = [];
         this.loading = false;
       }
     });
@@ -126,19 +115,31 @@ export class PagosComponent implements OnInit {
     });
   }
 
-  private crearPago(pagoData: any): void {
+  private crearPago(pagoData: CrearPagoDto): void {
     this.pagosService.create(pagoData).subscribe({
-      next: (pago: any) => {
+      next: (pago: Pago) => {
+        this.facturasService.crearFactura({ idPago: pago.id }).subscribe({
+          next: () => {
+            this.mensajeExito = 'Pago y factura creados exitosamente, monto: $' + pago.monto;
 
-        console.log('Pago creado:', pago);
-        this.mensajeExito = 'Pago procesado exitosamente, monto: $' + pago.monto;
+            setTimeout(() => {
+              this.mensajeExito = '';
+              this.cargarPagos(this.parqueaderoSeleccionado!);
+            }, 3000);
+          },
+          error: () => {
+            this.mensajeExito = 'Pago procesado exitosamente, monto: $' + pago.monto;
+            this.errorMessage = 'Pago creado, pero no se pudo generar la factura.';
 
-        setTimeout(() => {
-          this.mensajeExito = '';
-          this.cargarPagos(this.parqueaderoSeleccionado!);
-        }, 3000);
+            setTimeout(() => {
+              this.mensajeExito = '';
+              this.errorMessage = '';
+              this.cargarPagos(this.parqueaderoSeleccionado!);
+            }, 4000);
+          },
+        });
       },
-      error: (error: any) => {
+      error: (error: { status?: number; error?: { message?: string } }) => {
         console.error('Error al crear pago:', error);
         this.errorMessage = 'Error al crear el pago.';
         setTimeout(() => {
@@ -149,14 +150,12 @@ export class PagosComponent implements OnInit {
   }
 
   verFactura(pago: Pago): void {
-    console.log('Ver factura para el pago:', pago);
     this.abrirFactura(pago.id);
   }
 
   abrirFactura(pagoId: number): void {
     this.facturasService.getFacturaPorPago(pagoId).subscribe({
       next: (factura: FacturaElectronica) => {
-        console.log('Factura obtenida:', factura);
         this.dialog.open(FacturaPagoModalComponent, {
           width: '400px',
           data: { factura }

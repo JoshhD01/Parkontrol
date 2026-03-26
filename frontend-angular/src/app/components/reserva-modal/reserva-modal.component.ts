@@ -57,13 +57,13 @@ export class ReservaModalComponent implements OnInit {
   tiposDocumento = ['CC', 'CE', 'TI', 'PAS', 'NIT'];
 
   constructor(
-    private formBuilder: FormBuilder,
-    private dialogRef: MatDialogRef<ReservaModalComponent>,
-    private vehiculosService: VehiculosService,
-    private celdasService: CeldasService,
-    private facturacionService: FacturacionService,
-    private reservasService: ReservasService,
-    private snackBar: MatSnackBar,
+    private readonly formBuilder: FormBuilder,
+    private readonly dialogRef: MatDialogRef<ReservaModalComponent>,
+    private readonly vehiculosService: VehiculosService,
+    private readonly celdasService: CeldasService,
+    private readonly facturacionService: FacturacionService,
+    private readonly reservasService: ReservasService,
+    private readonly snackBar: MatSnackBar,
     @Inject(MAT_DIALOG_DATA) public data: ReservaDialogData
   ) {
     this.reservaForm = this.formBuilder.group({
@@ -156,7 +156,7 @@ export class ReservaModalComponent implements OnInit {
       return false;
     }
 
-    const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoCliente);
+    const correoValido = this.esCorreoValido(correoCliente);
     if (!correoValido) {
       this.errorMessage = 'El correo del cliente no tiene un formato válido.';
       return false;
@@ -199,6 +199,36 @@ export class ReservaModalComponent implements OnInit {
     }
 
     return true;
+  }
+
+  private esCorreoValido(correo: string): boolean {
+    if (correo.length < 6 || correo.length > 254 || correo.includes(' ')) {
+      return false;
+    }
+
+    const arrobaIndex = correo.indexOf('@');
+    if (arrobaIndex <= 0 || arrobaIndex !== correo.lastIndexOf('@')) {
+      return false;
+    }
+
+    const local = correo.slice(0, arrobaIndex);
+    const dominio = correo.slice(arrobaIndex + 1);
+
+    if (local.length === 0 || dominio.length < 3) {
+      return false;
+    }
+
+    if (dominio.startsWith('.') || dominio.endsWith('.') || !dominio.includes('.')) {
+      return false;
+    }
+
+    const partesDominio = dominio.split('.');
+    if (partesDominio.some((parte) => parte.length === 0)) {
+      return false;
+    }
+
+    const tld = partesDominio.at(-1) ?? '';
+    return tld.length >= 2;
   }
 
   toggleNuevoCliente(): void {
@@ -281,7 +311,8 @@ export class ReservaModalComponent implements OnInit {
           },
         });
       })
-      .catch((errorMessage) => {
+      .catch((error_) => {
+        const errorMessage = this.obtenerMensajeDesdeError(error_);
         this.errorMessage = errorMessage;
         this.snackBar.open(errorMessage, 'Cerrar', {
           duration: 4000,
@@ -289,6 +320,16 @@ export class ReservaModalComponent implements OnInit {
         });
         this.loading = false;
       });
+  }
+
+  private obtenerMensajeDesdeError(error_: unknown): string {
+    if (error_ instanceof Error && error_.message.trim().length > 0) {
+      return error_.message;
+    }
+    if (typeof error_ === 'string' && error_.trim().length > 0) {
+      return error_;
+    }
+    return 'No fue posible completar la operación. Intenta nuevamente.';
   }
 
   private extraerMensajeError(error: any): string {
@@ -342,13 +383,13 @@ export class ReservaModalComponent implements OnInit {
         error: (error) => {
           if (error.status !== 404) {
             console.error('Error validando placa:', error);
-            reject('No fue posible validar la placa en este momento.');
+            reject(new Error('No fue posible validar la placa en este momento.'));
             return;
           }
 
           const idTipoVehiculo = this.obtenerTipoVehiculoDesdeCelda(idCelda);
           if (!idTipoVehiculo) {
-            reject('No se pudo determinar el tipo de vehículo según la celda seleccionada.');
+            reject(new Error('No se pudo determinar el tipo de vehículo según la celda seleccionada.'));
             return;
           }
 
@@ -358,7 +399,7 @@ export class ReservaModalComponent implements OnInit {
               next: (vehiculoCreado) => resolve(vehiculoCreado),
               error: (crearError) => {
                 console.error('Error creando vehículo automático:', crearError);
-                reject(this.extraerMensajeError(crearError));
+                reject(new Error(this.extraerMensajeError(crearError)));
               },
             });
         },
@@ -392,7 +433,7 @@ export class ReservaModalComponent implements OnInit {
         next: (cliente) => resolve(cliente.id),
         error: (error) => {
           console.error('Error al crear cliente rápido:', error);
-          reject(this.extraerMensajeError(error));
+          reject(new Error(this.extraerMensajeError(error)));
         },
       });
     });

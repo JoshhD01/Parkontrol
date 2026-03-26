@@ -1,11 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { TarifasService } from '../../services/tarifas.service';
-import { ParqueaderosService } from '../../services/parqueaderos.service';
-import { AuthService } from '../../services/autenticacion.service';
 import { Tarifa } from '../../models/tarifa.model';
 import { Parqueadero } from '../../models/parqueadero.model';
 import { TarifaModalComponent, TarifaDialogData } from '../../components/tarifa-modal/tarifa-modal.component';
-import { CommonModule } from '@angular/common';
 import { FiltroParqueaderosComponent } from '../../components/filtro-parqueaderos/filtro-parqueaderos.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDialog } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
+import { CompanyContextService } from '../../services/company-context.service';
 
 
 @Component({
@@ -47,10 +45,9 @@ export class TarifasComponent implements OnInit {
   displayedColumns: string[] = ['id', 'idParqueadero', 'idTipoVehiculo', 'precioFraccionHora', 'precioHoraAdicional', 'acciones'];
 
   constructor(
-    private tarifasService: TarifasService,
-    private parqueaderosService: ParqueaderosService,
-    private authService: AuthService,
-    private dialog: MatDialog
+    private readonly tarifasService: TarifasService,
+    private readonly companyContextService: CompanyContextService,
+    private readonly dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -58,15 +55,9 @@ export class TarifasComponent implements OnInit {
   }
 
   private cargarParqueaderos(): void {
-    const usuario = this.authService.getUsuarioActual();
-    if (!usuario || !usuario.idEmpresa) {
-      console.error('No hay usuario autenticado');
-      return;
-    }
-
     this.loading = true;
 
-    this.parqueaderosService.getByEmpresa(usuario.idEmpresa).subscribe({
+    this.companyContextService.getParqueaderosEmpresaActual().subscribe({
       next: (parqueaderos) => {
         this.parqueaderos = parqueaderos;
         if (parqueaderos.length > 0) {
@@ -77,11 +68,8 @@ export class TarifasComponent implements OnInit {
         }
       },
       error: (error) => {
-        if (error?.status === 404) {
-          this.parqueaderos = [];
-        } else {
-          console.error('Error cargando los parqueaderos', error);
-        }
+        console.error('Error cargando los parqueaderos', error);
+        this.parqueaderos = [];
         this.loading = false;
       }
    

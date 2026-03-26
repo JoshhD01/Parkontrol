@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:cov": "ng test --code-coverage --watch=false",
-    "sonar": "if defined SONAR_TOKEN (npm run test:cov & sonar-scanner -Dsonar.token=%SONAR_TOKEN%) else (echo SONAR_TOKEN no definido & exit /b 1)"
+    "sonar": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$token=[Environment]::GetEnvironmentVariable('SONAR_TOKEN','User'); if([string]::IsNullOrWhiteSpace($token)){Write-Host 'SONAR_TOKEN no definido en User'; exit 1}; $env:SONAR_TOKEN=$token; npm run test:cov; if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}; sonar-scanner\""
   },
   "prettier": {
     "printWidth": 100,
@@ -32,6 +32,8 @@
     "@angular/material": "^20.2.11",
     "@angular/platform-browser": "^20.2.0",
     "@angular/router": "^20.2.0",
+    "@fontsource/material-icons": "^5.2.7",
+    "@fontsource/roboto": "^5.2.10",
     "dayjs": "^1.11.19",
     "jwt-decode": "^4.0.0",
     "rxjs": "~7.8.0",

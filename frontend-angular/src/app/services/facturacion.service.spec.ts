@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { FacturacionService } from './facturacion.service';
 import { environment } from '../../environments/environment';
 
@@ -18,8 +19,11 @@ describe('FacturacionService', () => {
   // Setup: Independencia entre tests
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [FacturacionService],
+      providers: [
+        FacturacionService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
     });
     service = TestBed.inject(FacturacionService);
     httpMock = TestBed.inject(HttpTestingController);

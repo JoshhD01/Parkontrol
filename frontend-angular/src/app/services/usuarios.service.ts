@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 export class UsuariosService {
   private readonly apiUrl = `${environment.urlApi}/users`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getByEmpresa(idEmpresa: number): Observable<Usuario[]> {
     return this.http.get<Usuario[]>(`${this.apiUrl}/empresa/${idEmpresa}`);

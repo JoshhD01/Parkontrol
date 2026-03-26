@@ -10,11 +10,20 @@ import { Pago } from 'src/entities/pagos/entities/pago.entity';
 //Prueba doble utilizada: Fake
 
 class FakePagoRepository {
-  private pagos: any[] = [];// guardar los pagos falsos en un arreglo 
+  private readonly pagos: any[] = [];// guardar los pagos falsos en un arreglo 
 
   async findOne(condition: any) {
     const id = condition?.where?.id;
-    return this.pagos.find(p => p.id === id) || null;
+    if (id) {
+      return this.pagos.find((p) => p.id === id) || null;
+    }
+
+    const reservaId = condition?.where?.reserva?.id;
+    if (reservaId) {
+      return this.pagos.find((p) => p.reserva?.id === reservaId) || null;
+    }
+
+    return null;
   } // Busca un pago por id desntro del arreglo(si lo encuentra lo devuelve si no devuelve null)  
 
   create(data: any) {
@@ -41,7 +50,7 @@ class FakeMetodoPagoRepository {
 }// Permite cambiar la lista de métodos de pago en una prueba.
 
 class FakeReservasService {
-  private reservas = new Map<number, any>();// Guarda las reservas falsas en memoria 
+  private readonly reservas = new Map<number, any>();// Guarda las reservas falsas en memoria 
 
   constructor() {
     this.reservas.set(1, {
@@ -69,7 +78,7 @@ class FakeReservasService {
 }// Permite modificar una reserva para una prueba.(cambiar el estado, quitar la fecha de salida)
 
 class FakeTarifasService {
-  private tarifas = new Map<string, any>();
+  private readonly tarifas = new Map<string, any>();
 
   constructor() {
     this.tarifas.set('1-1', { id: 1, precioFraccionHora: 5000, precioHoraAdicional: 4000 });
@@ -91,7 +100,7 @@ describe('PagosService - crear (Fake)', () => {// Ese bloque agrupa todas las pr
   let fakeTarifasService: FakeTarifasService;
   // Aqui se guarda lo que se va a usar en cada prueba.
   
-  beforeEach(async () => {//Aqui se le dice que antes de cada prueba vuelve a prepara todo desde cero 
+  beforeEach(async () => {//Aqui se le dice que antes de cada prueba vuelve a preparar el entorno desde cero 
     fakePagoRepo = new FakePagoRepository();// volver a crear los Repositorio y servicios falsos 
     fakeMetodoPagoRepo = new FakeMetodoPagoRepository();
     fakeReservasService = new FakeReservasService();

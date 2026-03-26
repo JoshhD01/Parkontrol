@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import { CrearTarifaDto, Tarifa } from '../../models/tarifa.model';
+import { Tarifa } from '../../models/tarifa.model';
 import { Parqueadero } from '../../models/parqueadero.model';
 
 export interface TarifaDialogData {
@@ -37,8 +37,8 @@ export class TarifaModalComponent {
   isEditing: boolean;
 
   constructor(
-    private formBuilder: FormBuilder,
-    private dialogRef: MatDialogRef<TarifaModalComponent>,
+    private readonly formBuilder: FormBuilder,
+    private readonly dialogRef: MatDialogRef<TarifaModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: TarifaDialogData
   ) {
 

@@ -8,9 +8,9 @@ import { Empresa } from '../models/shared.model';
   providedIn: 'root'
 })
 export class EmpresasService {
-  private apiUrl = environment.urlApi;
+  private readonly apiUrl = environment.urlApi;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
 
   getById(id: number): Observable<Empresa> {

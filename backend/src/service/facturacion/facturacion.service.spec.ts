@@ -1,4 +1,4 @@
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
@@ -15,6 +15,7 @@ type FacturaRepositoryDouble = {
   save: jest.Mock;
   findOne: jest.Mock;
   find: jest.Mock;
+  createQueryBuilder?: jest.Mock;
 };
 
 type ClienteFacturaRepositoryDouble = {
@@ -32,6 +33,13 @@ type PagosServiceDouble = {
   findPagoById: jest.Mock;
 };
 
+const buildCrudRepositoryMock = () => ({
+  create: jest.fn(),
+  save: jest.fn(),
+  findOne: jest.fn(),
+  find: jest.fn(),
+});
+
 describe('FacturacionService', () => {
   let service: FacturacionService;
   let facturaRepository: FacturaRepositoryDouble;
@@ -41,17 +49,11 @@ describe('FacturacionService', () => {
 
   // Builder Pattern para crear test doubles consistentes
   const buildFacturaRepoMock = (): FacturaRepositoryDouble => ({
-    create: jest.fn(),
-    save: jest.fn(),
-    findOne: jest.fn(),
-    find: jest.fn(),
+    ...buildCrudRepositoryMock(),
   });
 
   const buildClienteRepoMock = (): ClienteFacturaRepositoryDouble => ({
-    create: jest.fn(),
-    save: jest.fn(),
-    findOne: jest.fn(),
-    find: jest.fn(),
+    ...buildCrudRepositoryMock(),
   });
 
   const buildUsuarioRepoMock = (): UsuarioRepositoryDouble => ({
@@ -319,7 +321,7 @@ describe('FacturacionService', () => {
       facturaRepository.findOne.mockResolvedValue(facturaStub);
 
       // Act
-      const result = await service.findByPago(10);
+      const result = (await service.findByPago(10)) as { id: number };
 
       // Assert
       expect(facturaRepository.findOne).toHaveBeenCalledWith({
@@ -358,7 +360,7 @@ describe('FacturacionService', () => {
       // Assert
       expect(facturaRepository.find).toHaveBeenCalledWith({
         where: { clienteFactura: { id: 5 } },
-        relations: ['pago', 'clienteFactura'],
+        relations: ['pago', 'pago.metodoPago', 'clienteFactura'],
         order: { fechaCreacion: 'DESC' },
       });
       expect(result.length).toBe(2);
@@ -366,48 +368,58 @@ describe('FacturacionService', () => {
   });
 
   describe('findMisFacturas', () => {
-    it('[INDEPENDENT] FM1 retorna array vacío si usuario sin clientes', async () => {
+    const buildFacturaQueryBuilderMock = (rows: any[]) => {
+      const queryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(rows),
+      };
+
+      facturaRepository.createQueryBuilder = jest.fn().mockReturnValue(queryBuilder);
+      return queryBuilder;
+    };
+
+    it('[INDEPENDENT] FM1 retorna array vacío cuando no hay coincidencias por usuario ni correo', async () => {
       // Arrange
-      clienteFacturaRepository.find.mockResolvedValue([]);
+      const queryBuilder = buildFacturaQueryBuilderMock([]);
 
       // Act
-      const result = await service.findMisFacturas(1);
+      const result = await service.findMisFacturas(1, 'cliente@x.com');
 
       // Assert
       expect(result).toEqual([]);
-      expect(clienteFacturaRepository.find).toHaveBeenCalledWith({
-        where: { usuario: { id: 1 } },
-        relations: ['usuario'],
+      expect(facturaRepository.createQueryBuilder).toHaveBeenCalledWith('factura');
+      expect(queryBuilder.where).toHaveBeenCalledWith('usuarioFactura.id = :idUsuario', {
+        idUsuario: 1,
       });
     });
 
-    it('[REPEATABLE] FM2 lanza BadRequest si hay múltiples clientes para un usuario', async () => {
+    it('[SELF-CHECKING] FM2 retorna facturas cuando existe coincidencia por correo', async () => {
       // Arrange
-      const clientesStub = [{ id: 1 }, { id: 2 }] as any[];
-      clienteFacturaRepository.find.mockResolvedValue(clientesStub);
-
-      // Act & Assert
-      await expect(service.findMisFacturas(1)).rejects.toThrow(BadRequestException);
-    });
-
-    it('[SELF-CHECKING] FM3 retorna facturas del cliente si existe exactamente uno', async () => {
-      // Arrange
-      const clienteStub = { id: 10 } as any;
-      const facturasStub = [{ id: 100 }];
-
-      clienteFacturaRepository.find.mockResolvedValue([clienteStub]);
-      facturaRepository.find.mockResolvedValue(facturasStub);
+      const facturasStub = [
+        { id: 100, cufe: 'NF-1-1', enviada: 'Y' },
+      ] as any[];
+      const queryBuilder = buildFacturaQueryBuilderMock(facturasStub);
 
       // Act
-      const result = await service.findMisFacturas(1);
+      const result = await service.findMisFacturas(1, 'CLIENTE@X.COM');
 
       // Assert
-      expect(result.length).toBe(1);
-      expect(facturaRepository.find).toHaveBeenCalledWith({
-        where: { clienteFactura: { id: 10 } },
-        relations: ['pago', 'clienteFactura'],
-        order: { fechaCreacion: 'DESC' },
-      });
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 100,
+          tipoFactura: 'NORMAL',
+          cufe: null,
+          enviada: false,
+        }),
+      );
+      expect(queryBuilder.orWhere).toHaveBeenCalledWith(
+        'LOWER(TRIM(clienteFacturaFactura.CORREO)) = LOWER(TRIM(:correoNormalizado))',
+        { correoNormalizado: 'cliente@x.com' },
+      );
     });
   });
 

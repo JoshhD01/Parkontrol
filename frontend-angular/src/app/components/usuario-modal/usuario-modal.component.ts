@@ -1,14 +1,11 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogModule } from '@angular/material/dialog';
-import { ReactiveFormsModule } from '@angular/forms';
 import { RolUsuario } from '../../models/shared.model';
-import { min } from 'rxjs';
 
 export interface UsuarioDialogData {
   idEmpresa: number;
@@ -41,8 +38,8 @@ export class UsuarioModalComponent implements OnInit {
   hidePassword = true;
 
   constructor(
-    private formBuilder: FormBuilder,
-    private dialogRef: MatDialogRef<UsuarioModalComponent>,
+    private readonly formBuilder: FormBuilder,
+    private readonly dialogRef: MatDialogRef<UsuarioModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: UsuarioDialogData
   ) {}
 

@@ -1,0 +1,58 @@
+.estadisticas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.estadistica-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.estadistica-icono {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.estadistica-icono.parqueaderos {
+  color: #3f8600;
+}
+
+.estadistica-icono.ocupadas {
+  color: #cf1322;
+}
+
+.estadistica-icono.disponibles {
+  color: #52c41a;
+}
+
+.estadistica-icono.reservas {
+  color: #1890ff;
+}
+
+.estadistica-valor {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 8px 0 4px 0;
+}
+
+.estadistica-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.estadisticas-adicionales {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.estadistica-adicional-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

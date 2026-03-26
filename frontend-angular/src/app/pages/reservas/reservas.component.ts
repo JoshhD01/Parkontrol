@@ -1,39 +1,34 @@
 import { Component, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { ReservasService } from '../../services/reservas.service';
-import { ParqueaderosService } from '../../services/parqueaderos.service';
-import { AuthService } from '../../services/autenticacion.service';
 import { Reserva } from '../../models/reserva.model';
 import { Parqueadero } from '../../models/parqueadero.model';
-import { EstadoReserva } from '../../models/shared.model';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FiltroParqueaderosComponent } from '../../components/filtro-parqueaderos/filtro-parqueaderos.component';
 import { ReservaModalComponent, ReservaDialogData } from '../../components/reserva-modal/reserva-modal.component';
 import { PagoModalComponent, PagoDialogData } from '../../components/pago-modal/pago-modal.component';
 import { PagosService } from '../../services/pagos.service';
-import { Router } from '@angular/router';
+import { FacturacionService } from '../../services/facturacion.service';
+import { CrearPagoDto, Pago } from '../../models/pago.model';
+import { ReservasActivasComponent } from '../../components/reservas-activas/reservas-activas.component';
+import { CompanyContextService } from '../../services/company-context.service';
 
 
 @Component({
   selector: 'app-reservas',
   standalone: true,
   imports: [
-    DatePipe,
     MatButtonModule,
-    MatTableModule,
     MatCardModule,
     MatProgressSpinnerModule,
-    MatChipsModule,
     MatIconModule,
     MatSnackBarModule,
-    FiltroParqueaderosComponent
+    FiltroParqueaderosComponent,
+    ReservasActivasComponent,
   ],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.scss']
@@ -46,15 +41,14 @@ export class ReservasComponent implements OnInit {
   parqueaderoSeleccionado: number | null = null;
   errorMessage = '';
   mensajeExito: string = '';
-  displayedColumns: string[] = ['id', 'vehiculo', 'fechaEntrada', 'fechaSalida', 'estado', 'acciones'];
 
 
   constructor(
-    private reservasService: ReservasService,
-    private parqueaderosService: ParqueaderosService,
-    private authService: AuthService,
-    private pagosService: PagosService,
-    private dialog: MatDialog,
+    private readonly reservasService: ReservasService,
+    private readonly companyContextService: CompanyContextService,
+    private readonly pagosService: PagosService,
+    private readonly facturacionService: FacturacionService,
+    private readonly dialog: MatDialog,
 
   ) {}
 
@@ -63,37 +57,25 @@ export class ReservasComponent implements OnInit {
   }
 
   private cargarParqueaderos(): void {
-    const usuario = this.authService.getUsuarioActual();
-    if (!usuario || !usuario.idEmpresa) {
-
-      console.error('No hay usuario autenticado');
-      return;
-    }
-
     this.loading = true;
 
-    this.parqueaderosService.getByEmpresa(usuario.idEmpresa).subscribe({
-
+    this.companyContextService.getParqueaderosEmpresaActual().subscribe({
       next: (parqueaderos) => {
         this.parqueaderos = parqueaderos;
-        
+
         if (parqueaderos.length > 0) {
           this.parqueaderoSeleccionado = parqueaderos[0].id;
           this.cargarReservas(this.parqueaderoSeleccionado);
-
         } else {
           this.loading = false;
         }
       },
       error: (error) => {
-        if (error?.status === 404) {
-          this.parqueaderos = [];
-        } else {
-          console.error('Error No cargo parqueaderos', error);
-        }
+        console.error('Error No cargo parqueaderos', error);
+        this.parqueaderos = [];
         this.loading = false;
-
-      }});
+      },
+    });
   }
 
 
@@ -162,21 +144,34 @@ export class ReservasComponent implements OnInit {
     });
   }
 
-  private procesarPago(pagoData: any): void {
-    console.log('Pago:', JSON.stringify(pagoData, null, 2));
+  private procesarPago(pagoData: CrearPagoDto): void {
     this.pagosService.create(pagoData).subscribe({
       
-      next: (pago: any) => {
-        this.mensajeExito = "Pago procesado exitosamente, monto: $" + pago.monto;
-        setTimeout(() => {
-          this.mensajeExito = '';
-
-        }, 3000);
-        if (this.parqueaderoSeleccionado) {
-          this.cargarReservas(this.parqueaderoSeleccionado);
-        }
+      next: (pago: Pago) => {
+        this.facturacionService.crearFactura({ idPago: pago.id }).subscribe({
+          next: () => {
+            this.mensajeExito = "Pago y factura creados exitosamente, monto: $" + pago.monto;
+            setTimeout(() => {
+              this.mensajeExito = '';
+            }, 3000);
+            if (this.parqueaderoSeleccionado) {
+              this.cargarReservas(this.parqueaderoSeleccionado);
+            }
+          },
+          error: () => {
+            this.mensajeExito = "Pago procesado exitosamente, monto: $" + pago.monto;
+            this.errorMessage = 'Pago creado, pero no se pudo generar la factura.';
+            setTimeout(() => {
+              this.mensajeExito = '';
+              this.errorMessage = '';
+            }, 4000);
+            if (this.parqueaderoSeleccionado) {
+              this.cargarReservas(this.parqueaderoSeleccionado);
+            }
+          },
+        });
       },
-      error: (error: any) => {
+      error: (error: { status?: number; error?: { message?: string } }) => {
         console.error('Error al procesar pago:', error);
 
         if (error.status === 400) {
@@ -202,14 +197,5 @@ export class ReservasComponent implements OnInit {
         }, 4000);
       }
     });
-  }
-
-
-  getEstadoColor(estado: string): string {
-    if (estado === EstadoReserva.ABIERTA) {
-
-      return '#2196f3'; 
-    }
-    return '#4caf50'; 
   }
 }

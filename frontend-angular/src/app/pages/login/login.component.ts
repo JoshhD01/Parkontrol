@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -29,24 +29,21 @@ import { RolUsuario } from '../../models/shared.model';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent {
   loginForm: FormGroup;
   hidePassword = true;
   loading = false;
   errorMessage = '';
 
   constructor(
-    private formBuilder: FormBuilder,
-    private authService: AuthService,
-    private router: Router
+    private readonly formBuilder: FormBuilder,
+    private readonly authService: AuthService,
+    private readonly router: Router
   ) {
     this.loginForm = this.formBuilder.group({
       correo: ['', [Validators.required, Validators.email]],
       contrasena: ['', [Validators.required, Validators.minLength(6)]]
     });
-  }
-
-  ngOnInit(): void {
   }
 
   onSubmit(): void {
@@ -94,20 +91,17 @@ export class LoginComponent implements OnInit {
 
         if (
           tipoAcceso === 'ADMIN' &&
-          currentUser &&
-          currentUser.rol === RolUsuario.ADMINISTRADOR
+          currentUser?.rol === RolUsuario.ADMINISTRADOR
         ) {
           this.router.navigate(['/dashboard']);
         } else if (
           tipoAcceso === 'CLIENTE' &&
-          currentUser &&
-          currentUser.rol === RolUsuario.CLIENTE
+          currentUser?.rol === RolUsuario.CLIENTE
         ) {
           this.router.navigate(['/cliente-dashboard']);
         } else if (
           tipoAcceso === 'OPERADOR' &&
-          currentUser &&
-          currentUser.rol === RolUsuario.OPERADOR
+          currentUser?.rol === RolUsuario.OPERADOR
         ) {
           this.router.navigate(['/operador-dashboard']);
         } else {
