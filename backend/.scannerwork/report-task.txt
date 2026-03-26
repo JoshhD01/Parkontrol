@@ -2,5 +2,10 @@ projectKey=backend-parkontrol
 serverUrl=http://localhost:9000
 serverVersion=26.3.0.120487
 dashboardUrl=http://localhost:9000/dashboard?id=backend-parkontrol
+<<<<<<< Updated upstream
 ceTaskId=91888500-17eb-4217-8ce7-ec3511b26c9c
 ceTaskUrl=http://localhost:9000/api/ce/task?id=91888500-17eb-4217-8ce7-ec3511b26c9c
+=======
+ceTaskId=af2b12be-4dc9-416b-880c-b242b15bbc25
+ceTaskUrl=http://localhost:9000/api/ce/task?id=af2b12be-4dc9-416b-880c-b242b15bbc25
+>>>>>>> Stashed changes

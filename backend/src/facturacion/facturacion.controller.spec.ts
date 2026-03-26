@@ -71,7 +71,7 @@ describe('FacturacionController', () => {
 
       const result = await controller.obtenerFacturasCliente(userStub);
 
-      expect(facturacionService.findMisFacturas).toHaveBeenCalledWith(5);
+      expect(facturacionService.findMisFacturas).toHaveBeenCalledWith(5, 'cliente@x.com');
       expect(result).toEqual(facturasFake);
     });
   });

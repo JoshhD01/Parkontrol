@@ -29,7 +29,7 @@
                  type="email" 
                  formControlName="correo"
                  placeholder="ejemplo@correo.com"
-                 autocomplete="email">
+               autocomplete="username">
           <mat-icon matSuffix>email</mat-icon>
           @if (loginForm.get('correo')?.hasError('required')) {
             <mat-error>El correo es requerido</mat-error>
@@ -51,7 +51,7 @@
                  [type]="hidePassword ? 'password' : 'text'"
                  formControlName="contrasena"
                  placeholder="Ingrese su contraseña"
-                 autocomplete="current-password">
+               [attr.autocomplete]="hidePassword ? 'current-password' : 'off'">
           <button
             mat-icon-button
             matSuffix

@@ -11,6 +11,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-vistas',
@@ -43,12 +45,9 @@ export class VistasComponent implements OnInit {
   totalReservas = 0;
   promedioOcupacion = 0;
 
-  private peticionesCompletadas = 0;
-  private totalPeticiones = 4;
-
   constructor(
-    private authService: AuthService,
-    private vistasService: VistasService
+    private readonly authService: AuthService,
+    private readonly vistasService: VistasService
   ) {}
 
   ngOnInit(): void {
@@ -57,7 +56,7 @@ export class VistasComponent implements OnInit {
 
   private cargarDatos(): void {
     const usuario = this.authService.getUsuarioActual();
-    if (!usuario || !usuario.idEmpresa) {
+    if (!usuario?.idEmpresa) {
       console.error('No hay usuario autenticado');
       this.loading = false;
       return;
@@ -69,92 +68,66 @@ export class VistasComponent implements OnInit {
 
   private cargarDatosVistas(idEmpresa: number): void {
     this.loading = true;
-    this.peticionesCompletadas = 0;
-
-    this.vistasService.getOcupacion(idEmpresa)
-      .subscribe({
-        next: (data) => {
-          this.ocupacion = data;
-        },
-        error: (error) => {
+    forkJoin({
+      ocupacion: this.vistasService.getOcupacion(idEmpresa).pipe(
+        catchError((error) => {
           console.log('No cargo ocupacion', error);
-          this.ocupacion = [];
-        },
-        complete: () => {
-          this.validarPeticiones();
-        }
-      });
-
-
-
-    this.vistasService.getHistorialReservas(idEmpresa)
-      .subscribe({
-        next: (historialReservas) => {
-          this.historial = historialReservas;
-          console.log('Historial de reservas obtenido', { ...this.historial });
-        },
-        error: (error) => {
+          return of([] as OcupacionParqueadero[]);
+        }),
+      ),
+      historial: this.vistasService.getHistorialReservas(idEmpresa).pipe(
+        catchError((error) => {
           console.log('Error no cargo historial de reservas', error);
-          this.historial = [];
-        },
-
-        complete: () => {
-          this.validarPeticiones();
-        }
-      });
-
- 
-    this.vistasService.getIngresos(idEmpresa)
-      .subscribe({
-        next: (ingresos) => {
-          this.ingresos = ingresos;
-        },
-        error: (error) => {
+          return of([] as HistorialReserva[]);
+        }),
+      ),
+      ingresos: this.vistasService.getIngresos(idEmpresa).pipe(
+        catchError((error) => {
           console.log('No cargo ingresos', error);
-          this.ingresos = [];
-        },
-
-        complete: () => {
-          this.validarPeticiones();
-        }
-      });
-
- 
-    this.vistasService.getFacturacion(idEmpresa)
+          return of([] as IngresosMensuales[]);
+        }),
+      ),
+      facturacion: this.vistasService.getFacturacion(idEmpresa).pipe(
+        catchError((error) => {
+          console.log('No cargo facturacion', error);
+          return of([] as FacturacionCompleta[]);
+        }),
+      ),
+    })
+      .pipe(finalize(() => {
+        this.loading = false;
+      }))
       .subscribe({
         next: (data) => {
-          this.facturacion = data;
+          this.ocupacion = data.ocupacion;
+          this.historial = data.historial;
+          this.ingresos = data.ingresos;
+          this.facturacion = data.facturacion;
+          this.calcularEstadisticas();
         },
-        error: (error) => {
-          console.log('no cargo facturacion', error);
-          this.facturacion = [];
-        },
-        complete: () => {
-          this.validarPeticiones();
-        }
       });
-  }
-
-  private validarPeticiones(): void {
-    this.peticionesCompletadas++;
-    if (this.peticionesCompletadas === this.totalPeticiones) {
-      this.calcularEstadisticas();
-      this.loading = false;
-    }
   }
 
   private calcularEstadisticas(): void {
 
     this.totalReservas = this.historial.length;
-    this.ingresosTotal = this.ingresos.reduce((total, ingreso) => total + (ingreso.totalIngresos || 0), 0); 
-    this.facturacionTotal = this.facturacion.reduce((total, parqueadero) => total + (parqueadero.monto || 0), 0);
+    this.ingresosTotal = this.ingresos.reduce(
+      (total, ingreso) => total + this.toNumber(ingreso.totalIngresos),
+      0,
+    );
+    this.facturacionTotal = this.facturacion.reduce(
+      (total, parqueadero) => total + this.toNumber(parqueadero.monto),
+      0,
+    );
     
 
     if (this.ocupacion.length > 0) {
       let sumaPromedios = 0;
       for (const parqueadero of this.ocupacion) {
-        const porcentaje = parqueadero.totalCeldas > 0 
-          ? (parqueadero.celdasOcupadas / parqueadero.totalCeldas * 100) 
+        const totalCeldas = this.toNumber(parqueadero.totalCeldas);
+        const celdasOcupadas = this.toNumber(parqueadero.celdasOcupadas);
+        const porcentaje = totalCeldas > 0
+          ? (celdasOcupadas / totalCeldas * 100)
           : 0;
         sumaPromedios += porcentaje;
       }
@@ -162,5 +135,10 @@ export class VistasComponent implements OnInit {
     } else {
       this.promedioOcupacion = 0;
     }
+  }
+
+  private toNumber(value: unknown): number {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : 0;
   }
 }

@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -65,6 +64,14 @@ export class FacturacionService {
   async crearFactura(
     createFacturaDto: CreateFacturaDto,
   ): Promise<any> {
+    const facturaExistente = await this.facturaRepository.findOne({
+      where: { pago: { id: createFacturaDto.idPago } },
+      relations: ['pago', 'pago.metodoPago', 'clienteFactura'],
+    });
+    if (facturaExistente) {
+      return this.toFacturaResponse(facturaExistente);
+    }
+
     const pago = await this.pagosService.findPagoById(createFacturaDto.idPago);
     const cliente = await this.resolverClienteFactura(createFacturaDto, pago);
 
@@ -81,7 +88,7 @@ export class FacturacionService {
     return this.toFacturaResponse(creada);
   }
 
-  async findByPago(idPago: number): Promise<any | null> {
+  async findByPago(idPago: number): Promise<unknown> {
     const factura = await this.facturaRepository.findOne({
       where: { pago: { id: idPago } },
       relations: ['pago', 'clienteFactura'],
@@ -99,7 +106,7 @@ export class FacturacionService {
   ): Promise<any[]> {
     const facturas = await this.facturaRepository.find({
       where: { clienteFactura: { id: idClienteFactura } },
-      relations: ['pago', 'clienteFactura'],
+      relations: ['pago', 'pago.metodoPago', 'clienteFactura'],
       order: { fechaCreacion: 'DESC' },
     });
 
@@ -108,23 +115,33 @@ export class FacturacionService {
 
   async findMisFacturas(
     idUsuario: number,
+    correoCliente: string,
   ): Promise<any[]> {
-    const clientePorUsuario = await this.clienteFacturaRepository.find({
-      where: { usuario: { id: idUsuario } },
-      relations: ['usuario'],
-    });
+    const correoNormalizado = correoCliente.trim().toLowerCase();
 
-    if (clientePorUsuario.length > 1) {
-      throw new BadRequestException(
-        `Inconsistencia de datos: existen múltiples clientes de facturación para el usuario con id ${idUsuario}.`,
-      );
-    }
+    const facturas = await this.facturaRepository
+      .createQueryBuilder('factura')
+      .leftJoinAndSelect('factura.pago', 'pago')
+      .leftJoinAndSelect('pago.metodoPago', 'metodoPago')
+      .leftJoinAndSelect('factura.clienteFactura', 'clienteFacturaFactura')
+      .leftJoinAndSelect('clienteFacturaFactura.usuario', 'usuarioFactura')
+      .leftJoinAndSelect('pago.reserva', 'reserva')
+      .leftJoinAndSelect('reserva.clienteFactura', 'clienteFacturaReserva')
+      .leftJoinAndSelect('clienteFacturaReserva.usuario', 'usuarioReserva')
+      .where('usuarioFactura.id = :idUsuario', { idUsuario })
+      .orWhere('usuarioReserva.id = :idUsuario', { idUsuario })
+      .orWhere(
+        'LOWER(TRIM(clienteFacturaFactura.CORREO)) = LOWER(TRIM(:correoNormalizado))',
+        { correoNormalizado },
+      )
+      .orWhere(
+        'LOWER(TRIM(clienteFacturaReserva.CORREO)) = LOWER(TRIM(:correoNormalizado))',
+        { correoNormalizado },
+      )
+      .orderBy('factura.FECHA_CREACION', 'DESC')
+      .getMany();
 
-    if (clientePorUsuario.length === 1) {
-      return await this.findByClienteFactura(clientePorUsuario[0].id);
-    }
-
-    return [];
+    return facturas.map((factura) => this.toFacturaResponse(factura));
   }
 
   private async resolverClienteFactura(

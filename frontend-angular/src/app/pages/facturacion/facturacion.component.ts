@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FacturacionService } from '../../services/facturacion.service';
 import { AuthService } from '../../services/autenticacion.service';
-import { ClienteFactura, FacturaElectronica, CrearClienteFacturaDto } from '../../models/facturacion.model';
+import { ClienteFactura, CrearClienteFacturaDto } from '../../models/facturacion.model';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
 import { ClientesFacturaComponent } from '../../components/clientes-factura/clientes-factura.component';
@@ -34,9 +34,9 @@ export class FacturacionComponent implements OnInit {
   totalPeticiones = 2;
 
   constructor(
-    private facturacionService: FacturacionService,
-    private authService: AuthService,
-    private vistasService: VistasService
+    private readonly facturacionService: FacturacionService,
+    private readonly authService: AuthService,
+    private readonly vistasService: VistasService
   ) {}
 
   ngOnInit(): void {
@@ -79,7 +79,9 @@ export class FacturacionComponent implements OnInit {
     this.facturacionService.crearFactura(facturaDto).subscribe({
 
       next: (nuevaFactura) => {
-        nuevaFactura? this.cargarFacturas() : null;
+        if (nuevaFactura) {
+          this.cargarFacturas();
+        }
 
         this.mensajeExito = 'Factura creada exitosamente';
         this.loading = false;
@@ -103,7 +105,9 @@ export class FacturacionComponent implements OnInit {
     
     this.facturacionService.crearClienteFactura(dto).subscribe({
       next: (nuevoCliente) => {
-        nuevoCliente ? this.cargarClientesFactura() : null;
+        if (nuevoCliente) {
+          this.cargarClientesFactura();
+        }
 
         this.mensajeExito = `Cliente con numero documento ${nuevoCliente.numeroDocumento} creado exitosamente`;
         this.loading = false;

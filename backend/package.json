@@ -13,11 +13,20 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+<<<<<<< Updated upstream
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "NODE_ENV=test jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "sonar": "sonar-scanner",
+=======
+    "lint": "eslint \"{src,apps,libs,test}/*/.ts\" --fix",
+    "test": "cross-env NODE_ENV=test jest --config jest.config.ts --coverage",
+    "test:watch": "jest --config jest.config.ts --watch",
+    "test:cov": "jest --config jest.config.ts --coverage",
+    "cov": "jest --config jest.config.ts --coverage",
+    "sonar": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$token=[Environment]::GetEnvironmentVariable('SONAR_TOKEN','User'); if([string]::IsNullOrWhiteSpace($token)){Write-Host 'SONAR_TOKEN no definido en User'; exit 1}; $env:SONAR_TOKEN=$token; sonar-scanner\"",
+>>>>>>> Stashed changes
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },

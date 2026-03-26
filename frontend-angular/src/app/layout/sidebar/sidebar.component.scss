@@ -38,21 +38,21 @@
   align-items: center;
   gap: 15px;
   padding: 15px 20px;
-  color: rgba(255,255,255,0.8);
+  color: #f3f4f6;
   text-decoration: none;
   transition: all 0.3s;
   border-left: 3px solid transparent;
 }
 
 .menu-link:hover {
-  background-color: rgba(255,255,255,0.1);
-  color: white;
+  background-color: #1f2937;
+  color: #ffffff;
   border-left-color: #3498db;
 }
 
 .menu-link.active {
-  background-color: rgba(52, 152, 219, 0.2);
-  color: white;
+  background-color: #1d4ed8;
+  color: #ffffff;
   border-left-color: #3498db;
 }
 

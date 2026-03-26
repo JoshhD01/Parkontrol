@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+<<<<<<< Updated upstream:backend/src/facturacion/facturacion.controller.ts
 import { FacturacionService } from './facturacion.service';
 import { CreateFacturaDto } from './entities/dto/crear-factura-electronica.dto';
 import { CreateClienteFacturaDto } from './entities/dto/crear-cliente-factura.dto';
@@ -19,13 +20,23 @@ import { JwtAuthGuard } from 'src/auth/guards';
 import { RolesGuard } from 'src/shared/guards';
 import { GetUser } from 'src/shared/decorators';
 import type { JwtUsuario } from 'src/auth/interfaces';
+=======
+import { UseGuards } from '@nestjs/common';
+import { FacturacionService } from 'src/service/facturacion/facturacion.service';
+import { CreateFacturaDto } from './dto/crear-factura-electronica.dto';
+import { CreateClienteFacturaDto } from './dto/crear-cliente-factura.dto';
+import { ClienteFactura } from 'src/entities/facturacion/entities/cliente-factura.entity';
+import { Roles, RoleEnum, GetUser, RolesGuard } from 'src/entities/shared';
+import { JwtAuthGuard } from '../auth/guards';
+import type { JwtUsuario } from '../auth/interfaces';
+>>>>>>> Stashed changes:backend/src/controller/facturacion/facturacion.controller.ts
 
 @Controller('invoicing')
 export class FacturacionController {
   constructor(private readonly facturacionService: FacturacionService) {}
 
   @Get('facturas/client/mias')
-  // UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async obtenerFacturasCliente(
     @GetUser() user: JwtUsuario,
   ): Promise<any[]> {
@@ -35,12 +46,12 @@ export class FacturacionController {
       );
     }
 
-    return await this.facturacionService.findMisFacturas(user.id);
+    return await this.facturacionService.findMisFacturas(user.id, user.correo);
   }
 
   @Post('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async crearCliente(
     @Body() createClienteDto: CreateClienteFacturaDto,
   ): Promise<ClienteFactura> {
@@ -49,7 +60,7 @@ export class FacturacionController {
 
   @Post('facturas')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async crearFactura(
     @Body() createFacturaDto: CreateFacturaDto,
   ): Promise<any> {
@@ -69,7 +80,7 @@ export class FacturacionController {
 
   @Get('facturas/pago/:idPago')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorPago(
     @Param('idPago', ParseIntPipe) idPago: number,
   ): Promise<any> {
@@ -84,7 +95,7 @@ export class FacturacionController {
 
   @Get('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerClientes(): Promise<ClienteFactura[]> {
     return await this.facturacionService.obtenerClientes();
   }

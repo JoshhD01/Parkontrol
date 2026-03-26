@@ -1,0 +1,26 @@
+<div class="estadisticas-grid">
+  @for (card of mainCards; track card.label) {
+    <mat-card class="estadistica-card">
+      <mat-card-header>
+        <mat-icon class="estadistica-icono" [ngClass]="card.iconClass">{{ card.icon }}</mat-icon>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="estadistica-valor">{{ card.value }}</div>
+        <div class="estadistica-label">{{ card.label }}</div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
+
+@if (secondaryCards.length > 0) {
+  <div class="estadisticas-adicionales">
+    @for (card of secondaryCards; track card.label) {
+      <mat-card class="estadistica-adicional-card">
+        <mat-card-content>
+          <div class="estadistica-valor">{{ card.value }}</div>
+          <div class="estadistica-label">{{ card.label }}</div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}

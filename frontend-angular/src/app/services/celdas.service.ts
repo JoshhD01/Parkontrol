@@ -8,9 +8,9 @@ import { Celda, CrearCeldaDto } from '../models/celda.model';
   providedIn: 'root'
 })
 export class CeldasService {
-  private apiUrl = environment.urlApi;
+  private readonly apiUrl = environment.urlApi;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   create(data: CrearCeldaDto): Observable<Celda> {
     return this.http.post<Celda>(`${this.apiUrl}/cells`, data);

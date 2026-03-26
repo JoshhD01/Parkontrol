@@ -15,7 +15,7 @@ import { Vehiculo } from '../models/vehiculo.model';
 export class ReservasService {
   private readonly apiUrl = `${environment.urlApi}/reservations`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getByParqueadero(idParqueadero: number): Observable<Reserva[]> {
     return this.http.get<Reserva[]>(`${this.apiUrl}/parqueadero/${idParqueadero}`);

@@ -14,9 +14,9 @@ import {
   providedIn: 'root'
 })
 export class VistasService {
-  private apiUrl = environment.urlApi;
+  private readonly apiUrl = environment.urlApi;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getOcupacion(idEmpresa?: number): Observable<OcupacionParqueadero[]> {
     const params = idEmpresa ? `?idEmpresa=${idEmpresa}` : '';

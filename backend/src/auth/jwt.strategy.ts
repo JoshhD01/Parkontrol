@@ -6,7 +6,7 @@ import type { JwtPayload, JwtUsuario } from './interfaces';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     const jwtSecret =
       configService.get<string>('JWT_SECRET') ?? 'parkontrol_dev_secret_2026';
     super({

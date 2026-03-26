@@ -3,16 +3,16 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/autenticacion.service';
-import { VistasService } from '../../services/vistas.service';
-import { ReservasService } from '../../services/reservas.service';
 import { EmpresasService } from '../../services/empresas.service';
-import { OcupacionParqueadero, IngresosMensuales, FacturacionCompleta, HistorialReserva } from '../../models/vistas.model';
+import { DashboardDataService } from '../../services/dashboard-data.service';
+import { OcupacionParqueadero, HistorialReserva } from '../../models/vistas.model';
 import { Reserva } from '../../models/reserva.model';
 import { Empresa } from '../../models/shared.model';
 import { HistorialReservasComponent } from '../../components/historial-reservas/historial-reservas.component';
 import { ReservasActivasComponent } from '../../components/reservas-activas/reservas-activas.component';
-import { Router } from '@angular/router';
+import { DashboardStatCard, DashboardStatsComponent } from '../../components/dashboard-stats/dashboard-stats.component';
 
 @Component({
   selector: 'app-operador-dashboard',
@@ -23,17 +23,15 @@ import { Router } from '@angular/router';
     MatIconModule,
     MatProgressSpinnerModule,
     HistorialReservasComponent,
-    ReservasActivasComponent
+    ReservasActivasComponent,
+    DashboardStatsComponent,
   ],
   templateUrl: './operador-dashboard.component.html',
-  styleUrls: ['./operador-dashboard.component.scss']
+  styleUrls: ['./operador-dashboard.component.scss'],
 })
 export class OperadorDashboardComponent implements OnInit {
-
   ocupacion: OcupacionParqueadero[] = [];
   reservasActivas: Reserva[] = [];
-  ingresos: IngresosMensuales[] = [];
-  facturacion: FacturacionCompleta[] = [];
   empresaUsuario: Empresa | null = null;
   historial: HistorialReserva[] = [];
 
@@ -42,17 +40,43 @@ export class OperadorDashboardComponent implements OnInit {
   totalCeldasOcupadas = 0;
   totalCeldasDisponibles = 0;
   totalReservasActivas = 0;
-  private peticionesCompletadas = 0;
-  private totalPeticiones = 3;
 
   mostrarReservasActivas = false;
 
+  get mainCards(): DashboardStatCard[] {
+    return [
+      {
+        icon: 'business',
+        iconClass: 'parqueaderos',
+        value: this.totalParqueaderos,
+        label: 'Parqueaderos Activos',
+      },
+      {
+        icon: 'directions_car',
+        iconClass: 'ocupadas',
+        value: this.totalCeldasOcupadas,
+        label: 'Celdas Ocupadas',
+      },
+      {
+        icon: 'local_parking',
+        iconClass: 'disponibles',
+        value: this.totalCeldasDisponibles,
+        label: 'Celdas Disponibles',
+      },
+      {
+        icon: 'schedule',
+        iconClass: 'reservas',
+        value: this.totalReservasActivas,
+        label: 'Reservas Activas',
+      },
+    ];
+  }
+
   constructor(
-    private authService: AuthService,
-    private vistasService: VistasService,
-    private reservasService: ReservasService,
-    private empresasService: EmpresasService,
-    private router: Router,
+    private readonly authService: AuthService,
+    private readonly empresasService: EmpresasService,
+    private readonly dashboardDataService: DashboardDataService,
+    private readonly router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -74,8 +98,7 @@ export class OperadorDashboardComponent implements OnInit {
       error: (error) => {
         console.error('Error cargando empresa', error);
         this.loading = false;
-        return;
-      }
+      },
     });
 
     this.cargarDatosDashboard(usuario.idEmpresa);
@@ -83,68 +106,42 @@ export class OperadorDashboardComponent implements OnInit {
 
   private cargarDatosDashboard(idEmpresa: number): void {
     this.loading = true;
-    this.peticionesCompletadas = 0; 
-
-    this.vistasService.getOcupacion(idEmpresa)
-      .subscribe({
-        next: (ocupacionGeneral) => {
-          this.ocupacion = ocupacionGeneral;
-        },
-        error: (error) => {
-          console.log('no recibe ocupacion', error);
-          this.ocupacion = [];
-        },
-        complete: () => {
-          this.validarPeticiones(); 
-        }
-      });
-
-    this.reservasService.getActivas()
-      .subscribe({
-        next: (reservasActivas) => {
-          console.log('Reservas activas obtenidas', { ...reservasActivas });
-          this.reservasActivas = reservasActivas;
-        },
-        error: (error) => {
-          console.log('No se cargo reservas', error);
-          this.reservasActivas = [];
-        },
-        complete: () => {
-          this.validarPeticiones();
-        }
-      });
-
-    this.vistasService.getHistorialReservas(idEmpresa)
-      .subscribe({
-        next: (historial) => {
-          this.historial = historial;
-        },
-        error: (error) => {
-          console.log('Error al cargar historial de reservas', error);
-          this.historial = [];
-        },
-        complete: () => {
-          this.validarPeticiones();
-        }
-      });
-
+    this.dashboardDataService.getOperatorDashboardData(idEmpresa).subscribe({
+      next: (data) => {
+        this.ocupacion = data.ocupacion;
+        this.reservasActivas = data.reservasActivas;
+        this.historial = data.historial;
+      },
+      complete: () => {
+        this.calcularEstadisticas();
+        this.loading = false;
+      },
+      error: () => {
+        this.ocupacion = [];
+        this.reservasActivas = [];
+        this.historial = [];
+        this.calcularEstadisticas();
+        this.loading = false;
+      },
+    });
   }
-
-  private validarPeticiones(): void {
-    this.peticionesCompletadas++;
-    if (this.peticionesCompletadas === this.totalPeticiones) {
-      this.calcularEstadisticas();
-      this.loading = false;
-    }
-  }
-
 
   private calcularEstadisticas(): void {
-
     this.totalParqueaderos = this.ocupacion.length;
     this.totalReservasActivas = this.reservasActivas.length;
-    this.totalCeldasOcupadas = this.ocupacion.reduce((total, parqueadero) => total + (parqueadero.celdasOcupadas || 0), 0);
-    this.totalCeldasDisponibles = this.ocupacion.reduce((total, parqueadero) => total + (parqueadero.celdasLibres || 0), 0);
+    this.totalCeldasOcupadas = this.ocupacion.reduce(
+      (total, parqueadero) => total + this.toNumber(parqueadero.celdasOcupadas),
+      0,
+    );
+    this.totalCeldasDisponibles = this.ocupacion.reduce(
+      (total, parqueadero) => total + this.toNumber(parqueadero.celdasLibres),
+      0,
+    );
+  }
+
+  private toNumber(value: unknown): number {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : 0;
   }
 
   verCeldas(): void {
@@ -155,7 +152,6 @@ export class OperadorDashboardComponent implements OnInit {
     this.router.navigate(['vehiculos']);
   }
 
-  
   cambioReservas(): void {
     this.mostrarReservasActivas = !this.mostrarReservasActivas;
   }

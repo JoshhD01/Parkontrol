@@ -15,74 +15,7 @@
     </div>
   } @else 
   {
-
-    <div class="estadisticas-grid">
-
-      <mat-card class="estadistica-card">
-        <mat-card-header>
-          <mat-icon class="estadistica-icono parqueaderos">business</mat-icon>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="estadistica-valor">{{ totalParqueaderos }}</div>
-          <div class="estadistica-label">Parqueaderos Activos</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="estadistica-card">
-        <mat-card-header>
-          <mat-icon class="estadistica-icono ocupadas">directions_car</mat-icon>
-        </mat-card-header>
-        <mat-card-content>
-            <div class="estadistica-valor">{{ totalCeldasOcupadas }}</div>
-            <div class="estadistica-label">Celdas Ocupadas</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="estadistica-card">
-        <mat-card-header>
-          <mat-icon class="estadistica-icono disponibles">local_parking</mat-icon>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="estadistica-valor">{{ totalCeldasDisponibles }}</div>
-          <div class="estadistica-label">Celdas Disponibles</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="estadistica-card">
-        <mat-card-header>
-          <mat-icon class="estadistica-icono reservas">schedule</mat-icon>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="estadistica-valor">{{ totalReservasActivas }}</div>
-          <div class="estadistica-label">Reservas Activas</div>
-        </mat-card-content>
-      </mat-card>
-
-    </div>
-
-    <div class="estadisticas-adicionales">
-      <mat-card class="estadistica-adicional-card">
-        <mat-card-content>
-          <div class="estadistica-valor">${{ ingresosTotal | number:'1.0-0' }}</div>
-          <div class="estadistica-label">Total Ingresos</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="estadistica-adicional-card">
-
-        <mat-card-content>
-            <div class="estadistica-valor">{{ totalFacturas }}</div>
-            <div class="estadistica-label">Total Facturas</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="estadistica-adicional-card">
-        <mat-card-content>
-          <div class="estadistica-valor">{{ promedioOcupacion | number:'1.2-2'}}%</div>
-          <div class="estadistica-label">Promedio Ocupacion</div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+    <app-dashboard-stats [mainCards]="mainCards" [secondaryCards]="secondaryCards"></app-dashboard-stats>
 
 
 

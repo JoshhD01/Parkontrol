@@ -11,9 +11,9 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class FacturacionService {
-	private apiUrl = environment.urlApi;
+	private readonly apiUrl = environment.urlApi;
 
-	constructor(private http: HttpClient) {}
+	constructor(private readonly http: HttpClient) {}
 
 	obtenerClientesFactura(): Observable<ClienteFactura[]> {
 		return this.http.get<ClienteFactura[]>(`${this.apiUrl}/invoicing/clientes`);

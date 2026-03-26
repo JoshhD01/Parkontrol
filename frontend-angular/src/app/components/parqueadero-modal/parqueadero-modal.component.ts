@@ -5,7 +5,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { Parqueadero, CrearParqueaderoDto } from '../../models/parqueadero.model';
+import { CrearParqueaderoDto } from '../../models/parqueadero.model';
 
 export interface ParqueaderoDialogData {
   idEmpresa: number;
@@ -29,7 +29,7 @@ export class ParqueaderoModalComponent {
   parqueaderoForm: FormGroup;
 
   constructor(
-    private fb: FormBuilder,
+    private readonly fb: FormBuilder,
 
     public dialogRef: MatDialogRef<ParqueaderoModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ParqueaderoDialogData

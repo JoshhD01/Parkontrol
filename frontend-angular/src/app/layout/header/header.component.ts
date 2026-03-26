@@ -13,9 +13,9 @@ export class HeaderComponent {
   @Input() usuarioActual: Usuario | null = null;
   @Input() tituloPagina: string = 'Dashboard';
   
-  @Output() onCerrarSesion = new EventEmitter<void>();
+  @Output() cerrarSesionRequested = new EventEmitter<void>();
 
   cerrarSesion(): void {
-    this.onCerrarSesion.emit();
+    this.cerrarSesionRequested.emit();
   }
 }
