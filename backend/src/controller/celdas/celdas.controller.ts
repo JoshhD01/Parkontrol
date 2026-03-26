@@ -6,15 +6,11 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { CeldasService } from 'src/service/celdas/celdas.service';
 import { CreateCeldaDto } from './dto/crear-celda.dto';
 import { Celda } from 'src/entities/celdas/entities/celda.entity';
-import { Roles } from 'src/entities/shared';
-import { RoleEnum } from 'src/entities/shared';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard } from 'src/entities/shared';
+import { Roles, RoleEnum } from 'src/entities/shared';
 
 @Controller('cells')
 export class CeldasController {

@@ -7,17 +7,12 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { UsuariosService } from 'src/service/usuarios/usuarios.service';
 import { CreateUsuarioDto } from './dto/crear-usuario.dto';
 import { CambiarContrasenaDto } from './dto/cambiar-contrasena.dto';
-import { RoleEnum } from 'src/entities/shared';
 import { UsuarioResponseDto } from './dto/usuario-response.dto';
-import { Roles } from 'src/entities/shared';
-import { JwtAuthGuard } from '../auth/guards';
-import { RolesGuard } from 'src/entities/shared';
-import { GetUser } from 'src/entities/shared';
+import { Roles, GetUser, RoleEnum } from 'src/entities/shared';
 import type { JwtUsuario } from '../auth/interfaces';
 
 @Controller('users')

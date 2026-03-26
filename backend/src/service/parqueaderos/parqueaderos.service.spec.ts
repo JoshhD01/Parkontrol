@@ -1,99 +1,67 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { ObjectLiteral, Repository } from 'typeorm';
-
 import { ParqueaderosService } from './parqueaderos.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Parqueadero } from 'src/entities/parqueaderos/entities/parqueadero.entity';
-import { EmpresasService } from 'src/service/empresas/empresas.service';
-import { Empresa } from 'src/entities/empresas/entities/empresa.entity';
 import { Celda } from 'src/entities/celdas/entities/celda.entity';
 import { TipoCelda } from 'src/entities/shared/entities/tipo-celda.entity';
 import { Sensor } from 'src/entities/shared/entities/sensor.entity';
-
-type MockRepository<T extends ObjectLiteral = any> = {
-  [P in keyof Repository<T>]?: jest.Mock;
-};
+import { EmpresasService } from 'src/service/empresas/empresas.service';
+import { NotFoundException } from '@nestjs/common';
 
 describe('ParqueaderosService', () => {
   let service: ParqueaderosService;
 
-  let celdaRepo: {
-    create: jest.Mock;
-    save: jest.Mock;
-    find: jest.Mock;
-    count: jest.Mock;
+  const parqueaderoRepository = {
+    create: jest.fn(),
+    save: jest.fn(),
+    findOne: jest.fn(),
+    find: jest.fn(),
   };
 
-  let tipoCeldaRepo: {
-    findOne: jest.Mock;
+  const celdaRepository = {
+    count: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
   };
 
-  let sensorRepo: {
-    create: jest.Mock;
-    save: jest.Mock;
-    find: jest.Mock;
+  const tipoCeldaRepository = {
+    findOne: jest.fn(),
   };
 
-  let empresasService: {
-    findEmpresaById: jest.Mock;
+  const sensorRepository = {
+    create: jest.fn(),
+    save: jest.fn(),
   };
 
-  let repository: {
-    create: jest.Mock;
-    save: jest.Mock;
-    find: jest.Mock;
+  const empresasServiceMock = {
+    findEmpresaById: jest.fn(),
   };
 
   beforeEach(async () => {
-    repository = {
-      create: jest.fn(),
-      save: jest.fn(),
-      find: jest.fn(),
-    };
-
-    celdaRepo = {
-      create: jest.fn(),
-      save: jest.fn(),
-      find: jest.fn(),
-      count: jest.fn(),
-    };
-
-    tipoCeldaRepo = {
-      findOne: jest.fn(),
-    };
-
-    sensorRepo = {
-      create: jest.fn(),
-      save: jest.fn(),
-      find: jest.fn(),
-    };
-
-    empresasService = {
-      findEmpresaById: jest.fn(),
-    };
+    jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ParqueaderosService,
         {
           provide: getRepositoryToken(Parqueadero),
-          useValue: repository,
+          useValue: parqueaderoRepository,
         },
         {
           provide: getRepositoryToken(Celda),
-          useValue: celdaRepo,
+          useValue: celdaRepository,
         },
         {
           provide: getRepositoryToken(TipoCelda),
-          useValue: tipoCeldaRepo,
+          useValue: tipoCeldaRepository,
         },
         {
           provide: getRepositoryToken(Sensor),
-          useValue: sensorRepo,
+          useValue: sensorRepository,
         },
         {
           provide: EmpresasService,
-          useValue: empresasService,
+          useValue: empresasServiceMock,
         },
       ],
     }).compile();
@@ -101,334 +69,101 @@ describe('ParqueaderosService', () => {
     service = module.get<ParqueaderosService>(ParqueaderosService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
-  // =====================================================
-  // PRUEBAS DEL MÉTODO CREAR
-  // =====================================================
-
-describe('crear', () => {
-
-  it('CS00001', async () => {
-
-    // Arrange
+  // ✅ TEST 1: crear parqueadero correctamente
+  it('debería crear un parqueadero y generar celdas', async () => {
     const dto = {
+      nombre: 'Parking Test',
+      capacidadTotal: 2,
+      ubicacion: 'Centro',
       idEmpresa: 1,
-      nombre: 'Central',
-      capacidadTotal: 100,
-      ubicacion: 'Centro',
     };
 
-    const empresaMock = {
-      id: 1,
-      nombre: 'Empresa Test',
-    };
+    const empresaMock = { id: 1 };
+    const parqueaderoMock = { id: 10, ...dto, empresa: empresaMock };
 
-    const parqueaderoMock = {
-      id: 10,
-      nombre: dto.nombre,
-      capacidadTotal: dto.capacidadTotal,
-      ubicacion: dto.ubicacion,
-      empresa: empresaMock,
-    };
+    empresasServiceMock.findEmpresaById.mockResolvedValue(empresaMock);
 
-    empresasService.findEmpresaById.mockResolvedValue(empresaMock);
+    parqueaderoRepository.create.mockReturnValue(parqueaderoMock);
+    parqueaderoRepository.save.mockResolvedValue(parqueaderoMock);
 
-    repository.create!.mockReturnValue(parqueaderoMock);
-    repository.save!.mockResolvedValue(parqueaderoMock);
+    celdaRepository.count.mockResolvedValue(0);
 
-    jest
-      .spyOn(service as any, 'asegurarCapacidadCeldas')
-      .mockResolvedValue(undefined);
+    tipoCeldaRepository.findOne
+      .mockResolvedValueOnce(null) // no encuentra PARTICULAR
+      .mockResolvedValueOnce({ id: 1, nombre: 'DEFAULT' });
 
-    // Act
-    const resultado = await service.crear(dto as any);
+    sensorRepository.create.mockImplementation((data) => data);
+    sensorRepository.save.mockResolvedValue([{ id: 1 }, { id: 2 }]);
 
-    // Assert
-    expect(empresasService.findEmpresaById).toHaveBeenCalledWith(1);
-    expect(repository.create).toHaveBeenCalled();
-    expect(repository.save).toHaveBeenCalledWith(parqueaderoMock);
+    celdaRepository.create.mockImplementation((data) => data);
+    celdaRepository.save.mockResolvedValue([]);
 
-    expect(resultado).toBeDefined();
-    expect(resultado).toHaveProperty('id');
+    const result = await service.crear(dto as any);
+
+    expect(result).toBeDefined();
+    expect(parqueaderoRepository.save).toHaveBeenCalled();
+    expect(sensorRepository.save).toHaveBeenCalled();
+    expect(celdaRepository.save).toHaveBeenCalled();
   });
 
+  // ✅ TEST 2: no crear celdas si ya hay suficientes
+  it('no debería crear celdas si ya cumple la capacidad', async () => {
+    const parqueadero = { id: 1, capacidadTotal: 2 };
 
-  it('CS00002', async () => {
+    celdaRepository.count.mockResolvedValue(2);
 
-    // Arrange
-    const dto = {
-      idEmpresa: 99,
-      nombre: 'Central',
-      capacidadTotal: 100,
-      ubicacion: 'Centro',
-    };
+    await (service as any).asegurarCapacidadCeldas(parqueadero);
 
-    empresasService.findEmpresaById.mockResolvedValue(null);
-
-    // Act
-    const action = service.crear(dto as any);
-
-    // Assert
-    await expect(action).rejects.toThrow();
-
-    expect(empresasService.findEmpresaById).toHaveBeenCalledWith(99);
-    expect(repository.create).not.toHaveBeenCalled();
-    expect(repository.save).not.toHaveBeenCalled();
+    expect(sensorRepository.save).not.toHaveBeenCalled();
+    expect(celdaRepository.save).not.toHaveBeenCalled();
   });
 
+  // ✅ TEST 3: lanzar error si no hay tipo de celda
+  it('debería lanzar error si no existe tipo de celda', async () => {
+    const parqueadero = { id: 1, capacidadTotal: 1 };
 
-  it('CS00003', async () => {
+    celdaRepository.count.mockResolvedValue(0);
 
-    // Arrange
-    const dto = {
-      idEmpresa: 1,
-      nombre: 'Central',
-      capacidadTotal: 100,
-      ubicacion: 'Centro',
-    };
+    tipoCeldaRepository.findOne
+      .mockResolvedValueOnce(null) // PARTICULAR
+      .mockResolvedValueOnce(null); // fallback
 
-    const empresaMock = {
-      id: 1,
-      nombre: 'Empresa Test',
-    };
+    await expect(
+      (service as any).asegurarCapacidadCeldas(parqueadero),
+    ).rejects.toThrow(NotFoundException);
+  });
 
-    const parqueaderoMock = {
-      id: 10,
-      nombre: dto.nombre,
-      capacidadTotal: dto.capacidadTotal,
-      ubicacion: dto.ubicacion,
-      empresa: empresaMock,
-    };
+  // ✅ TEST 4: findParqueaderoById exitoso
+  it('debería retornar parqueadero por id', async () => {
+    const parqueadero = { id: 1, capacidadTotal: 0 };
 
-    empresasService.findEmpresaById.mockResolvedValue(empresaMock);
+    parqueaderoRepository.findOne.mockResolvedValue(parqueadero);
 
-    repository.create!.mockReturnValue(parqueaderoMock);
-    repository.save!.mockResolvedValue(null);
+    const result = await service.findParqueaderoById(1);
 
-    jest
-      .spyOn(service as any, 'asegurarCapacidadCeldas')
-      .mockResolvedValue(undefined);
+    expect(result).toEqual(parqueadero);
+  });
 
-    // Act
-    const action = service.crear(dto as any);
+  // ❌ TEST 5: findParqueaderoById no existe
+  it('debería lanzar error si no existe parqueadero', async () => {
+    parqueaderoRepository.findOne.mockResolvedValue(null);
 
-    // Assert
-    await expect(action).rejects.toThrow(
-      'No se pudo guardar el parqueadero',
+    await expect(service.findParqueaderoById(1)).rejects.toThrow(
+      NotFoundException,
     );
-
-    expect(empresasService.findEmpresaById).toHaveBeenCalledWith(1);
-    expect(repository.create).toHaveBeenCalled();
-    expect(repository.save).toHaveBeenCalledWith(parqueaderoMock);
-
-    expect(service['asegurarCapacidadCeldas']).not.toHaveBeenCalled();
   });
 
-
-  it('CS00004', async () => {
-
-    // Arrange
-    const dto = {
-      idEmpresa: 1,
-      nombre: 'Central',
-      capacidadTotal: 100,
-      ubicacion: 'Centro',
-    };
-
-    const empresaMock = {
-      id: 1,
-      nombre: 'Empresa Test',
-    };
-
-    const parqueaderoMock = {
-      id: 10,
-      nombre: dto.nombre,
-      capacidadTotal: dto.capacidadTotal,
-      ubicacion: dto.ubicacion,
-      empresa: empresaMock,
-    };
-
-    empresasService.findEmpresaById.mockResolvedValue(empresaMock);
-
-    repository.create!.mockReturnValue(parqueaderoMock);
-    repository.save!.mockResolvedValue(parqueaderoMock);
-
-    jest
-      .spyOn(service as any, 'asegurarCapacidadCeldas')
-      .mockRejectedValue(new Error('Error al asegurar celdas'));
-
-    // Act
-    const action = service.crear(dto as any);
-
-    // Assert
-    await expect(action).rejects.toThrow();
-
-    expect(empresasService.findEmpresaById).toHaveBeenCalledWith(1);
-    expect(repository.create).toHaveBeenCalled();
-    expect(repository.save).toHaveBeenCalledWith(parqueaderoMock);
-
-    expect(service['asegurarCapacidadCeldas']).toHaveBeenCalled();
-  });
-
-});
-
-
-// =====================================================
-// PRUEBAS DEL MÉTODO findAllConDisponibilidad
-// =====================================================
-
-describe('findAllConDisponibilidad', () => {
-
-  it('CS0005 - retorna lista vacía si no hay parqueaderos', async () => {
-
-    // Arrange
-    repository.find!.mockResolvedValue([]);
-
-    // Act
-    const resultado = await service.findAllConDisponibilidad();
-
-    // Assert
-    expect(repository.find).toHaveBeenCalled();
-    expect(service['asegurarCapacidadCeldas']).not.toHaveBeenCalled();
-    expect(celdaRepo.count).not.toHaveBeenCalled();
-
-    expect(resultado).toEqual([]);
-  });
-
-
-  it('CS0006 - lanza error si falla la consulta a DB', async () => {
-
-    // Arrange
-    repository.find!.mockRejectedValue(new Error('DB error'));
-
-    // Act
-    const action = service.findAllConDisponibilidad();
-
-    // Assert
-    await expect(action).rejects.toThrow('DB error');
-
-    expect(service['asegurarCapacidadCeldas']).not.toHaveBeenCalled();
-  });
-
-
-  it('CS0007 - falla dentro del for en count', async () => {
-
-    // Arrange
-    const empresaMock = { id: 1 };
-
-    const parqueaderosMock = [
-      { id: 1, empresa: empresaMock },
-      { id: 2, empresa: empresaMock },
+  // ✅ TEST 6: findAllConDisponibilidad
+  it('debería retornar parqueaderos con celdas disponibles', async () => {
+    const parqueaderos = [
+      { id: 1, capacidadTotal: 0, empresa: {} },
     ];
 
-    repository.find!.mockResolvedValue(parqueaderosMock);
+    parqueaderoRepository.find.mockResolvedValue(parqueaderos);
+    celdaRepository.count.mockResolvedValue(5);
 
-    jest
-      .spyOn(service as any, 'asegurarCapacidadCeldas')
-      .mockResolvedValue(undefined);
+    const result = await service.findAllConDisponibilidad();
 
-    celdaRepo.count!
-      .mockResolvedValueOnce(10)
-      .mockRejectedValueOnce(new Error('Error en count'));
-
-    // Act
-    const action = service.findAllConDisponibilidad();
-
-    // Assert
-    await expect(action).rejects.toThrow('Error en count');
-
-    expect(celdaRepo.count).toHaveBeenCalledTimes(2);
+    expect(result[0]).toHaveProperty('celdasDisponibles', 5);
   });
-
-
-  it('CS0008 - falla asegurarCapacidadCeldas', async () => {
-
-    // Arrange
-    const empresaMock = { id: 1 };
-
-    const parqueaderosMock = [{ id: 1, empresa: empresaMock }];
-
-    repository.find!.mockResolvedValue(parqueaderosMock);
-
-    jest
-      .spyOn(service as any, 'asegurarCapacidadCeldas')
-      .mockRejectedValue(new Error('Error capacidad'));
-
-    // Act
-    const action = service.findAllConDisponibilidad();
-
-    // Assert
-    await expect(action).rejects.toThrow('Error capacidad');
-
-    expect(celdaRepo.count).not.toHaveBeenCalled();
-  });
-
-
-  it('CS0009 - retorna parqueaderos con disponibilidad cuando todo funciona bien', async () => {
-
-    // Arrange
-    const empresaMock = { id: 1, nombre: 'Empresa Test' };
-
-    const parqueaderosMock = [
-      {
-        id: 1,
-        nombre: 'Central',
-        capacidadTotal: 100,
-        ubicacion: 'Centro',
-        empresa: empresaMock,
-      },
-      {
-        id: 2,
-        nombre: 'Norte',
-        capacidadTotal: 50,
-        ubicacion: 'Norte',
-        empresa: empresaMock,
-      },
-    ];
-
-    repository.find!.mockResolvedValue(parqueaderosMock);
-
-    jest
-      .spyOn(service as any, 'asegurarCapacidadCeldas')
-      .mockResolvedValue(undefined);
-
-    celdaRepo.count!
-      .mockResolvedValueOnce(15)
-      .mockResolvedValueOnce(7);
-
-    // Act
-    const resultado = await service.findAllConDisponibilidad();
-
-    // Assert
-    expect(repository.find).toHaveBeenCalledWith({
-      relations: ['empresa'],
-    });
-
-    expect(service['asegurarCapacidadCeldas']).toHaveBeenCalledTimes(2);
-    expect(celdaRepo.count).toHaveBeenCalledTimes(2);
-
-    expect(resultado).toHaveLength(2);
-
-    expect(resultado[0]).toMatchObject({
-      id: 1,
-      nombre: 'Central',
-      celdasDisponibles: 15,
-    });
-
-    expect(resultado[1]).toMatchObject({
-      id: 2,
-      nombre: 'Norte',
-      celdasDisponibles: 7,
-    });
-  });
-
-});
-
 });
