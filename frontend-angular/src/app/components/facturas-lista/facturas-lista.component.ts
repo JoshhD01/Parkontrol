@@ -23,7 +23,7 @@ export class FacturasListaComponent {
 
   displayedColumns = ['id', 'idPago', 'idClienteFactura', 'cufe', 'enviada', 'fechaEmision'];
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private readonly dialog: MatDialog) {}
 
   abrirModalNuevaFactura(): void {
     const dialogRef = this.dialog.open(FacturaModalComponent, {

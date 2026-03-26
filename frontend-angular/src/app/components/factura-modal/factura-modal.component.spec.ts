@@ -33,9 +33,6 @@ describe('FacturaModalComponent', () => {
       expect(component.facturaForm).toBeDefined();
       expect(component.facturaForm.get('idPago')).toBeDefined();
       expect(component.facturaForm.get('idClienteFactura')).toBeDefined();
-      expect(component.facturaForm.get('emitirElectronica')).toBeDefined();
-      expect(component.facturaForm.get('cufe')).toBeDefined();
-      expect(component.facturaForm.get('correoElectronico')).toBeDefined();
     });
 
     it('F2 debe exponer data inyectada del modal', () => {
@@ -47,40 +44,8 @@ describe('FacturaModalComponent', () => {
       component.facturaForm.reset({
         idPago: null,
         idClienteFactura: null,
-        emitirElectronica: false,
-        cufe: '',
-        correoElectronico: '',
       });
       expect(component.facturaForm.invalid).toBeTrue();
-    });
-  });
-
-  describe('[INDEPENDENT] Validaciones dinámicas', () => {
-    it('I1 debe hacer requeridos cufe y correoElectronico cuando emitirElectronica=true', () => {
-      component.facturaForm.get('emitirElectronica')?.setValue(true);
-
-      const cufe = component.facturaForm.get('cufe');
-      const correo = component.facturaForm.get('correoElectronico');
-
-      cufe?.setValue('');
-      correo?.setValue('');
-
-      expect(cufe?.hasError('required')).toBeTrue();
-      expect(correo?.hasError('required')).toBeTrue();
-    });
-
-    it('I2 debe limpiar validadores y valores al desactivar emitirElectronica', () => {
-      component.facturaForm.patchValue({
-        emitirElectronica: true,
-        cufe: 'ABC',
-        correoElectronico: 'ok@test.com',
-      });
-
-      component.facturaForm.get('emitirElectronica')?.setValue(false);
-
-      expect(component.facturaForm.get('cufe')?.value).toBe('');
-      expect(component.facturaForm.get('correoElectronico')?.value).toBe('');
-      expect(component.facturaForm.get('cufe')?.errors).toBeNull();
     });
   });
 
@@ -99,7 +64,6 @@ describe('FacturaModalComponent', () => {
       component.facturaForm.patchValue({
         idPago: '123',
         idClienteFactura: null,
-        emitirElectronica: false,
       });
 
       component.onSubmit();
@@ -107,19 +71,13 @@ describe('FacturaModalComponent', () => {
       expect(dialogRefMock.close).toHaveBeenCalledWith({
         idPago: 123,
         idClienteFactura: undefined,
-        emitirElectronica: false,
-        cufe: undefined,
-        correoElectronico: undefined,
       });
     });
 
-    it('R3 debe cerrar el modal con dto electrónica cuando aplica', () => {
+    it('R3 debe cerrar el modal con idClienteFactura numérico cuando aplica', () => {
       component.facturaForm.patchValue({
         idPago: '44',
         idClienteFactura: '7',
-        emitirElectronica: true,
-        cufe: 'CUFE-XYZ',
-        correoElectronico: 'cliente@test.com',
       });
 
       component.onSubmit();
@@ -127,9 +85,6 @@ describe('FacturaModalComponent', () => {
       expect(dialogRefMock.close).toHaveBeenCalledWith({
         idPago: 44,
         idClienteFactura: 7,
-        emitirElectronica: true,
-        cufe: 'CUFE-XYZ',
-        correoElectronico: 'cliente@test.com',
       });
     });
   });

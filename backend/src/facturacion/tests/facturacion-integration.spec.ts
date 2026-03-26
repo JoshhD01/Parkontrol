@@ -20,7 +20,6 @@ describe('Facturacion Integration Tests', () => {
   let controller: FacturacionController;
   let facturaRepository: any;
   let clienteFacturaRepository: any;
-  let usuarioRepository: any;
   let pagosService: any;
 
   beforeEach(async () => {
@@ -74,7 +73,6 @@ describe('Facturacion Integration Tests', () => {
     controller = module.get<FacturacionController>(FacturacionController);
     facturaRepository = facturaRepoMock;
     clienteFacturaRepository = clienteRepoMock;
-    usuarioRepository = usuarioRepoMock;
     pagosService = pagosServiceMock;
   });
 

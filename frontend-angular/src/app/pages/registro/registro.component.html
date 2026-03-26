@@ -71,7 +71,7 @@
                  type="email" 
                  formControlName="correo"
                placeholder="ejemplo@correo.com"
-               autocomplete="email"
+               autocomplete="username"
                maxlength="100"
                spellcheck="false">
           <mat-icon matSuffix>email</mat-icon>
@@ -92,7 +92,7 @@
           <input matInput 
                  [type]="hidePassword ? 'password' : 'text'"
                formControlName="contrasena"
-               autocomplete="new-password"
+               [attr.autocomplete]="hidePassword ? 'new-password' : 'off'"
                maxlength="72">
           <button mat-icon-button 
                   matSuffix 

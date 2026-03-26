@@ -1,14 +1,12 @@
 import { Component, Inject } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CrearClienteFacturaDto } from '../../models/facturacion.model';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
@@ -24,7 +22,7 @@ export class ClienteFacturaModalComponent {
   tiposDocumento = ['CC', 'CE', 'TI', 'PAS', 'NIT'];
 
   constructor(
-    private formBuilder: FormBuilder,
+    private readonly formBuilder: FormBuilder,
     public dialogRef: MatDialogRef<ClienteFacturaModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
@@ -66,7 +64,7 @@ export class ClienteFacturaModalComponent {
 
   getMensajeErrorNumeroDocumento(): string {
     const control = this.formGroup.get('numeroDocumento');
-    if (!control || !control.errors) return '';
+    if (!control?.errors) return '';
 
     if (control.hasError('required')) {
       return 'Este campo es obligatorio';

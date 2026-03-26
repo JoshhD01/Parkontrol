@@ -15,10 +15,10 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = environment.urlApi;
+  private readonly apiUrl = environment.urlApi;
   private readonly TOKEN_KEY = 'auth_token';
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   register(userData: RegistrarClienteDto): Observable<RegistroClienteResponse> {
     return this.http.post<RegistroClienteResponse>(
@@ -44,7 +44,7 @@ export class AuthService {
       .pipe(
         tap(response => {
           if (response.access_token) {
-            localStorage.setItem(this.TOKEN_KEY, response.access_token);
+            this.setToken(response.access_token);
           }
         })
       );
@@ -52,11 +52,11 @@ export class AuthService {
 
 
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+    this.clearToken();
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.getStoredToken();
   }
 
   isAuthenticated(): boolean {
@@ -120,8 +120,34 @@ export class AuthService {
       }
       const now = Math.floor(Date.now() / 1000);
       return payload.exp < now;
-    } catch (error) {
+    } catch {
       return true;
     }
+  }
+
+  private setToken(token: string): void {
+    // Use session storage to reduce token persistence scope in the browser.
+    sessionStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.removeItem(this.TOKEN_KEY);
+  }
+
+  private clearToken(): void {
+    sessionStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
+  }
+
+  private getStoredToken(): string | null {
+    const sessionToken = sessionStorage.getItem(this.TOKEN_KEY);
+    if (sessionToken) {
+      return sessionToken;
+    }
+
+    // Backward compatibility for tokens stored before session-based storage.
+    const legacyToken = localStorage.getItem(this.TOKEN_KEY);
+    if (legacyToken) {
+      this.setToken(legacyToken);
+    }
+
+    return legacyToken;
   }
 }

@@ -8,9 +8,9 @@ import { Pago, CrearPagoDto } from '../models/pago.model';
   providedIn: 'root'
 })
 export class PagosService {
-  private apiUrl = environment.urlApi;
+  private readonly apiUrl = environment.urlApi;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   create(data: CrearPagoDto): Observable<Pago> {
     return this.http.post<Pago>(`${this.apiUrl}/payments`, data);

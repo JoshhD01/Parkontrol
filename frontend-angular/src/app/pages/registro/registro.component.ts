@@ -50,9 +50,9 @@ export class RegistroComponent {
     ];
 
   constructor(
-    private formBuilder: FormBuilder,
-    private authService: AuthService,
-    private router: Router
+    private readonly formBuilder: FormBuilder,
+    private readonly authService: AuthService,
+    private readonly router: Router
   ) {
     this.registerForm = this.formBuilder.group({
       tipoDocumento: ['CC', [Validators.required]],

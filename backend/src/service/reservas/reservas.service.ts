@@ -262,7 +262,7 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
   }
 
   async findByClienteFacturaOrCorreo(
-    idClienteFactura: number,
+    idUsuario: number,
     correoCliente: string,
   ): Promise<Reserva[]> {
     await this.sincronizarEstadosPorHorario();
@@ -276,8 +276,9 @@ export class ReservasService implements OnModuleInit, OnModuleDestroy {
       .leftJoinAndSelect('reserva.celda', 'celda')
       .leftJoinAndSelect('celda.parqueadero', 'parqueadero')
       .leftJoinAndSelect('reserva.clienteFactura', 'clienteFactura')
-      .where('clienteFactura.ID_CLIENTE_FACTURA = :idClienteFactura', {
-        idClienteFactura,
+      .leftJoinAndSelect('clienteFactura.usuario', 'usuario')
+      .where('usuario.id = :idUsuario', {
+        idUsuario,
       })
       .orWhere(
         "LOWER(TRIM(clienteFactura.CORREO)) = LOWER(TRIM(:correoNormalizado))",

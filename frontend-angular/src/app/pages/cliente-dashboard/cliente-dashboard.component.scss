@@ -132,6 +132,23 @@
       text-align: right;
     }
   }
+
+  .btn-ver-mas {
+    margin-top: 10px;
+    border: 1px solid #c7d2fe;
+    background: #eef2ff;
+    color: #1e3a8a;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #dbeafe;
+    }
+  }
 }
 
 .modo-vehiculo {

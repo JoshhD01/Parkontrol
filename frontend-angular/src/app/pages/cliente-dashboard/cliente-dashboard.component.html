@@ -149,11 +149,19 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="campo">
-        <mat-label>Hora fin</mat-label>
-        <input matInput type="datetime-local" [(ngModel)]="nuevaReserva.horaFin" name="horaFin">
+        <mat-label>Duración (horas)</mat-label>
+        <select matNativeControl [(ngModel)]="duracionHoras" name="duracionHoras">
+          <option [ngValue]="1">1 hora</option>
+          <option [ngValue]="2">2 horas</option>
+          <option [ngValue]="3">3 horas</option>
+          <option [ngValue]="4">4 horas</option>
+          <option [ngValue]="6">6 horas</option>
+          <option [ngValue]="8">8 horas</option>
+          <option [ngValue]="12">12 horas</option>
+        </select>
       </mat-form-field>
 
-      <button mat-raised-button color="primary" (click)="crearReserva()" [disabled]="loading">
+      <button mat-raised-button color="primary" (click)="crearReserva()" [disabled]="creandoReserva">
         Confirmar reserva
       </button>
     </mat-card>
@@ -163,11 +171,16 @@
       @if (!reservas.length) {
         <p class="vacio">Aún no tienes reservas.</p>
       }
-      @for (reserva of reservas; track reserva.id) {
+      @for (reserva of reservasVisibles; track reserva.id) {
         <div class="item-linea">
           <span>Reserva #{{ reserva.id }}</span>
           <small>{{ obtenerEstadoReserva(reserva.estado) }}</small>
         </div>
+      }
+      @if (hayMasReservas) {
+        <button class="btn-ver-mas" type="button" (click)="toggleReservas()">
+          {{ mostrarTodasReservas ? 'Ver menos' : 'Ver más (' + reservasOcultas + ')' }}
+        </button>
       }
     </mat-card>
 
@@ -176,15 +189,16 @@
       @if (!facturas.length) {
         <p class="vacio">Aún no tienes facturas.</p>
       }
-      @for (factura of facturas; track factura.id) {
+      @for (factura of facturasVisibles; track factura.id) {
         <div class="item-linea">
-          <span>Factura #{{ factura.id }}</span>
-          @if (factura.tipoFactura === 'ELECTRONICA') {
-            <small>{{ factura.cufe || 'Sin CUFE' }}</small>
-          } @else {
-            <small>Factura normal</small>
-          }
+          <span>Factura #{{ factura.id }} | Pago #{{ factura.pago?.id || factura.idPago }}</span>
+          <small>{{ factura.pago?.metodoPago?.nombre || 'N/A' }} | ${{ factura.pago?.monto ?? '0.00' }}</small>
         </div>
+      }
+      @if (hayMasFacturas) {
+        <button class="btn-ver-mas" type="button" (click)="toggleFacturas()">
+          {{ mostrarTodasFacturas ? 'Ver menos' : 'Ver más (' + facturasOcultas + ')' }}
+        </button>
       }
     </mat-card>
 
@@ -193,11 +207,16 @@
       @if (!misPagos.length) {
         <p class="vacio">Aún no tienes pagos registrados.</p>
       }
-      @for (pago of misPagos; track pago.id) {
+      @for (pago of pagosVisibles; track pago.id) {
         <div class="item-linea">
           <span>Pago #{{ pago.id }} - ${{ pago.monto }}</span>
           <small>{{ pago.metodoPago?.nombre || 'N/A' }} | {{ pago.reserva?.vehiculo?.placa || '' }}</small>
         </div>
+      }
+      @if (hayMasPagos) {
+        <button class="btn-ver-mas" type="button" (click)="togglePagos()">
+          {{ mostrarTodosPagos ? 'Ver menos' : 'Ver más (' + pagosOcultos + ')' }}
+        </button>
       }
     </mat-card>
   </section>

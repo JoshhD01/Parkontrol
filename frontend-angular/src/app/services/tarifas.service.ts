@@ -8,9 +8,9 @@ import { Tarifa, CrearTarifaDto, ActualizarTarifaDto } from '../models/tarifa.mo
   providedIn: 'root'
 })
 export class TarifasService {
-  private apiUrl = environment.urlApi;
+  private readonly apiUrl = environment.urlApi;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   create(data: CrearTarifaDto): Observable<Tarifa> {
     return this.http.post<Tarifa>(`${this.apiUrl}/rates`, data);

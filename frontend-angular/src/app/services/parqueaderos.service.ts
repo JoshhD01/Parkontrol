@@ -8,9 +8,9 @@ import { Parqueadero, CrearParqueaderoDto } from '../models/parqueadero.model';
   providedIn: 'root'
 })
 export class ParqueaderosService {
-  private apiUrl = environment.urlApi;
+  private readonly apiUrl = environment.urlApi;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   create(data: CrearParqueaderoDto): Observable<Parqueadero> {
     return this.http.post<Parqueadero>(`${this.apiUrl}/parking-lots`, data);

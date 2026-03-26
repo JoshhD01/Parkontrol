@@ -45,56 +45,7 @@
     </div>
   } @else 
   {
-
-
-    <div class="estadisticas-grid">
-
-        <mat-card class="estadistica-card">
-          <mat-card-header>
-            <mat-icon class="estadistica-icono parqueaderos">business</mat-icon>
-          </mat-card-header>
-
-
-
-          <mat-card-content>
-            <div class="estadistica-valor">{{ totalParqueaderos }}</div>
-            <div class="estadistica-label">Parqueaderos Activos</div>
-          </mat-card-content>
-        </mat-card>
-
-      <mat-card class="estadistica-card">
-        <mat-card-header>
-          <mat-icon class="estadistica-icono ocupadas">directions_car</mat-icon>
-        </mat-card-header>
-
-        <mat-card-content>
-
-            <div class="estadistica-valor">{{ totalCeldasOcupadas }}</div>
-            <div class="estadistica-label">Celdas Ocupadas</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="estadistica-card">
-        <mat-card-header>
-          <mat-icon class="estadistica-icono disponibles">local_parking</mat-icon>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="estadistica-valor">{{ totalCeldasDisponibles }}</div>
-          <div class="estadistica-label">Celdas Disponibles</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="estadistica-card">
-        <mat-card-header>
-          <mat-icon class="estadistica-icono reservas">schedule</mat-icon>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="estadistica-valor">{{ totalReservasActivas }}</div>
-          <div class="estadistica-label">Reservas Activas</div>
-        </mat-card-content>
-      </mat-card>
-
-    </div>
+    <app-dashboard-stats [mainCards]="mainCards"></app-dashboard-stats>
 
 
 

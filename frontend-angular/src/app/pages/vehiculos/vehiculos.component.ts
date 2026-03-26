@@ -48,8 +48,8 @@ export class VehiculosComponent implements OnInit {
   reservasColumns: string[] = ['id', 'parqueadero', 'estado', 'fechaEntrada', 'fechaSalida'];
 
   constructor(
-    private formBuilder: FormBuilder,
-    private vehiculosService: VehiculosService
+    private readonly formBuilder: FormBuilder,
+    private readonly vehiculosService: VehiculosService
   ) {
     this.searchForm = this.formBuilder.group({
       placa: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]]

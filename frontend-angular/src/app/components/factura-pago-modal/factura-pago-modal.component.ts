@@ -1,9 +1,8 @@
-import { Component,  Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FacturaElectronica } from '../../models/facturacion.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-factura-pago-modal',
@@ -23,9 +22,7 @@ export class FacturaPagoModalComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (!this.data.factura) {
-      this.data.factura = null;
-    }
+    this.data.factura ??= null;
   }
 
   cerrar(): void {

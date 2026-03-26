@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { UsuarioModalComponent, UsuarioDialogData } from '../../components/usuario-modal/usuario-modal.component';
@@ -52,10 +52,10 @@ export class UsuariosComponent implements OnInit {
   
 
   constructor(
-    private usuariosService: UsuariosService,
-    private authService: AuthService,
-    private dialog: MatDialog,
-    private fb: FormBuilder,
+    private readonly usuariosService: UsuariosService,
+    private readonly authService: AuthService,
+    private readonly dialog: MatDialog,
+    private readonly fb: FormBuilder,
   ) {
     this.cambioContrasenaForm = this.fb.group({
       contrasenaActual: ['', [Validators.required]],
@@ -66,7 +66,7 @@ export class UsuariosComponent implements OnInit {
   ngOnInit(): void {
 
     this.usuarioActual = this.authService.getUsuarioActual();
-    if (this.usuarioActual && this.usuarioActual.idEmpresa) {
+    if (this.usuarioActual?.idEmpresa) {
 
       this.cargarUsuariosPorEmpresa(this.usuarioActual.idEmpresa);
     } else {
@@ -93,7 +93,7 @@ export class UsuariosComponent implements OnInit {
 
   abrirModalCrear(): void {
     const usuarioActual = this.authService.getUsuarioActual();
-    if (!usuarioActual || !usuarioActual.idEmpresa) return;
+    if (!usuarioActual?.idEmpresa) return;
 
     const data: UsuarioDialogData = {
       idEmpresa: usuarioActual.idEmpresa
@@ -117,7 +117,7 @@ export class UsuariosComponent implements OnInit {
       next: () => {
         this.mensajeExito = 'Usuario creado exitosamente';
         const usuario = this.authService.getUsuarioActual();
-        if (usuario && usuario.idEmpresa) {
+        if (usuario?.idEmpresa) {
           this.cargarUsuariosPorEmpresa(usuario.idEmpresa);
         }
         setTimeout(() => {
@@ -144,7 +144,9 @@ export class UsuariosComponent implements OnInit {
     this.usuariosService.delete(id).subscribe({
       next: () => {
         this.mensajeExito = 'Usuario operador eliminado exitosamente';
-        this.usuarioActual?.idEmpresa ? this.cargarUsuariosPorEmpresa(this.usuarioActual.idEmpresa) : null;
+        if (this.usuarioActual?.idEmpresa) {
+          this.cargarUsuariosPorEmpresa(this.usuarioActual.idEmpresa);
+        }
         
         setTimeout(() => {
           this.mensajeExito = '';

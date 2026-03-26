@@ -7,22 +7,23 @@ import {
   Patch,
   Post,
   UnauthorizedException,
-  //UseGuards,
+  UseGuards,
 } from '@nestjs/common';
 import { ReservasService } from 'src/service/reservas/reservas.service';
 import { CreateReservaDto } from './dto/crear-reserva.dto';
 import { ReservarClienteDto } from './dto/reservar-cliente.dto';
 import { Reserva } from 'src/entities/reservas/entities/reserva.entity';
 import { Vehiculo } from 'src/entities/vehiculos/entities/vehiculo.entity';
-import { Roles, GetUser, RoleEnum } from 'src/entities/shared';
+import { Roles, GetUser, RoleEnum, RolesGuard } from 'src/entities/shared';
 import type { JwtUsuario } from '../auth/interfaces';
+import { JwtAuthGuard } from '../auth/guards';
 
 @Controller('reservations')
 export class ReservasController {
   constructor(private readonly reservasService: ReservasService) {}
 
   @Get('client/mias')
-  // UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async obtenerMisReservas(@GetUser() user: JwtUsuario): Promise<Reserva[]> {
     if (user.nombreRol !== 'CLIENTE') {
       throw new UnauthorizedException(
@@ -37,7 +38,7 @@ export class ReservasController {
   }
 
   @Get('client/vehiculos')
-  // UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async obtenerMisVehiculos(@GetUser() user: JwtUsuario): Promise<Vehiculo[]> {
     if (user.nombreRol !== 'CLIENTE') {
       throw new UnauthorizedException(
@@ -52,7 +53,7 @@ export class ReservasController {
   }
 
   @Post('client')
-  // UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async crearComoCliente(
     @GetUser() user: JwtUsuario,
     @Body() reservarClienteDto: ReservarClienteDto,
@@ -68,28 +69,28 @@ export class ReservasController {
 
   @Post()
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async crear(@Body() createReservaDto: CreateReservaDto): Promise<Reserva> {
     return await this.reservasService.crear(createReservaDto);
   }
 
   @Patch(':id/finalizar')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async finalizar(@Param('id', ParseIntPipe) id: number): Promise<Reserva> {
     return await this.reservasService.finalizarReserva(id);
   }
 
   @Get('activas')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerActivas(): Promise<Reserva[]> {
     return await this.reservasService.findActivas();
   }
 
   @Get('parqueadero/:idParqueadero')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorParqueadero(
     @Param('idParqueadero', ParseIntPipe) idParqueadero: number,
   ): Promise<Reserva[]> {
@@ -98,7 +99,7 @@ export class ReservasController {
 
   @Get(':id')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  //  UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorId(@Param('id', ParseIntPipe) id: number): Promise<Reserva> {
     return await this.reservasService.findReservaById(id);
   }
