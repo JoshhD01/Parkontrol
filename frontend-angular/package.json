@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:cov": "ng test --code-coverage --watch=false",
+    "test:cov": "ng test --code-coverage --watch=false --browsers=ChromeHeadless",
     "sonar": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$token=[Environment]::GetEnvironmentVariable('SONAR_TOKEN','User'); if([string]::IsNullOrWhiteSpace($token)){Write-Host 'SONAR_TOKEN no definido en User'; exit 1}; $env:SONAR_TOKEN=$token; npm run test:cov; if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}; sonar-scanner\""
   },
   "prettier": {

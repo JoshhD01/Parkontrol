@@ -19,9 +19,9 @@ module.exports = function (config) {
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/frontend-angular'),
       subdir: '.',
-      type: 'lcovonly',
       reporters: [
-        { type: 'lcovonly' },
+        { type: 'html' },
+        { type: 'lcovonly', file: 'lcov.info' },
         { type: 'text-summary' }
       ]
     },
@@ -29,9 +29,9 @@ module.exports = function (config) {
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
-    autoWatch: true,
-    browsers: ['Chrome'],
-    singleRun: false,
+    autoWatch: false,
+    browsers: ['ChromeHeadless'],
+    singleRun: true,
     restartOnFileChange: true
   });
 };
