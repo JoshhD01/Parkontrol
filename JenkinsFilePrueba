@@ -1,0 +1,13 @@
+pipeline{
+    agent any
+    stages{
+        stage('imprimir prueba'){
+            steps{
+                echo 'prueba prro '
+            }
+        }
+
+
+    }
+
+}
