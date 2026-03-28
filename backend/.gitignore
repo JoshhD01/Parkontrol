@@ -3,7 +3,7 @@
 /node_modules
 /build
 .env
-sonar-project.properties
+
 # Logs
 logs
 *.log

@@ -21,7 +21,7 @@ export class FacturacionController {
   constructor(private readonly facturacionService: FacturacionService) {}
 
   @Get('facturas/client/mias')
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard)
   async obtenerFacturasCliente(
     @GetUser() user: JwtUsuario,
   ): Promise<any[]> {
@@ -36,7 +36,7 @@ export class FacturacionController {
 
   @Post('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //@UseGuards(JwtAuthGuard, RolesGuard)
   async crearCliente(
     @Body() createClienteDto: CreateClienteFacturaDto,
   ): Promise<ClienteFactura> {
@@ -45,7 +45,7 @@ export class FacturacionController {
 
   @Post('facturas')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //@UseGuards(JwtAuthGuard, RolesGuard)
   async crearFactura(
     @Body() createFacturaDto: CreateFacturaDto,
   ): Promise<any> {
@@ -65,7 +65,7 @@ export class FacturacionController {
 
   @Get('facturas/pago/:idPago')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //@UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerPorPago(
     @Param('idPago', ParseIntPipe) idPago: number,
   ): Promise<any> {
@@ -80,7 +80,7 @@ export class FacturacionController {
 
   @Get('clientes')
   @Roles(RoleEnum.ADMIN, RoleEnum.OPERADOR)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  //@UseGuards(JwtAuthGuard, RolesGuard)
   async obtenerClientes(): Promise<ClienteFactura[]> {
     return await this.facturacionService.obtenerClientes();
   }

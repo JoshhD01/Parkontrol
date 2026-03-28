@@ -1,0 +1,25 @@
+pipeline{
+    agent any
+    stages{
+        stage('limpiar repositorio'){
+            steps{
+                echo 'Limpiando archivos viejos'
+                sh 'rm -rf *'
+            }
+        }
+        stage('clonar repositorio'){
+            steps{
+                echo 'Clonando Parkontrol'
+                sh 'git clone https://github.com/Parkontrol/Parkontrol.git'
+            }
+        }
+        stage('imprimir variables de entorno como prueba'){
+            steps{
+                echo 'el puerto del proyecto es ${parkontrol_port}'
+            }
+        }
+
+
+    }
+
+}

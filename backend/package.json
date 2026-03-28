@@ -18,7 +18,7 @@
     "test:watch": "jest --config jest.config.ts --watch",
     "test:cov": "jest --config jest.config.ts --coverage",
     "cov": "jest --config jest.config.ts --coverage",
-    "sonar": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$token=[Environment]::GetEnvironmentVariable('SONAR_TOKEN','User'); if([string]::IsNullOrWhiteSpace($token)){Write-Host 'SONAR_TOKEN no definido en User'; exit 1}; $env:SONAR_TOKEN=$token; sonar-scanner\"",
+    "sonar": "dotenv -e .env -- sonar-scanner -Dsonar.login=$SONAR_TOKEN",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
@@ -54,6 +54,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
     "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
