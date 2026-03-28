@@ -10,7 +10,7 @@ pipeline{
         stage('clonar repositorio'){
             steps{
                 echo 'Clonando Parkontrol'
-                sh 'git clone https://github.com/Parkontrol/Parkontrol.git'
+                sh 'git clone https://github.com/JoshhD01/Parkontrol.git'
             }
         }
         stage('imprimir variables de entorno como prueba'){
