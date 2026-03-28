@@ -19,12 +19,16 @@ pipeline{
         }
         stage('generar coverage de pruebas backend'){
             steps{
-                script{
+                dir('Parkontrol'){
                     dir('backend'){
-                        sh 'pwd'
-                        sh 'ls -la'
-                        sh 'ls -la backend'
-                        
+                        sh '''
+                          echo "iniciando instalacion de dependencias"
+                          npm install
+                        '''
+                        sh '''
+                          echo "ejecutando obtencion del coverage de pruebas"
+                          npm run test:cov || true
+                          '''
                     }
                 }
             }
