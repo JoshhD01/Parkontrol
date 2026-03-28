@@ -1,0 +1,42 @@
+puede darse el caso de que aun cuando jenkins tiene instalado docker no puede encontrar las imagenes, esto 
+pasa si jenkins no tiene instalado el CLI de docker, esto lo comprobamos entrando al contenedor docker y
+adentro de el ejecutamos por consola y ejecutando el comando
+docker version
+
+si esto no trae nada, no tiene docker instalado.
+Otra causa puede ser que el contenedor de jenkins no tenga acceso al docker del host, esto lo comprobamos
+viendo en los discos virtuales ( Mounts ) de nuestro contenedor si tiene el sock habilitado.
+esto lo hacemos con el comando:
+docker inspect <container_id>
+
+y buscando algo comp:
+
+"Mounts": [ { 
+    "Type": "bind", "Source": "/home/lenin/jenkins_home", 
+    "Destination": "/var/jenkins_home", "Mode": "rw", "RW": true, 
+    "Propagation": "rprivate" 
+    }, 
+    { "Type": "bind", "Source": "/var/run/docker.sock", 
+    "Destination": "/var/run/docker.sock", 
+    "Mode": "rw", "RW": true, 
+    "Propagation": "rprivate" 
+    } ],
+
+si no esta el que dice docker.sock con RW: true entonces esa madre se jodio y tienes que correr desde cero el docker-compose
+que levanta el jenkins:
+
+version: "3.9"
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    user: root
+    restart: unless-stopped
+    ports:
+      - "9090:8080"
+      - "50000:50000"
+    volumes:
+      - ~/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock # si quieres usar Docker dentro de Jenkins
+
+para finalizar, adentro del contenedor docker, corre docker ps -a , si ves tus contenedores del host, estas listo.

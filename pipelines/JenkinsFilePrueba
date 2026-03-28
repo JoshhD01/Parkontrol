@@ -21,8 +21,10 @@ pipeline{
             steps{
                 script{
                     dir('backend'){
-                        sh 'npm install'
-                        sh 'npm run test:cov'
+                        sh 'pwd'
+                        sh 'ls -la'
+                        sh 'ls -la backend'
+                        
                     }
                 }
             }
