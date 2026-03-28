@@ -13,9 +13,13 @@ pipeline{
                 sh 'git clone https://github.com/JoshhD01/Parkontrol.git'
             }
         }
-        stage('imprimir variables de entorno como prueba'){
+        stage('generar coverage de pruebas backend'){
             steps{
-                echo 'el puerto del proyecto es ${parkontrol_port}'
+                script{
+                    sh 'cd backend'
+                    sh 'npm install'
+                    sh 'npm run test:cov'
+                }
             }
         }
 
