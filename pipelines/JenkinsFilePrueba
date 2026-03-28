@@ -16,9 +16,10 @@ pipeline{
         stage('generar coverage de pruebas backend'){
             steps{
                 script{
-                    sh 'cd backend'
-                    sh 'npm install'
-                    sh 'npm run test:cov'
+                    dir('backend'){
+                        sh 'npm install'
+                        sh 'npm run test:cov'
+                    }
                 }
             }
         }
