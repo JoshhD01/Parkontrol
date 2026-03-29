@@ -18,7 +18,7 @@
     "test:watch": "jest --config jest.config.ts --watch",
     "test:cov": "jest --config jest.config.ts --coverage",
     "cov": "jest --config jest.config.ts --coverage",
-    "sonar": "dotenv -e .env -- sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=$SONAR_URL",
+    "sonar": "dotenv -e .env -- npx sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=$SONAR_URL",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },

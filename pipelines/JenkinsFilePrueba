@@ -5,8 +5,8 @@ pipeline{
         }
     }
     environment{
-        sonartoken="${parkontrol_SONAR_TOKEN}"
-        sonarurl="${sonarqube_url}"
+        SONAR_TOKEN="${parkontrol_SONAR_TOKEN}"
+        SONAR_URL="${sonarqube_url}"
     }
     stages{
         stage('limpiar repositorio'){
@@ -37,11 +37,15 @@ pipeline{
                 }
             }
         }
-        stage('comprobar variables de entorno')
+        stage('Ejecutar sonarqube'){
             steps{
-                sh "echo ${env.sonarurl}"
+                dir('Parkontrol'){
+                    dir('backend'){
+                        sh 'npm run sonar'
+                    }
+                }
             }
-
+        }
 
     }
 
