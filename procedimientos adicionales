@@ -40,3 +40,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock # si quieres usar Docker dentro de Jenkins
 
 para finalizar, adentro del contenedor docker, corre docker ps -a , si ves tus contenedores del host, estas listo.
+
+
+//"sonar": "dotenv -e .env -- npx sonar-scanner -Dsonar.login=$SONAR_TOKEN",
