@@ -4,6 +4,10 @@ pipeline{
             image 'node:20'
         }
     }
+    environment{
+        sonartoken="${parkontrol_SONAR_TOKEN}"
+        sonarurl="${sonarqube_url}"
+    }
     stages{
         stage('limpiar repositorio'){
             steps{
@@ -33,6 +37,10 @@ pipeline{
                 }
             }
         }
+        stage('comprobar variables de entorno')
+            steps{
+                sh "echo ${env.sonarurl}"
+            }
 
 
     }
