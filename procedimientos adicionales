@@ -3,7 +3,9 @@ pasa si jenkins no tiene instalado el CLI de docker, esto lo comprobamos entrand
 adentro de el ejecutamos por consola y ejecutando el comando
 docker version
 
-si esto no trae nada, no tiene docker instalado.
+si esto no trae nada, no tiene el cli de docker instalado. este se instala con:
+apt-get update && apt-get install -y docker.io
+
 Otra causa puede ser que el contenedor de jenkins no tenga acceso al docker del host, esto lo comprobamos
 viendo en los discos virtuales ( Mounts ) de nuestro contenedor si tiene el sock habilitado.
 esto lo hacemos con el comando:
@@ -42,4 +44,7 @@ services:
 para finalizar, adentro del contenedor docker, corre docker ps -a , si ves tus contenedores del host, estas listo.
 
 
-//"sonar": "dotenv -e .env -- npx sonar-scanner -Dsonar.login=$SONAR_TOKEN",
+Ahora, puede darse que el malparido npm no pueda ejecutar sonar, porque no es instalable con npx por tema de permisos
+y puede que npm no pueda ejecutarlo por el mismo motivo, asi que necesitamos el cli de sonar para poder ejecutar la funcion del lector
+
+apt-get update && apt-get install -y curl unzip

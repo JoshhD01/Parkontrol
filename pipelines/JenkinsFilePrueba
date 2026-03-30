@@ -1,9 +1,5 @@
 pipeline{
-    agent {
-        docker{
-            image 'node:20'
-        }
-    }
+    agent any
     environment{
         SONAR_TOKEN="${parkontrol_SONAR_TOKEN}"
         SONAR_URL="${sonarqube_url}"
@@ -19,12 +15,22 @@ pipeline{
             steps{
                 echo 'Clonando Parkontrol'
                 sh 'git clone https://github.com/JoshhD01/Parkontrol.git'
+
+                stash name: 'repositorio', includes: '**'
             }
         }
         stage('generar coverage de pruebas backend'){
+            agent {
+                docker{
+                    image 'node:20'
+                }
+            }
             steps{
+                unstash 'repositorio'
+
                 dir('Parkontrol'){
                     dir('backend'){
+                        
                         sh '''
                           echo "iniciando instalacion de dependencias"
                           npm install
@@ -35,15 +41,34 @@ pipeline{
                           '''
                     }
                 }
+                stash name: 'backend', includes: 'Parkontrol/backend/**'
+                stash name: 'frontend', includes: 'Parkontrol/frontend-angular/**'
             }
         }
-        stage('Ejecutar sonarqube'){
+        stage('Ejecutar sonarqube para el backend'){
+              agent {
+                docker {
+                  image 'sonarsource/sonar-scanner-cli:latest'
+                  args '--network redsonar'
+                }
+              }
             steps{
+                unstash 'backend'
+
                 dir('Parkontrol'){
                     dir('backend'){
-                        sh 'npm run sonar'
+
+                        echo "INICIO DE PROCEDIMIENTO SONARQUBE"
+                        
+                        sh """
+                        sonar-scanner \
+                          -Dsonar.host.url=${env.SONAR_URL} \
+                          -Dsonar.token=${env.SONAR_TOKEN}"""
+                          
+                        
                     }
                 }
+                
             }
         }
 
