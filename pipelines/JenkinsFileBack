@@ -67,13 +67,7 @@ pipeline{
                           
                         
                     }
-                }
-                
-            }
-        }
-
-        /*stage('Quality Gate'){
-            steps{
+                }/*
                 timeout(time: 5, unit: 'MINUTES') {
                 script {
                     def qg = waitForQualityGate()
@@ -83,15 +77,29 @@ pipeline{
                     }
 
                     echo "✅ Quality Gate aprobado: ${qg.status}"
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'username', passwordVariable: 'password')]) {
-                        sh "echo ${username}"
-                        sh "docker login -u ${username} -p ${password}"
+
                     }
-                }
+                }*/
+                stash name: 'backend', includes: 'Parkontrol/backend/**'
+                
+            }
+        }
+
+        
+        stage('Compile and upload to dockerhub'){
+            steps{
+                unstash 'backend'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'username', passwordVariable: 'password')]) {
+                    sh "echo ${username}"
+                    sh """echo $PASS | docker login -u $username -p $password"""
+                    dir('Parkontrol/backend'){
+                        sh "docker build -t backparkontrol:latest ."
+                        sh "docker tag backparkontrol:latest ${username}/backparkontrol:latest"
+                        sh "docker push ${username}/backparkontrol:latest"
+                    }
                 }
             }
         }
-        */
 
     }
 

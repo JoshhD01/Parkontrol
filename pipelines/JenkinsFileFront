@@ -68,7 +68,22 @@ pipeline{
                         
                     }
                 }
+                stash name: 'frontend', includes: 'Parkontrol/frontend-angular/**'
                 
+            }
+        }
+        stage('Compile and upload frontend to dockerhub'){
+            steps{
+                unstash 'frontend'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'username', passwordVariable: 'password')]) {
+                    sh "echo ${username}"
+                    sh """echo $PASS | docker login -u $username -p $password"""
+                    dir('Parkontrol/frontend-angular'){
+                        sh "docker build -t frontparkontrol:latest ."
+                        sh "docker tag frontparkontrol:latest ${username}/frontparkontrol:latest"
+                        sh "docker push ${username}/frontparkontrol:latest"
+                    }
+                }
             }
         }
 
