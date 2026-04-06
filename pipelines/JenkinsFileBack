@@ -91,7 +91,7 @@ pipeline{
                 unstash 'backend'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'username', passwordVariable: 'password')]) {
                     sh "echo ${username}"
-                    sh """echo $PASS | docker login -u $username -p $password"""
+                    sh """docker login -u $username -p $password"""
                     dir('Parkontrol/backend'){
                         sh "docker build -t backparkontrol:latest ."
                         sh "docker tag backparkontrol:latest ${username}/backparkontrol:latest"

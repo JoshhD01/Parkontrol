@@ -1,0 +1,14 @@
+services:
+  service-backend:
+    image: backparkontrol:latest
+    container_name: backend
+    ports:
+      - "3000:3000"
+
+  service-frontend:
+    image: frontparkontrol:latest
+    container_name: frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - service-backend
