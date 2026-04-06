@@ -1,0 +1,77 @@
+pipeline{
+    agent any
+    environment{
+        SONAR_TOKEN="${parkontrol_SONAR_TOKEN}"
+        SONAR_URL="${sonarqube_url}"
+    }
+    stages{
+        stage('limpiar repositorio'){
+            steps{
+                echo 'Limpiando archivos viejos'
+                sh 'rm -rf *'
+            }
+        }
+        stage('clonar repositorio'){
+            steps{
+                echo 'Clonando Parkontrol'
+                sh 'git clone https://github.com/JoshhD01/Parkontrol.git'
+
+                stash name: 'repositorio', includes: '**'
+            }
+        }
+        stage('generar coverage de pruebas frontend'){
+            agent {
+                docker{
+                    image 'node:20'
+                }
+            }
+            steps{
+                unstash 'repositorio'
+
+                dir('Parkontrol'){
+                    dir('frontend-angular'){
+                        
+                        sh '''
+                          echo "iniciando instalacion de dependencias"
+                          npm install
+                        '''
+                        sh '''
+                          echo "ejecutando obtencion del coverage de pruebas"
+                          npm run test:cov || true
+                          '''
+                    }
+                }
+
+                stash name: 'frontend', includes: 'Parkontrol/frontend-angular/**'
+            }
+        }
+        stage('Ejecutar sonarqube para el frontend'){
+              agent {
+                docker {
+                  image 'sonarsource/sonar-scanner-cli:latest'
+                  args '--network redsonar'
+                }
+              }
+            steps{
+                unstash 'frontend'
+
+                dir('Parkontrol'){
+                    dir('frontend-angular'){
+
+                        echo "INICIO DE PROCEDIMIENTO SONARQUBE"
+                        
+                        sh """
+                        sonar-scanner \
+                          -Dsonar.host.url=${env.SONAR_URL} \
+                          -Dsonar.token=${env.SONAR_TOKEN}"""
+                          
+                        
+                    }
+                }
+                
+            }
+        }
+
+    }
+
+}

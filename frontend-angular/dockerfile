@@ -1,5 +1,4 @@
-# ---------- STAGE 1: build ----------
-FROM node:20-alpine AS builder
+FROM node:20-alpine 
 
 WORKDIR /app
 
@@ -12,22 +11,6 @@ RUN npm install
 # Copiar código
 COPY . .
 
-# Build del frontend Angular
-RUN npm run build
-
-# ---------- STAGE 2: producción ----------
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Instalar serve para servir archivos estáticos
-RUN npm install -g serve
-
-# Copiar build de Angular desde builder
-COPY --from=builder /app/dist/frontend-angular ./dist/frontend-angular
-
-# Puerto
 EXPOSE 4200
-
 # Comando de inicio
-CMD ["npx", "serve", "-s", "dist/frontend-angular", "-l", "4200"]
+CMD ["npm","run","start"]
