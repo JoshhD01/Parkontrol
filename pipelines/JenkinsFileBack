@@ -45,49 +45,81 @@ pipeline{
 
             }
         }
-        stage('Ejecutar sonarqube para el backend'){
+
+        stage('SonarQube Analysis') {
             agent {
                 docker {
                   image 'sonarsource/sonar-scanner-cli:latest'
                   args '--network redsonar'
                 }
               }
-            steps{
+            steps {
                 unstash 'backend'
-
                 dir('Parkontrol'){
                     dir('backend'){
-
-                        echo "INICIO DE PROCEDIMIENTO SONARQUBE"
-                        
-                        sh """
-                        sonar-scanner \
-                          -Dsonar.host.url=${env.SONAR_URL} \
-                          -Dsonar.token=${env.SONAR_TOKEN}"""
-                          
-                        
+                        tool 'SonarScanner'
+                        withSonarQubeEnv('SonarQube') {
+                            sh """
+                            sonar-scanner \
+                            -Dsonar.projectKey=parkontrol-backend \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${env.SONAR_URL} \
+                            -Dsonar.login=${env.SONAR_TOKEN}
+                            """
+                        }
                     }
                 }
-                /*
                 timeout(time: 5, unit: 'MINUTES') {
-                script {
-                    def qg = waitForQualityGate()
+                    script {
+                        def qg = waitForQualityGate()
+        
+                        if (qg.status != 'OK') {
+                            error "❌ Quality Gate falló: ${qg.status}"
+                        }
+        
+                        echo "✅ Quality Gate aprobado: ${qg.status}"
+                        // 🔥 AQUÍ VIENE LO NUEVO
 
-                    if (qg.status != 'OK') {
-                    error "❌ Quality Gate falló: ${qg.status}"
-                    }
+                        def metricsJson = sh(
+                            script: """
+                            curl -s -u ${env.SONAR_TOKEN}: \
+                            "${env.SONAR_URL}/api/measures/component?component=parkontrol-backend&metricKeys=coverage,bugs,vulnerabilities,code_smells,duplicated_lines_density"
+                            """,
+                            returnStdout: true
+                        ).trim()
 
-                    echo "✅ Quality Gate aprobado: ${qg.status}"
+                        echo "📊 Raw metrics:"
+                        echo metricsJson
 
-                    }
-                }*/
+                        // Parsear JSON
+                        def json = readJSON text: metricsJson
+
+                        def measures = json.component.measures
+
+                        def coverage = measures.find { it.metric == "coverage" }?.value
+                        def bugs = measures.find { it.metric == "bugs" }?.value
+                        def vulns = measures.find { it.metric == "vulnerabilities" }?.value
+                        def smells = measures.find { it.metric == "code_smells" }?.value
+
+                        echo """
+                        📊 ===== SONARQUBE REPORT =====
+                        Coverage: ${coverage}%
+                        Bugs: ${bugs}
+                        Vulnerabilities: ${vulns}
+                        Code Smells: ${smells}
+                        =================================
+                        """
+
+                        // Guardar reporte
+                        writeFile file: 'sonar-report.json', text: metricsJson
+                        archiveArtifacts artifacts: 'sonar-report.json'
                 
-                stash name: 'backend', includes: 'Parkontrol/backend/**'
-                
+                    }
+                }
+
             }
         }
 
-        
         stage('Compile and upload to dockerhub'){
             steps{
                 unstash 'backend'
@@ -100,6 +132,24 @@ pipeline{
                         sh "docker push ${username}/backparkontrol:latest"
                     }
                 }
+            }
+        }
+
+        stage('limpiar repositorio'){
+            steps{
+                echo 'Limpiando archivos viejos'
+                sh 'rm -rf *'
+            }
+        }
+        stage('clonar repositorio'){
+            steps{
+                echo 'Clonando Parkontrol'
+                sh 'git clone https://github.com/JoshhD01/Parkontrol.git'
+                dir('Parkontrol'){
+                    sh 'docker-compose build'
+                    sh 'docker-compose up'
+                }
+            
             }
         }
 
