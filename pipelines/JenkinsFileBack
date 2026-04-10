@@ -135,13 +135,13 @@ pipeline{
             }
         }
 
-        stage('limpiar repositorio'){
+        stage('limpiar repositorio 2'){
             steps{
                 echo 'Limpiando archivos viejos'
                 sh 'rm -rf *'
             }
         }
-        stage('clonar repositorio'){
+        stage('clonar archivo compose'){
             steps{
                 echo 'Clonando Parkontrol'
                 sh 'git clone https://github.com/JoshhD01/Parkontrol.git'
