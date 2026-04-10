@@ -46,7 +46,7 @@ pipeline{
             }
         }
         stage('Ejecutar sonarqube para el backend'){
-              agent {
+            agent {
                 docker {
                   image 'sonarsource/sonar-scanner-cli:latest'
                   args '--network redsonar'
@@ -67,7 +67,8 @@ pipeline{
                           
                         
                     }
-                }/*
+                }
+                /*
                 timeout(time: 5, unit: 'MINUTES') {
                 script {
                     def qg = waitForQualityGate()
@@ -80,6 +81,7 @@ pipeline{
 
                     }
                 }*/
+                
                 stash name: 'backend', includes: 'Parkontrol/backend/**'
                 
             }

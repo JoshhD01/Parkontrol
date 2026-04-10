@@ -48,3 +48,8 @@ Ahora, puede darse que el malparido npm no pueda ejecutar sonar, porque no es in
 y puede que npm no pueda ejecutarlo por el mismo motivo, asi que necesitamos el cli de sonar para poder ejecutar la funcion del lector
 
 apt-get update && apt-get install -y curl unzip
+
+
+
+apt update
+apt install docker.io docker-compose -y
