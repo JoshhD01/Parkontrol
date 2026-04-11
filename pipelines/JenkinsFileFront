@@ -15,7 +15,6 @@ pipeline{
             steps{
                 echo 'Clonando Parkontrol'
                 sh 'git clone https://github.com/JoshhD01/Parkontrol.git'
-
                 stash name: 'repositorio', includes: '**'
             }
         }
@@ -27,10 +26,8 @@ pipeline{
             }
             steps{
                 unstash 'repositorio'
-
                 dir('Parkontrol'){
-                    dir('frontend-angular'){
-                        
+                    dir('backend'){
                         sh '''
                           echo "iniciando instalacion de dependencias"
                           npm install
@@ -38,55 +35,40 @@ pipeline{
                         sh '''
                           echo "ejecutando obtencion del coverage de pruebas"
                           npm run test:cov || true
-                          '''
+                        '''
                     }
                 }
 
                 stash name: 'frontend', includes: 'Parkontrol/frontend-angular/**'
             }
         }
-        stage('Ejecutar sonarqube para el frontend'){
-              agent {
+        stage('Ejecutar sonarqube para el backend'){
+            agent {
                 docker {
-                  image 'sonarsource/sonar-scanner-cli:latest'
-                  args '--network devops-net'
+                    image 'sonarsource/sonar-scanner-cli:latest'
+                    args '--network devops-net'
                 }
-              }
+            }
             steps{
-                unstash 'frontend'
-
+                unstash 'backend'
                 dir('Parkontrol'){
-                    dir('frontend-angular'){
-
+                    dir('backend'){
                         echo "INICIO DE PROCEDIMIENTO SONARQUBE"
-                        
-                        sh """
-                        sonar-scanner \
-                          -Dsonar.host.url=${env.SONAR_URL} \
-                          -Dsonar.token=${env.SONAR_TOKEN}"""
-                          
-                        
-                    }
-                }
-                stash name: 'frontend', includes: 'Parkontrol/frontend-angular/**'
-                
-            }
-        }
-        stage('Compile and upload frontend to dockerhub'){
-            steps{
-                unstash 'frontend'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'username', passwordVariable: 'password')]) {
-                    sh "echo ${username}"
-                    sh """echo $PASS | docker login -u $username -p $password"""
-                    dir('Parkontrol/frontend-angular'){
-                        sh "docker build -t frontparkontrol:latest ."
-                        sh "docker tag frontparkontrol:latest ${username}/frontparkontrol:latest"
-                        sh "docker push ${username}/frontparkontrol:latest"
+                        withSonarQubeEnv('SonarQube') {
+                            sh """
+                            sonar-scanner \
+                              -Dsonar.host.url=${env.SONAR_URL} \
+                              -Dsonar.token=${env.SONAR_TOKEN}
+                            """
+                        }
                     }
                 }
             }
+            post {
+                always {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
         }
-
     }
-
 }
