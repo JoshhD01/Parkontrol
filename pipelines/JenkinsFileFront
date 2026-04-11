@@ -49,7 +49,7 @@ pipeline{
               agent {
                 docker {
                   image 'sonarsource/sonar-scanner-cli:latest'
-                  args '--network redsonar'
+                  args '--network devops-net'
                 }
               }
             steps{
