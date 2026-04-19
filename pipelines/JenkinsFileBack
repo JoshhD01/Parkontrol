@@ -146,8 +146,8 @@ pipeline{
                 echo 'Clonando Parkontrol'
                 sh 'git clone https://github.com/JoshhD01/Parkontrol.git'
                 dir('Parkontrol'){
-                    sh 'docker compose build'
-                    sh 'docker compose up -d'  
+                    sh 'docker-compose build'
+                    sh 'docker-compose up -d'  
                 }   
             
             }
