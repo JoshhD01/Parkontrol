@@ -9,7 +9,19 @@ const config: Config = {
     '^src/(.*)$': '<rootDir>/src/$1',
   },
   testEnvironment: 'node',
-  collectCoverage: false,
+
+  // 🔥 ACTIVAR COVERAGE
+  collectCoverage: true,
+
+  // 📊 UMBRAL GLOBAL 60%
+  coverageThreshold: {
+    global: {
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60,
+    },
+  },
 };
 
 export default config;
