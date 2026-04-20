@@ -27,7 +27,7 @@ pipeline{
             steps{
                 unstash 'repositorio'
                 dir('Parkontrol'){
-                    dir('backend'){
+                    dir('frontend-angular'){        // ✅ FIX 1: era 'backend'
                         sh '''
                           echo "iniciando instalacion de dependencias"
                           npm install
@@ -38,11 +38,10 @@ pipeline{
                         '''
                     }
                 }
-
                 stash name: 'frontend', includes: 'Parkontrol/frontend-angular/**'
             }
         }
-        stage('Ejecutar sonarqube para el backend'){
+        stage('Ejecutar sonarqube para el frontend'){   // ✅ FIX 2: nombre corregido
             agent {
                 docker {
                     image 'sonarsource/sonar-scanner-cli:latest'
@@ -50,13 +49,15 @@ pipeline{
                 }
             }
             steps{
-                unstash 'backend'
+                unstash 'frontend'                  // ✅ FIX 3: era 'backend'
                 dir('Parkontrol'){
-                    dir('backend'){
-                        echo "INICIO DE PROCEDIMIENTO SONARQUBE"
+                    dir('frontend-angular'){        // ✅ FIX 4: era 'backend'
+                        echo "INICIO DE PROCEDIMIENTO SONARQUBE FRONTEND"
                         withSonarQubeEnv('SonarQube') {
                             sh """
                             sonar-scanner \
+                              -Dsonar.projectKey=parkontrol-frontend \
+                              -Dsonar.sources=src \
                               -Dsonar.host.url=${env.SONAR_URL} \
                               -Dsonar.token=${env.SONAR_TOKEN}
                             """
