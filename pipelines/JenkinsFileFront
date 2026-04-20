@@ -27,7 +27,7 @@ pipeline{
             steps{
                 unstash 'repositorio'
                 dir('Parkontrol'){
-                    dir('frontend-angular'){        // ✅ FIX 1: era 'backend'
+                    dir('frontend-angular'){
                         sh '''
                           echo "iniciando instalacion de dependencias"
                           npm install
@@ -41,7 +41,7 @@ pipeline{
                 stash name: 'frontend', includes: 'Parkontrol/frontend-angular/**'
             }
         }
-        stage('Ejecutar sonarqube para el frontend'){   // ✅ FIX 2: nombre corregido
+        stage('Ejecutar sonarqube para el frontend'){
             agent {
                 docker {
                     image 'sonarsource/sonar-scanner-cli:latest'
@@ -49,9 +49,9 @@ pipeline{
                 }
             }
             steps{
-                unstash 'frontend'                  // ✅ FIX 3: era 'backend'
+                unstash 'frontend'
                 dir('Parkontrol'){
-                    dir('frontend-angular'){        // ✅ FIX 4: era 'backend'
+                    dir('frontend-angular'){
                         echo "INICIO DE PROCEDIMIENTO SONARQUBE FRONTEND"
                         withSonarQubeEnv('SonarQube') {
                             sh """
@@ -68,6 +68,16 @@ pipeline{
             post {
                 always {
                     waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        // ✅ STAGE NUEVO: construye la imagen localmente
+        stage('Build imagen frontend'){
+            steps{
+                unstash 'frontend'
+                dir('Parkontrol/frontend-angular'){
+                    sh "docker build -t frontparkontrol:latest ."
                 }
             }
         }
