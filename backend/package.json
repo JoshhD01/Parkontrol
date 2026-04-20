@@ -20,7 +20,9 @@
     "cov": "jest --config jest.config.ts --coverage",
     "sonar": "sonar-scanner -Dsonar.token=$SONAR_TOKEN -Dsonar.host.url=$SONAR_URL",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:integration": "cross-env NODE_ENV=test jest --config jest-integration.config.ts",
+    "test:regresion": "cross-env NODE_ENV=test jest --config jest-regresion.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { createTestingModule } from '../unitaria/facturacion/crearCliente.facturacion.service.spec';
+import { createTestingModule } from '../unitaria/facturacion/facturacion.service.module';
 
 describe('FacturacionService Integration - obtenerPorPago', () => {
   afterEach(() => {
@@ -12,7 +12,7 @@ describe('FacturacionService Integration - obtenerPorPago', () => {
 
     const pagoId = 999;
 
-    facturaRepository.findOne.mockResolvedValue(null);
+    facturaRepository.findOne.resolves(null);
 
     // Act
     const action = controller.obtenerPorPago(pagoId);
