@@ -1,5 +1,8 @@
 services:
   service-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     image: backparkontrol:latest
     container_name: backend
     ports:
@@ -13,6 +16,9 @@ services:
       - DB_SYNC=false
 
   service-frontend:
+    build:
+        context: ./frontend-angular
+        dockerfile: Dockerfile
     image: frontparkontrol:latest
     container_name: frontend
     ports:

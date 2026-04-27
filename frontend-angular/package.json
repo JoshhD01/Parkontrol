@@ -34,9 +34,11 @@
     "@angular/router": "^20.2.0",
     "@fontsource/material-icons": "^5.2.7",
     "@fontsource/roboto": "^5.2.10",
+    "chromedriver": "^148.0.0",
     "dayjs": "^1.11.19",
     "jwt-decode": "^4.0.0",
     "rxjs": "~7.8.0",
+    "selenium-webdriver": "^4.43.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
@@ -45,12 +47,14 @@
     "@angular/cli": "^20.2.2",
     "@angular/compiler-cli": "^20.2.0",
     "@types/jasmine": "~5.1.0",
+    "jasmine": "^6.2.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "mocha": "^11.7.5",
     "typescript": "~5.9.2"
   }
 }

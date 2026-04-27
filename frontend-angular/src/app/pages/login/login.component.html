@@ -1,138 +1,145 @@
+<div id="login-container" class="contenedor-login">
+  <mat-card id="login-card" class="tarjeta-login">
 
-<div class="contenedor-login">
-  <mat-card class="tarjeta-login">
-
-
-    <mat-card-header>
-      <div mat-card-avatar class="icono-usuario-login">
-        <mat-icon>account_circle</mat-icon>
+    <mat-card-header id="login-header">
+      <div id="login-avatar" mat-card-avatar class="icono-usuario-login">
+        <mat-icon id="login-avatar-icon">account_circle</mat-icon>
       </div>
       
-      <mat-card-title>ParkControl</mat-card-title>
-      <mat-card-subtitle>Sistema de Gestion de Parqueaderos</mat-card-subtitle>
+      <mat-card-title id="login-title">ParkControl</mat-card-title>
+      <mat-card-subtitle id="login-subtitle">Sistema de Gestion de Parqueaderos</mat-card-subtitle>
     </mat-card-header>
 
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="formulario-login">
+    <mat-card-content id="login-content">
+      <form id="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="formulario-login">
         
         @if (errorMessage) {
-          <div class="mensaje-error">
-            <mat-icon color="warn">error</mat-icon>
-            <span>{{ errorMessage }}</span>
+          <div id="login-error" class="mensaje-error">
+            <mat-icon id="login-error-icon" color="warn">error</mat-icon>
+            <span id="login-error-text">{{ errorMessage }}</span>
           </div>
         }
 
-
-        <mat-form-field appearance="outline" class="campo-completo">
-          <mat-label>Correo Electronico</mat-label>
-          <input matInput 
+        <mat-form-field id="login-email-field" appearance="outline" class="campo-completo">
+          <mat-label id="login-email-label">Correo Electronico</mat-label>
+          <input id="login-email-input"
+                 matInput 
                  type="email" 
                  formControlName="correo"
                  placeholder="ejemplo@correo.com"
-               autocomplete="username">
-          <mat-icon matSuffix>email</mat-icon>
+                 autocomplete="username">
+          <mat-icon id="login-email-icon" matSuffix>email</mat-icon>
+
           @if (loginForm.get('correo')?.hasError('required')) {
-            <mat-error>El correo es requerido</mat-error>
+            <mat-error id="login-email-error-required">El correo es requerido</mat-error>
           }
           @if (loginForm.get('correo')?.hasError('email')) {
-            <mat-error>Debes ingresar un correo valido</mat-error>
+            <mat-error id="login-email-error-format">Debes ingresar un correo valido</mat-error>
           }
           @if (loginForm.get('correo')?.hasError('minlength')) {
-            <mat-error>El correo debe tener al menos 6 caracteres</mat-error>
+            <mat-error id="login-email-error-length">El correo debe tener al menos 6 caracteres</mat-error>
           }
-          
         </mat-form-field>
 
-
-        
-        <mat-form-field appearance="outline" class="campo-completo">
-          <mat-label>Contraseña</mat-label>
-          <input matInput 
+        <mat-form-field id="login-password-field" appearance="outline" class="campo-completo">
+          <mat-label id="login-password-label">Contraseña</mat-label>
+          <input id="login-password-input"
+                 matInput 
                  [type]="hidePassword ? 'password' : 'text'"
                  formControlName="contrasena"
                  placeholder="Ingrese su contraseña"
-               [attr.autocomplete]="hidePassword ? 'current-password' : 'off'">
-          <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
-            [attr.aria-pressed]="!hidePassword"
-            (click)="hidePassword = !hidePassword">
-            <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+                 [attr.autocomplete]="hidePassword ? 'current-password' : 'off'">
+
+          <button id="login-password-toggle"
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+                  [attr.aria-pressed]="!hidePassword"
+                  (click)="hidePassword = !hidePassword">
+            <mat-icon id="login-password-toggle-icon">
+              {{ hidePassword ? 'visibility' : 'visibility_off' }}
+            </mat-icon>
           </button>
+
           @if (loginForm.get('contrasena')?.hasError('required')) {
-            <mat-error>La contraseña es requerida</mat-error>
+            <mat-error id="login-password-error-required">La contraseña es requerida</mat-error>
           }
           @if (loginForm.get('contrasena')?.hasError('minlength')) {
-            <mat-error>La contraseña debe tener al menos 6 caracteres</mat-error>
+            <mat-error id="login-password-error-length">La contraseña debe tener al menos 6 caracteres</mat-error>
           }
         </mat-form-field>
 
-        <div class="acciones">
-          <button mat-raised-button 
+        <div id="login-actions" class="acciones">
+          <button id="login-submit-btn"
+                  mat-raised-button 
                   color="primary" 
                   type="submit"
                   class="boton-completo boton-login"
                   [disabled]="loginForm.invalid || loading">
 
             @if (loading) {
-              <mat-spinner diameter="20"></mat-spinner>
+              <mat-spinner id="login-loading" diameter="20"></mat-spinner>
             }
 
             @if (!loading) {
-              <span>Iniciar Sesion Cliente</span>
+              <span id="login-submit-text">Iniciar Sesion Cliente</span>
             }
           </button>
         </div>
 
-        <div class="separador"></div>
+        <div id="login-separator" class="separador"></div>
 
-        <div class="info-roles">
+        <div id="login-roles" class="info-roles">
 
-          <mat-card class="tarjeta-info tarjeta-info-clickable"
+          <mat-card id="login-admin-card"
+                    class="tarjeta-info tarjeta-info-clickable"
                     role="button"
                     tabindex="0"
                     (click)="onLoginAdmin()"
                     (keydown.enter)="onLoginAdmin()"
                     (keydown.space)="onLoginAdmin()">
-            <mat-card-content>
-              <div class="rol-info">
-                <mat-icon color="primary">admin_panel_settings</mat-icon>
-                <div>
-                  <strong>Administradores</strong>
-                  <p>Gestion completa de empresas y parqueaderos</p>
+            <mat-card-content id="login-admin-content">
+              <div id="login-admin-info" class="rol-info">
+                <mat-icon id="login-admin-icon" color="primary">admin_panel_settings</mat-icon>
+                <div id="login-admin-text">
+                  <strong id="login-admin-title">Administradores</strong>
+                  <p id="login-admin-desc">Gestion completa de empresas y parqueaderos</p>
                 </div>
               </div>
             </mat-card-content>
           </mat-card>
 
-          <mat-card class="tarjeta-info tarjeta-info-clickable"
+          <mat-card id="login-operator-card"
+                    class="tarjeta-info tarjeta-info-clickable"
                     role="button"
                     tabindex="0"
                     (click)="onLoginOperador()"
                     (keydown.enter)="onLoginOperador()"
                     (keydown.space)="onLoginOperador()">
-            <mat-card-content>
-
-              <div class="rol-info">
-                <mat-icon color="accent">person</mat-icon>
-                <div>
-                  <strong>Operadores</strong>
-                  <p>Control de acceso y monitoreo de vehículos</p>
+            <mat-card-content id="login-operator-content">
+              <div id="login-operator-info" class="rol-info">
+                <mat-icon id="login-operator-icon" color="accent">person</mat-icon>
+                <div id="login-operator-text">
+                  <strong id="login-operator-title">Operadores</strong>
+                  <p id="login-operator-desc">Control de acceso y monitoreo de vehículos</p>
                 </div>
               </div>
-
             </mat-card-content>
           </mat-card>
+
         </div>
       </form>
     </mat-card-content>
 
-    <mat-card-actions class="acciones-tarjeta">
-      <p>No tienes cuenta? 
-        <a routerLink="/registro" class="enlace">Registrate como Usuario Normal</a>
+    <mat-card-actions id="login-footer" class="acciones-tarjeta">
+      <p id="login-register-text">
+        No tienes cuenta? 
+        <a id="login-register-link" routerLink="/registro" class="enlace">
+          Registrate como Usuario Normal
+        </a>
       </p>
     </mat-card-actions>
+
   </mat-card>
 </div>
