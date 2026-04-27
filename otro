@@ -120,4 +120,10 @@ pipeline{
         }
         
     }
-}
+}\
+
+
+
+
+con esto ejecuto las pruebas de selenium desde adentro del proyecto front
+cd /home/lenin/Documentos/universidad/validacion/Parkontrol/frontend-angular && npx mocha test/selenium/pages/*.js --timeout 60000

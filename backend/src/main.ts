@@ -27,16 +27,12 @@ async function bootstrap() {
 
   // Habilitar CORS para que el frontend pueda hacer peticiones
   app.enableCors({
-
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:4200',
-    ],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders:
-      'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+    origin: (origin, callback) => {
+      callback(null, true); // permite cualquier origen dinámico
+    },
     credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
   });
 
   app.setGlobalPrefix('api');
@@ -60,6 +56,6 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 7500);
 }
 void bootstrap();
