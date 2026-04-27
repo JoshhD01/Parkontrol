@@ -1,0 +1,22 @@
+{
+  "name": "parkontrol_web",
+  "version": "1.0.0",
+  "description": "ParkControl es un sistema web para la gestion integral de parqueaderos. Permite a empresas administrar sus parqueaderos, celdas, reservas, pagos, facturacion y reportes. El sistema maneja tres tipos de usuario: administradores, operadores y clientes.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoshhD01/parkontrol.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JoshhD01/parkontrol/issues"
+  },
+  "homepage": "https://github.com/JoshhD01/parkontrol#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0"
+  }
+}

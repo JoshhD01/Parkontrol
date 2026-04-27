@@ -1,0 +1,323 @@
+//---------------------------------------
+
+// Crear una factura en el modulo de facturacion
+
+// 1. Creación de factura exitoso sin incluir el cliente en facturación
+
+const playwright = require('playwright');
+(async () => {
+  const browser = await playwright['chromium'].launch({
+    // headless: false, slowMo: 100, // Uncomment to visualize test
+  });
+  const page = await browser.newPage();
+
+  // Load "http://localhost:4200/facturacion"
+  await page.goto('http://localhost:4200/facturacion');
+
+  // Resize window to 1536 x 799
+  await page.setViewportSize({ width: 1536, height: 799 });
+
+  // Click on <a> "receipt Facturacion"
+  await page.click('[href="/facturacion"]');
+
+  // Click on <div> "Facturas"
+  await page.click('#mat-tab-group-0-label-1');
+
+  // Click on <span> .mat-mdc-button-touch-target
+  await page.click('.mat-mdc-button-touch-target');
+
+  // Scroll wheel by X:0, Y:-432
+  await page.mouse.wheel(0, -432);
+
+  // Fill "3" on <input> #mat-input-60
+  await page.fill('#mat-input-60', '3');
+
+  // Click on <span> .cdk-focused > .mat-mdc-button-touch-target
+  await page.click('.cdk-focused > .mat-mdc-button-touch-target');
+
+  await browser.close();
+})();
+
+// 2. Creación de Factura incluyendo el cliente de facturación
+
+const playwright = require('playwright');
+(async () => {
+  const browser = await playwright['chromium'].launch({
+    // headless: false, slowMo: 100, // Uncomment to visualize test
+  });
+  const page = await browser.newPage();
+
+  // Load "http://localhost:4200/facturacion"
+  await page.goto('http://localhost:4200/facturacion');
+
+  // Resize window to 1536 x 799
+  await page.setViewportSize({ width: 1536, height: 799 });
+
+  // Click on <a> "receipt Facturacion"
+  await page.click('[href="/facturacion"]');
+
+  // Click on <div> "Facturas"
+  await page.click('#mat-tab-group-6-label-1');
+
+  // Click on <span> .mat-mdc-button-touch-target
+  await page.click('.mat-mdc-button-touch-target');
+
+  // Fill "18" on <input> #mat-input-87
+  await page.fill('#mat-input-87', '18');
+
+  // Click on <svg> svg
+  await page.click('svg');
+
+  // Scroll wheel by X:0, Y:1530
+  await page.mouse.wheel(0, 1530);
+
+  // Click on <mat-option> "10208023 - arse@yopmail.c..."
+  await page.click('#mat-option-518');
+
+  // Click on <span> .cdk-focused > .mat-mdc-button-touch-target
+  await page.click('.cdk-focused > .mat-mdc-button-touch-target');
+
+  await browser.close();
+})();
+
+// 3. Creación de factura incluyendo un id de pago inexistente 
+const playwright = require('playwright');
+(async () => {
+  const browser = await playwright['chromium'].launch({
+    // headless: false, slowMo: 100, // Uncomment to visualize test
+  });
+  const page = await browser.newPage();
+
+  // Load "http://localhost:4200/facturacion"
+  await page.goto('http://localhost:4200/facturacion');
+
+  // Resize window to 1536 x 799
+  await page.setViewportSize({ width: 1536, height: 799 });
+
+  // Click on <a> "receipt Facturacion"
+  await page.click('[href="/facturacion"]');
+
+  // Click on <div> "Facturas"
+  await page.click('#mat-tab-group-0-label-1');
+
+  // Click on <span> .mat-mdc-button-touch-target
+  await page.click('.mat-mdc-button-touch-target');
+
+  // Fill "50" on <input> #mat-input-62
+  await page.fill('#mat-input-62', '50');
+
+  // Click on <div> .mat-mdc-form-field-type-mat-select .mat-mdc-form-field-infix
+  await page.click('.mat-mdc-form-field-type-mat-select .mat-mdc-form-field-infix');
+
+  // Scroll wheel by X:0, Y:612
+  await page.mouse.wheel(0, 612);
+
+  // Click on <mat-option> "AB12-34 - doc.pas.special..."
+  await page.click('#mat-option-104');
+
+  // Click on <span> .cdk-focused > .mat-mdc-button-touch-target
+  await page.click('.cdk-focused > .mat-mdc-button-touch-target');
+
+  await browser.close();
+})();
+
+// 4. Creación de factura con un id pago repetido
+
+const playwright = require('playwright');
+(async () => {
+  const browser = await playwright['chromium'].launch({
+    // headless: false, slowMo: 100, // Uncomment to visualize test
+  });
+  const page = await browser.newPage();
+
+  // Load "http://localhost:4200/facturacion"
+  await page.goto('http://localhost:4200/facturacion');
+
+  // Resize window to 1536 x 799
+  await page.setViewportSize({ width: 1536, height: 799 });
+
+  // Click on <a> "receipt Facturacion"
+  await page.click('[href="/facturacion"]');
+
+  // Click on <div> "Facturas"
+  await page.click('#mat-tab-group-3-label-1');
+
+  // Click on <span> .mat-mdc-button-touch-target
+  await page.click('.mat-mdc-button-touch-target');
+
+  // Click on <div> .mdc-text-field--invalid .mat-mdc-form-field-infix
+  await page.click('.mdc-text-field--invalid .mat-mdc-form-field-infix');
+
+  // Click on <div> .mdc-text-field--invalid .mat-mdc-form-field-infix
+  await page.click('.mdc-text-field--invalid .mat-mdc-form-field-infix');
+
+  // Fill "4" on <input> #mat-input-70
+  await page.fill('#mat-input-70', '4');
+
+  // Click on <div> .mat-mdc-form-field-type-mat-select .mat-mdc-form-field-infix
+  await page.click('.mat-mdc-form-field-type-mat-select .mat-mdc-form-field-infix');
+
+  // Scroll wheel by X:0, Y:408
+  await page.mouse.wheel(0, 408);
+
+  // Click on <mat-option> "123456 - doc.ce.ok@demo.c..."
+  await page.click('#mat-option-181');
+
+  // Click on <svg> svg
+  await page.click('svg');
+
+  // Scroll wheel by X:0, Y:1902
+  await page.mouse.wheel(0, 1902);
+
+  // Click on <mat-option> "10208023 - arse@yopmail.c..."
+  await page.click('#mat-option-194');
+
+  // Click on <button> "Aceptar"
+  await page.click('.cdk-focused');
+
+  await browser.close();
+})();
+
+// 5. Creación de factura incluyendo un cliente de facturación diferente al asignado en la reserva
+
+const playwright = require('playwright');
+(async () => {
+  const browser = await playwright['chromium'].launch({
+    // headless: false, slowMo: 100, // Uncomment to visualize test
+  });
+  const page = await browser.newPage();
+
+  // Load "http://localhost:4200/reservas"
+  await page.goto('http://localhost:4200/reservas');
+
+  // Resize window to 1536 x 799
+  await page.setViewportSize({ width: 1536, height: 799 });
+
+  // Click on <a> "event Reservas"
+  await page.click('[href="/reservas"]');
+
+  // Click on <span> .mat-mdc-button-touch-target
+  await page.click('.mat-mdc-button-touch-target');
+
+  // Click on <div> .mdc-text-field--invalid .mat-mdc-form-field-infix
+  await page.click('.mdc-text-field--invalid .mat-mdc-form-field-infix');
+
+  // Fill "aes198" on <input> #mat-input-89
+  await page.fill('#mat-input-89', 'aes198');
+
+  // Click on <span> #mat-select-value-44 > .mat-mdc-select-placeholder
+  await page.click('#mat-select-value-44 > .mat-mdc-select-placeholder');
+
+  // Click on <mat-option> "Celda #6 - Tipo: PARTICUL..."
+  await page.click('#mat-option-554');
+
+  // Click on <input> #mat-input-91
+  await page.click('#mat-input-91');
+
+  // Click on <input> #mat-input-91
+  await page.click('#mat-input-91');
+
+  // Fill "2026-04-26T16:09" on <input> #mat-input-91
+  await page.fill('#mat-input-91', '2026-04-26T16:09');
+
+  // Scroll wheel by X:0, Y:204
+  await page.mouse.wheel(0, 204);
+
+  // Click on <input> #mat-input-92
+  await page.click('#mat-input-92');
+
+  // Click on <input> #mat-input-92
+  await page.click('#mat-input-92');
+
+  // Fill "2026-04-26T19:00" on <input> #mat-input-92
+  await page.fill('#mat-input-92', '2026-04-26T19:00');
+
+  // Scroll wheel by X:0, Y:102
+  await page.mouse.wheel(0, 102);
+
+  // Click on <div> .mat-form-field-hide-placeholder .mat-mdc-form-field-infix
+  await page.click('.mat-form-field-hide-placeholder .mat-mdc-form-field-infix');
+
+  // Click on <mat-option> "CE 12345678 - cliente.fac..."
+  await page.click('#mat-option-631');
+
+  // Scroll wheel by X:0, Y:102
+  await page.mouse.wheel(0, 102);
+
+  // Click on <span> .cdk-focused > .mat-mdc-button-touch-target
+  await page.click('.cdk-focused > .mat-mdc-button-touch-target');
+
+  // Click on <a> "payment Pagos"
+  await Promise.all([
+    page.click('[href="/pagos"]'),
+    page.waitForNavigation()
+  ]);
+
+  // Click on <span> .mat-primary > .mat-mdc-button-touch-target
+  await page.click('.mat-primary > .mat-mdc-button-touch-target');
+
+  // Click on <div> .mdc-text-field--invalid .mat-mdc-form-field-infix
+  await page.click('.mdc-text-field--invalid .mat-mdc-form-field-infix');
+
+  // Click on <mat-option> "Reserva 24 del Vehiculo: ..."
+  await page.click('#mat-option-665');
+
+  // Click on <input> #mat-input-93
+  await page.click('#mat-input-93');
+
+  // Fill "1" on <input> #mat-input-93
+  await page.fill('#mat-input-93', '1');
+
+  // Click on <span> .cdk-focused > .mat-mdc-button-touch-target
+  await page.click('.cdk-focused > .mat-mdc-button-touch-target');
+
+  // Click on <a> "receipt Facturacion"
+  await Promise.all([
+    page.click('[href="/facturacion"]'),
+    page.waitForNavigation()
+  ]);
+
+  // Click on <div> "Facturas"
+  await page.click('#mat-tab-group-7-label-1');
+
+  // Click on <span> .mat-mdc-button-touch-target
+  await page.click('.mat-mdc-button-touch-target');
+
+  // Click on <span> "Cancelar"
+  await page.click('text=Cancelar');
+
+  // Click on <a> "payment Pagos"
+  await Promise.all([
+    page.click('[href="/pagos"]'),
+    page.waitForNavigation()
+  ]);
+
+  // Click on <a> "receipt Facturacion"
+  await Promise.all([
+    page.click('[href="/facturacion"]'),
+    page.waitForNavigation()
+  ]);
+
+  // Click on <div> "Facturas"
+  await page.click('#mat-tab-group-8-label-1');
+
+  // Click on <span> .mat-mdc-button-touch-target
+  await page.click('.mat-mdc-button-touch-target');
+
+  // Fill "19" on <input> #mat-input-95
+  await page.fill('#mat-input-95', '19');
+
+  // Click on <svg> svg
+  await page.click('svg');
+
+  // Scroll wheel by X:0, Y:510
+  await page.mouse.wheel(0, 510);
+
+  // Click on <mat-option> "A123456 - doc.ce.letters@..."
+  await page.click('#mat-option-708');
+
+  // Click on <span> .cdk-focused > .mat-mdc-button-touch-target
+  await page.click('.cdk-focused > .mat-mdc-button-touch-target');
+
+  await browser.close();
+})();
