@@ -6,12 +6,12 @@ services:
     image: backparkontrol:latest
     container_name: backend
     ports:
-      - "7500:7500"
+      - "7820:7820"
     networks:
       - redparkontrol
     environment:
       - SUPABASE_DB_URL=postgresql://postgres.lngtnhmyehqqjmavffqq:parkontrol123@aws-0-us-west-2.pooler.supabase.com:6543/postgres
-      - PORT=7500
+      - PORT=7820
       - JWT_SECRET=parkontrol_dev_secret_2026
       - DB_SYNC=false
 
