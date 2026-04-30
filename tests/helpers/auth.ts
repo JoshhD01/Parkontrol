@@ -7,7 +7,6 @@ export const OPERATOR_PASSWORD = 'Oper1234';
 
 export async function loginAsAdmin(page: Page): Promise<void> {
   await page.goto('/login');
-
   await page.locator('input[formcontrolname="correo"]').fill(ADMIN_EMAIL);
   await page.locator('input[formcontrolname="contrasena"]').fill(ADMIN_PASSWORD);
 

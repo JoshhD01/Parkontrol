@@ -1,56 +1,44 @@
-const { chromium } = require('playwright');
+import { expect, test, type Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
 
-(async () => {
-  const browser = await chromium.launch({
-    headless: false, // ponlo en true en CI
-    slowMo: 100
+async function openTarifas(page: Page): Promise<void> {
+  await loginAsAdmin(page);
+  await page.getByRole('link', { name: /Tarifas/i }).click();
+  await expect(page).toHaveURL(/\/tarifas/);
+}
+
+async function openNuevaTarifa(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /Nueva Tarifa/i }).click();
+  await expect(page.locator('mat-dialog-container')).toBeVisible();
+}
+
+test.describe('Tarifa - UI creación', () => {
+  test.beforeEach(async ({ page }) => {
+    await openTarifas(page);
+    await openNuevaTarifa(page);
   });
 
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  test('1) crea tarifa con valores válidos', async ({ page }) => {
+    const inputs = page.locator('mat-dialog-container input[type="number"]');
+    await inputs.nth(0).fill('2000');
+    await inputs.nth(1).fill('3000');
+    await page.locator('.mat-mdc-select-placeholder').first().click();
+    await page.locator('mat-option').first().click();
+    await page.getByRole('button', { name: /Crear/i }).click();
+    await expect(page.locator('.mensaje-exito')).toBeVisible();
+  });
 
-  // Ir al login
-  await page.goto('http://localhost:4200/login');
+  test('2) no permite crear tarifa sin valores', async ({ page }) => {
+    const creaButton = page.getByRole('button', { name: /Crear/i }).first();
+    await expect(creaButton).toBeDisabled();
+  });
 
-  // Esperar a que cargue el input
-  await page.waitForSelector('#login-email-input');
-
-  // Login
-  await page.fill('#login-email-input', 'Admin1@parkontrol.com');
-  await page.fill('#login-password-input', 'Admin1234');
-
-  // Click login (mejor usar locator)
-  await Promise.all([
-    page.click('#login-admin-text'),
-    page.waitForLoadState('networkidle') // mejor que waitForNavigation en SPA
-  ]);
-
-  // Ir a tarifas
-  await page.click('a[href="/tarifas"]');
-  await page.waitForLoadState('networkidle');
-
-  // Nueva tarifa
-  await page.click('text=Nueva Tarifa');
-
-  // Esperar formulario
-  await page.waitForSelector('input');
-
-  // ⚠️ IMPORTANTE: evita IDs dinámicos
-  const inputs = await page.locator('input').all();
-
-  // Asumiendo orden de inputs (mejor poner data-testid en tu front)
-  await inputs[0].fill('2000'); // fracción por hora
-  await inputs[1].fill('3000'); // hora adicional
-
-  // Selección de parqueadero (más robusto)
-  await page.click('.mat-mdc-select-placeholder');
-  await page.click('text=Parqueadero Centro');
-
-  // Crear
-  await page.click('text=Crear');
-
-  // Esperar algún cambio en UI (tabla, mensaje, etc.)
-  await page.waitForTimeout(2000);
-
-  await browser.close();
-})();
+  test('3) no permite crear tarifa con precio negativo', async ({ page }) => {
+    const inputs = page.locator('mat-dialog-container input[type="number"]');
+    await inputs.nth(0).fill('-100');
+    await inputs.nth(1).fill('3000');
+    await page.locator('.mat-mdc-select-placeholder').first().click();
+    await page.locator('mat-option').first().click();
+    await expect(page.getByRole('button', { name: /Crear/i }).first()).toBeDisabled();
+  });
+});
