@@ -2,8 +2,8 @@ import { expect, test, type APIRequestContext, type Locator, type Page } from '@
 import { loginAsAdmin } from './helpers/auth';
 
 const API_BASE_URL = process.env.PW_API_BASE_URL ?? 'http://localhost:7820/api';
-const ADMIN_EMAIL = process.env.PW_ADMIN_EMAIL ?? 'admin1@parkontrol.com';
-const ADMIN_PASSWORD = process.env.PW_ADMIN_PASSWORD ?? 'Admin1234';
+const ADMIN_EMAIL = 'admin1@parkontrol.com';
+const ADMIN_PASSWORD = 'Admin1234';
 
 const usedPaymentIds = new Set<number>();
 
