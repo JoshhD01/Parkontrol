@@ -1,48 +1,26 @@
-const { chromium } = require('playwright');
+import { expect, test } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
 
-(async () => {
-  const browser = await chromium.launch({
-    headless: false,
-    slowMo: 100
+test.describe('Tarifa - modificación UI', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.getByRole('link', { name: /Tarifas/i }).click();
+    await expect(page).toHaveURL(/\/tarifas/);
   });
 
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  test('1) modifica tarifa existente correctamente', async ({ page }) => {
+    await page.locator('.accion-btn').first().click();
+    const inputs = page.locator('input[type="number"]');
+    await inputs.first().fill('4000');
+    await page.getByRole('button', { name: /Actualizar|Guardar/i }).click();
+    await expect(page.locator('.mensaje-exito')).toBeVisible();
+  });
 
-  // Ir al login
-  await page.goto('http://localhost:4200/login');
-  await page.waitForSelector('#login-email-input');
-
-  // Login (sin pasos redundantes)
-  await page.fill('#login-email-input', 'Admin1@parkontrol.com');
-  await page.fill('#login-password-input', 'Admin1234');
-
-  await Promise.all([
-    page.click('#login-admin-content'),
-    page.waitForLoadState('networkidle')
-  ]);
-
-  // Ir a tarifas
-  await page.click('a[href="/tarifas"]');
-  await page.waitForLoadState('networkidle');
-
-  // Click botón editar (evitar clases frágiles)
-  await page.locator('.accion-btn').first().click();
-
-  // ⚠️ Evitar #mat-input-X → usar locator genérico
-  const inputs = page.locator('input');
-
-  // Asumiendo que el input de precio es el primero editable
-  await inputs.first().fill('4000');
-
-  // Actualizar
-  await page.click('text=Actualizar');
-
-  // Validación básica (esperar que aparezca el valor actualizado)
-  await page.waitForSelector('text=$4000');
-
-  // Interacción con tabla
-  await page.locator('.mat-mdc-row').first().click();
-
-  await browser.close();
-})();
+  test('2) no permite guardar tarifa con valor inválido', async ({ page }) => {
+    await page.locator('.accion-btn').first().click();
+    const inputs = page.locator('input[type="number"]');
+    await inputs.first().fill('-1');
+    await inputs.first().blur();
+    await expect(page.getByRole('button', { name: /Actualizar|Guardar/i }).first()).toBeDisabled();
+  });
+});
