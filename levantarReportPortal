@@ -1,0 +1,2 @@
+cd reportportal/deploy/docker
+docker compose up

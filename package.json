@@ -17,6 +17,7 @@
   "homepage": "https://github.com/JoshhD01/parkontrol#readme",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
+    "@reportportal/agent-js-playwright": "^5.4.0",
     "@types/node": "^25.6.0"
   }
 }
