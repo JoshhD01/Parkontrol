@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from './percy';
 import { loginAsAdmin } from './helpers/auth';
 
 async function openPagos(page: Page): Promise<void> {

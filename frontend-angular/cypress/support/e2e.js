@@ -16,3 +16,10 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 import '@argos-ci/cypress/support'
+import '@percy/cypress'
+
+afterEach(() => {
+	const testTitle = Cypress.currentTest?.titlePath?.join(' › ') ?? Cypress.currentTest?.title ?? 'Cypress test'
+
+	cy.percySnapshot(testTitle)
+})

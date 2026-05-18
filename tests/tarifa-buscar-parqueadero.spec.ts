@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './percy';
 import { loginAsUser } from './helpers/auth';
 
 test.describe('Tarifa - buscar parqueadero', () => {

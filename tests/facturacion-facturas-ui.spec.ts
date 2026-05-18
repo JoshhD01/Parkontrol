@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type Locator, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Locator, type Page } from './percy';
 import { loginAsAdmin } from './helpers/auth';
 
 const API_BASE_URL = process.env.PW_API_BASE_URL ?? 'http://localhost:7820/api';

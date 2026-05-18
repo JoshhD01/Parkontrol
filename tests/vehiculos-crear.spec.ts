@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './percy';
 import { loginAsAdmin } from './helpers/auth';
 
 test.describe('Vehículos - creación', () => {

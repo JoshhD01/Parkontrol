@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './percy';
 import { loginAsAdmin } from './helpers/auth';
 
 async function openReservas(page: Page): Promise<void> {
